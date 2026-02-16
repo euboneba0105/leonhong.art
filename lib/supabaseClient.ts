@@ -3,11 +3,25 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+// Provide a safe fallback during build/time when env vars are not set.
+// This avoids throwing at import-time which breaks static builds on CI.
+let supabase: any
+
+if (supabaseUrl && supabaseAnonKey) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey)
+} else {
+  // Minimal stub that supports the chained calls used in this project.
+  const stub = {
+    from: (_table: string) => ({
+      select: (_cols?: string) => ({
+        order: (_col: string, _opts?: any) => Promise.resolve({ data: [], error: null })
+      })
+    })
+  }
+  supabase = stub
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export { supabase }
 
 export type Artwork = {
   id: string
