@@ -3,40 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <title>Content Manager</title>
+
+    <!-- Netlify Identity -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+    <!-- Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 2rem; }
-      .login { margin-top: 2rem; }
-      .link-btn { display:inline-block; padding:0.5rem 1rem; background:#0b6; color:#fff; border-radius:4px; text-decoration:none; }
-    </style>
   </head>
   <body>
-    <h1>Content Manager</h1>
-    <p>使用 Netlify Identity 登入以管理內容。</p>
-    <div class="login">
-      <a id="login-btn" class="link-btn" href="#">登入 / 開啟 CMS</a>
-    </div>
-
     <script>
-      // Netlify Identity widget events
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('login', user => {
-          window.location.reload();
-        });
-        window.netlifyIdentity.on('logout', () => {
-          window.location.reload();
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
         });
       }
-
-      document.getElementById('login-btn').addEventListener('click', function(e){
-        e.preventDefault();
-        if (window.netlifyIdentity) {
-          window.netlifyIdentity.open();
-        } else {
-          alert('Netlify Identity widget not available.');
-        }
-      });
     </script>
   </body>
 </html>
