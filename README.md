@@ -1,33 +1,49 @@
 # 🎨 Leon Hong Art - 藝術家個人網站
 
-一個使用 Next.js 14 和 React 18 構建的現代藝術家個人網站，支持照片上傳、瀏覽和管理功能。
+一個使用 Next.js 16 和 React 18 構建的現代藝術家個人網站，支持靜態 HTML 頁面和 Supabase 動態畫廊。
 
 ## ✨ 功能特色
 
-- 🖼️ **照片展示** - 優雅的作品集展示，支持多種圖片格式
-- 📤 **照片上傳** - 直白易用的拖放上傳界面，支持多種圖片格式
-- 🗑️ **照片管理** - 快速刪除或下載已上傳的作品
-- 🎨 **現代設計** - 響應式設計，在桌面、平板和手機上完美顯示
-- 🚀 **高性能** - 使用 Next.js 和 Tailwind CSS 優化性能
+- 🖼️ **靜態網站** - HTML、CSS 和 JavaScript 靜態頁面
+- 🎨 **動態画廊** - Supabase 驅動的作品集管理系統
+- 📸 **圖片優化** - Next.js Image 組件自動優化
+- 🎯 **分類排序** - 按 sort_order 排列的作品展示
+- 📱 **響應式設計** - 在桌面、平板和手機上完美顯示
+- 🚀 **Vercel 部署** - 一鍵部署到 Vercel
+- ♿ **性能優先** - 服務端渲染、圖片對比和懶加載
 
 ## 🛠️ 技術棧
 
-- **框架**: Next.js 14
+- **框架**: Next.js 16 (App Router)
 - **語言**: React 18 + TypeScript
-- **樣式**: Tailwind CSS
-- **文件存儲**: 本地文件系統
-- **API**: Next.js App Router
+- **資料庫**: Supabase (PostgreSQL)
+- **樣式**: CSS Modules
+- **部署**: Vercel
+- **圖片服務**: Supabase Storage + Next.js Image
 
-## 📋 支持的圖片格式
+## 📁 項目結構
 
-- JPG / JPEG
-- PNG
-- GIF
-- WebP
-
-## 📁 最大文件大小
-
-- 50 MB
+```
+leonhong.art/
+├── app/                    # Next.js App Router
+│   ├── artworks/          # 動態畫廊頁面
+│   ├── page.tsx           # 首頁
+│   ├── layout.tsx         # 根布局
+│   └── globals.css        # 全局樣式
+├── components/            # React 組件
+│   ├── ArtworkGrid.tsx    # 網格容器
+│   └── ArtworkCard.tsx    # 作品卡片
+├── lib/                   # 工具函數
+│   └── supabaseClient.ts  # Supabase 客戶端
+├── styles/               # CSS Modules
+│   ├── home.module.css    # 首頁樣式
+│   └── artworks.module.css # 畫廊樣式
+├── public/               # 靜態資產
+│   ├── index.html        # 靜態首頁
+│   ├── about.html        # 關於頁面
+│   └── portfolio.html    # 靜態作品集
+└── SUPABASE_SETUP.md    # 詳細設置說明
+```
 
 ## 🚀 快速開始
 
@@ -35,8 +51,10 @@
 
 - Node.js 18+
 - npm 或 yarn
+- Supabase 項目 ([免費建立](https://supabase.com))
+- Vercel 帳戶 ([免費註冊](https://vercel.com))
 
-### 安裝
+### 本地開發
 
 1. 克隆這個倉庫
 ```bash
@@ -49,81 +67,174 @@ cd leonhong.art
 npm install
 ```
 
-3. 運行開發服務器
+3. 設置環境變數
+```bash
+# 創建 .env.local 文件
+cp .env.example .env.local
+
+# 編輯 .env.local，添加你的 Supabase 憑證
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+4. 運行開發服務器
 ```bash
 npm run dev
 ```
 
-4. 在瀏覽器中打開 [http://localhost:3000](http://localhost:3000)
+訪問 `http://localhost:3000`### 前置要求
 
-## 📁 項目結構
+- Node.js 18+
+- npm 或 yarn
+- Supabase 項目 ([免費建立](https://supabase.com))
+- Vercel 帳戶 ([免費註冊](https://vercel.com))
 
-```
-leonhong.art/
-├── app/
-│   ├── layout.tsx          # 根佈局
-│   ├── page.tsx            # 首頁
-│   ├── globals.css         # 全局樣式
-│   ├── api/
-│   │   └── upload/
-│   │       ├── route.ts    # 上傳和列表 API
-│   │       └── [filename]/
-│   │           └── route.ts # 刪除 API
-│   ├── gallery/
-│   │   └── page.tsx        # 作品集頁面
-│   └── upload/
-│       └── page.tsx        # 上傳頁面
-├── public/
-│   └── uploads/            # 存儲上傳的照片
-├── package.json
-├── next.config.js
-├── tsconfig.json
-├── tailwind.config.ts
-└── postcss.config.js
+### 本地開發
+
+1. 克隆這個倉庫
+```bash
+git clone https://github.com/euboneba0105/leonhong.art.git
+cd leonhong.art
 ```
 
-## 🔌 API 端點
+2. 安裝依賴
+```bash
+npm install
+```
 
-### GET /api/upload
-列出所有已上傳的照片
+3. 設置環境變數
+```bash
+# 創建 .env.local 文件
+cp .env.example .env.local
 
-### POST /api/upload
-上傳新照片
+# 編輯 .env.local，添加你的 Supabase 憑證
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
 
-### DELETE /api/upload/[filename]
-刪除指定照片
+4. 運行開發服務器
+```bash
+npm run dev
+```
 
-## 🎨 頁面
+訪問 `http://localhost:3000`
 
-### 首頁 (/)
-歡迎頁面，介紹網站功能和藝術家信息。
+## 📖 詳細設置指南
 
-### 作品集 (/gallery)
-展示所有已上傳的照片，支持預覽、下載和刪除。
+請參閱 [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) 了解：
 
-### 上傳頁面 (/upload)
-用戶友好的照片上傳界面，支持拖放功能。
+- ✅ 如何設置 Supabase 資料庫
+- 🖼️ 如何上傳圖片到 Supabase Storage
+- 🔑 環境變數配置
+- 🎨 添加作品到數據庫
+- 🐛 故障排除
 
 ## 🚀 部署
 
 ### 部署到 Vercel
 
 ```bash
-npm install -g vercel
+# 使用 Vercel CLI
+npm i -g vercel
 vercel
+
+# 或連接 GitHub repo 到 Vercel 儀表板
+# https://vercel.com/new
 ```
 
-### 部署到其他平台
+### 部署步驟
 
-1. 構建項目
+1. 推送到 GitHub
+```bash
+git add .
+git commit -m "Add Supabase integration"
+git push origin main
+```
+
+2. 在 Vercel 儀表板連接 GitHub
+3. 設置環境變數：
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. 點擊部署
+
+### 本地構建和測試
+
 ```bash
 npm run build
+npm run start
 ```
 
-2. 啟動生產服務器
-```bash
-npm start
+## 🎯 URL 結構
+
+- `/` - 首頁（Next.js）
+- `/artworks` - 動態作品畫廊（Supabase）
+- `/index.html` - 靜態首頁
+- `/about.html` - 靜態關於頁面
+- `/portfolio.html` - 靜態作品集
+
+## 📊 Supabase 資料庫結構
+
+### artworks 表
+
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| id | uuid | 主鍵 |
+| title | text | 作品標題 |
+| year | int | 創建年份 |
+| medium | text | 媒介（油畫、水彩等） |
+| size | text | 尺寸（例：100cm x 150cm） |
+| description | text | 作品描述 |
+| image_url | text | 圖片 URL（Supabase Storage） |
+| sort_order | int | 排序順序（低到高） |
+| created_at | timestamptz | 創建時間 |
+
+## 🎨 設計特色
+
+- **黑白極簡風格** - 專業的藝術畫廊設計
+- **響應式網格** - 自動適應不同屏幕尺寸
+- **懶加載圖片** - 提升頁面性能
+- **加載骨架屏** - 更好的用戶體驗
+- **暗色首頁** - 現代化設計
+
+## 🔒 環境變數
+
+這些是公開的 Supabase 變數（前綴有 `NEXT_PUBLIC_`）：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
+
+**重要**：不要提交 `.env.local` 文件到 Git。使用 `.gitignore`。
+
+## 📚 資源鏈接
+
+- [Next.js 文檔](https://nextjs.org/docs)
+- [Supabase 文檔](https://supabase.com/docs)
+- [Vercel 部署指南](https://vercel.com/docs)
+- [Next.js Image 組件](https://nextjs.org/docs/app/api-reference/components/image)
+
+## 🆘 故障排除
+
+### 圖片未加載
+
+1. 檢查 `image_url` 是否正確
+2. 確保 Supabase Storage 存儲桶設置為公開
+3. 檢查 `next.config.js` 中的 `remotePatterns` 配置
+
+### Supabase 連接失敗
+
+1. 驗證環境變數是否正確設置
+2. 確保 Supabase 項目不在睡眠狀態
+3. 檢查防火牆/網絡設置
+
+## 📄 許可證
+
+專有 - Leon's Art Studio 2026
+
+---
+
+**需要幫助？** 查看 [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) 或檢查組件中的 TypeScript 型別定義。
 
 ## 📝 環境變量
 
