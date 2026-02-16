@@ -1,3 +1,12 @@
+## Decap CMS (Netlify CMS) config
+## Backend: git-gateway
+## To enable login and Git-based editing:
+## 1. Deploy this site to Netlify (or another host supporting Git Gateway).
+## 2. In Netlify site settings -> Identity: Enable "Identity".
+## 3. In Identity -> Services: enable "Git Gateway" and connect to your repo.
+## 4. Invite users or allow signup; users can then sign in via Netlify Identity.
+## 5. admin/index.html in this repo loads the Netlify Identity widget.
+
 backend:
   name: git-gateway
   branch: main
@@ -14,3 +23,9 @@ collections:
         file: "about.html"
         fields:
           - { label: "Content", name: "body", widget: "markdown" }
+
+# Notes:
+# - If you prefer a different auth backend, replace `git-gateway` with an
+#   appropriate backend and update `admin/index.html` accordingly.
+# - For local testing, consider using `netlify dev` from the Netlify CLI
+#   which can emulate Identity/Git Gateway locally.
