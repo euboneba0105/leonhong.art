@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { supabase, type Artwork } from '@/lib/supabaseClient'
 import ArtworkGrid from '@/components/ArtworkGrid'
 import Link from 'next/link'
