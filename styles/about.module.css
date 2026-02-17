@@ -1,0 +1,281 @@
+.pageContainer {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.pageHeader {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 4rem 2rem;
+  text-align: center;
+  border-bottom: 3px solid #404040;
+}
+
+.pageHeader h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.backLink {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.backLink:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.mainContent {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+/* ── Bio Section ── */
+.bioSection {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+  margin-bottom: 4rem;
+  padding-bottom: 4rem;
+  border-bottom: 2px solid #e5e5e5;
+}
+
+.portraitWrapper {
+  flex-shrink: 0;
+}
+
+.portrait {
+  display: block;
+  width: 320px;
+  height: 320px;
+  object-fit: cover;
+  border: 2px solid #cccccc;
+}
+
+.bioContent {
+  flex: 1;
+}
+
+.artistName {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 1.5rem 0;
+}
+
+.bioText {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #333333;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* ── Timeline Section ── */
+.timelineSection {
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 2.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid #1a1a1a;
+  display: inline-block;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 0;
+}
+
+.yearGroup {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.yearLabel {
+  flex-shrink: 0;
+  width: 80px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  padding-top: 0.25rem;
+}
+
+.yearEntries {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.yearGroup:last-child .yearEntries {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.entry {
+  padding: 1.25rem 1.5rem;
+  background-color: #fafafa;
+  border-left: 3px solid #1a1a1a;
+}
+
+.categoryBadge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  background-color: #1a1a1a;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.entryTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+}
+
+.entryDescription {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #555555;
+  margin: 0;
+}
+
+/* ── Empty / Error States ── */
+.emptyState {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #666666;
+}
+
+.emptyState p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* ── Skeleton Loading ── */
+.skeletonPortrait {
+  flex-shrink: 0;
+  width: 320px;
+  height: 320px;
+  background-color: #e5e5e5;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeletonText {
+  height: 1rem;
+  background-color: #e5e5e5;
+  margin-bottom: 0.75rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeletonEntry {
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid #e5e5e5;
+  margin-bottom: 1rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pageHeader {
+    padding: 2rem 1rem;
+  }
+
+  .pageHeader h1 {
+    font-size: 2rem;
+  }
+
+  .mainContent {
+    padding: 2rem 1rem;
+  }
+
+  .bioSection {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    text-align: center;
+  }
+
+  .portrait {
+    width: 240px;
+    height: 240px;
+  }
+
+  .skeletonPortrait {
+    width: 240px;
+    height: 240px;
+  }
+
+  .yearGroup {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .yearLabel {
+    width: auto;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    padding: 1.5rem 1rem;
+  }
+
+  .pageHeader h1 {
+    font-size: 1.5rem;
+  }
+
+  .mainContent {
+    padding: 1.5rem 1rem;
+  }
+
+  .portrait {
+    width: 200px;
+    height: 200px;
+  }
+
+  .skeletonPortrait {
+    width: 200px;
+    height: 200px;
+  }
+
+  .artistName {
+    font-size: 1.5rem;
+  }
+
+  .entry {
+    padding: 1rem;
+  }
+}
