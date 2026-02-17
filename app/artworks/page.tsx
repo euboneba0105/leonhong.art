@@ -26,8 +26,8 @@ async function getArtworks(): Promise<Artwork[]> {
 }
 
 export const metadata = {
-  title: 'Artworks Gallery | Leon\'s Art',
-  description: 'Explore my collection of original artworks including oil paintings, watercolors, and drawings.',
+  title: 'Artworks Gallery',
+  description: 'Browse the collection of original artworks.',
 }
 
 export default async function ArtworksPage() {
@@ -45,7 +45,7 @@ export default async function ArtworksPage() {
     <div className={styles.pageContainer}>
       <header className={styles.pageHeader}>
         <h1>Artworks Gallery</h1>
-        <p>Explore my collection of original artworks</p>
+        <p>Browse the collection of original artworks</p>
         <Link href="/" className={styles.backLink}>
           ← Back to Home
         </Link>
