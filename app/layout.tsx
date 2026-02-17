@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Leon Hong',
-  description: 'New Next.js app'
+  title: 'Art Portfolio',
+  description: 'Artist portfolio powered by Next.js and Supabase',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
