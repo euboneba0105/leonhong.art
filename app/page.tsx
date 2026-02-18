@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import styles from '@/styles/home.module.css'
+import HomeContent from '@/components/HomeContent'
 
 export const metadata = {
   title: 'Art Portfolio',
@@ -7,37 +6,5 @@ export const metadata = {
 }
 
 export default function Home() {
-  return (
-    <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1>Art Portfolio</h1>
-        </div>
-      </header>
-
-      <nav className={styles.navbar}>
-        <ul>
-          <li><Link href="/" className={styles.navLink}>Home</Link></li>
-          <li><Link href="/artworks" className={styles.navLink}>Gallery</Link></li>
-          <li><Link href="/about" className={styles.navLink}>About</Link></li>
-        </ul>
-      </nav>
-
-      <main className={styles.mainContent}>
-        <section className={styles.hero}>
-          <h2>Welcome</h2>
-          <p>Explore the collection of original artworks</p>
-          <div className={styles.cta}>
-            <Link href="/artworks" className={styles.ctaButton}>
-              View Gallery
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      <footer className={styles.footer}>
-        <p>&copy; {new Date().getFullYear()} Art Portfolio</p>
-      </footer>
-    </div>
-  )
+  return <HomeContent />
 }

@@ -14,11 +14,7 @@ if (supabaseUrl && supabaseAnonKey) {
   const stub = {
     from: (_table: string) => ({
       select: (_cols?: string) => ({
-        order: (_col: string, _opts?: any) => Promise.resolve({ data: [], error: null }),
-        limit: (_n: number) => ({
-          single: () => Promise.resolve({ data: null, error: null })
-        }),
-        single: () => Promise.resolve({ data: null, error: null })
+        order: (_col: string, _opts?: any) => Promise.resolve({ data: [], error: null })
       })
     })
   }
@@ -39,20 +35,15 @@ export type Artwork = {
   created_at: string
 }
 
-export type ArtistProfile = {
-  id: string
-  name: string
-  bio: string
-  image_url?: string
-  created_at: string
-}
-
 export type Experience = {
   id: string
   year: number
   title: string
+  title_en?: string
   category: string
+  category_en?: string
   description?: string
+  description_en?: string
   sort_order: number
   created_at: string
 }

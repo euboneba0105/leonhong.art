@@ -1,4 +1,5 @@
 import './globals.css'
+import { LanguageProvider } from '@/components/LanguageProvider'
 
 export const metadata = {
   title: 'Art Portfolio',
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-Hant">
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   )
 }
