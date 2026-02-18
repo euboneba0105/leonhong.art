@@ -2,7 +2,7 @@ import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 
 const ADMIN_EMAILS = [
-  'catherine010512@gmail.com',
+  'catherine90010512@gmail.com',
   'superleon0122@gmail.com',
 ]
 
