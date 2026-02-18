@@ -15,7 +15,7 @@ export default function Header() {
 
   const navItems = [
     { href: '/', label: zh ? '作品集' : 'Gallery' },
-    { href: '/exhibitions', label: zh ? '展覽' : 'Exhibition' },
+    { href: '/exhibitions', label: zh ? '活動' : 'Events' },
     { href: '/about', label: zh ? '關於' : 'About' },
   ]
 

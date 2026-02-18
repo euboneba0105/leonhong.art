@@ -34,7 +34,7 @@ export default function ExhibitionsContent({ exhibitions }: ExhibitionsContentPr
       <main className={styles.mainContent}>
         {exhibitions.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>{zh ? '目前尚無展覽資訊。' : 'No exhibitions listed yet.'}</p>
+            <p>{zh ? '目前尚無活動資訊。' : 'No events listed yet.'}</p>
           </div>
         ) : (
           <div className={styles.exhibitionList}>
