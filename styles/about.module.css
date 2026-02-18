@@ -28,7 +28,7 @@
   width: 320px;
   height: 320px;
   object-fit: cover;
-  border: 2px solid #cccccc;
+  border: none;
 }
 
 .bioContent {
@@ -191,7 +191,7 @@
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    text-align: center;
+    text-align: left;
   }
 
   .portrait {
