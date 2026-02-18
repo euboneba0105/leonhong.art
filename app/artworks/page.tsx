@@ -2,9 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 import { supabase, type Artwork } from '@/lib/supabaseClient'
-import ArtworkGrid from '@/components/ArtworkGrid'
-import Link from 'next/link'
-import styles from '@/styles/artworks.module.css'
+import ArtworksContent from '@/components/ArtworksContent'
 
 async function getArtworks(): Promise<Artwork[]> {
   try {
@@ -41,32 +39,5 @@ export default async function ArtworksPage() {
     console.error(err)
   }
 
-  return (
-    <div className={styles.pageContainer}>
-      <header className={styles.pageHeader}>
-        <h1>Artworks Gallery</h1>
-        <p>Browse the collection of original artworks</p>
-        <Link href="/" className={styles.backLink}>
-          ← Back to Home
-        </Link>
-      </header>
-
-      <main className={styles.mainContent}>
-        {error ? (
-          <div className={styles.errorMessage}>
-            <p>{error}</p>
-            <p className={styles.errorSubtext}>
-              Please check your connection and try refreshing the page.
-            </p>
-          </div>
-        ) : artworks.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>No artworks found yet. Check back soon!</p>
-          </div>
-        ) : (
-          <ArtworkGrid artworks={artworks} />
-        )}
-      </main>
-    </div>
-  )
+  return <ArtworksContent artworks={artworks} error={error} />
 }
