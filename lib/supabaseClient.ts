@@ -23,14 +23,27 @@ if (supabaseUrl && supabaseAnonKey) {
 
 export { supabase }
 
+export type Series = {
+  id: string
+  name: string          // 系列名稱 (zh)
+  name_en?: string      // 系列名稱 (en)
+  description?: string  // 敘述 (zh)
+  description_en?: string // 敘述 (en)
+  sort_order: number
+  created_at: string
+}
+
 export type Artwork = {
   id: string
-  title: string
-  year?: number
-  medium?: string
-  size?: string
-  description?: string
-  image_url?: string
+  title: string          // 作品名稱 (zh)
+  title_en?: string      // 作品名稱 (en)
+  series_id?: string     // 系列 (FK to series)
+  year?: number          // 年份
+  medium?: string        // 媒材 (zh)
+  medium_en?: string     // 媒材 (en)
+  size?: string          // 尺寸
+  description?: string   // 敘述 (zh)
+  description_en?: string // 敘述 (en)
   sort_order: number
   created_at: string
 }
@@ -50,16 +63,26 @@ export type Experience = {
 
 export type Exhibition = {
   id: string
-  title: string
-  title_en?: string
-  description?: string
-  description_en?: string
-  cover_image_url?: string
-  start_date?: string
-  end_date?: string
-  location?: string
-  location_en?: string
-  location_url?: string
+  year?: number          // 年份
+  title: string          // 展覽名稱 (zh)
+  title_en?: string      // 展覽名稱 (en)
+  venue?: string         // 場地空間 (zh)
+  venue_en?: string      // 場地空間 (en)
+  region?: string        // 地區 (zh)
+  region_en?: string     // 地區 (en)
+  sort_order: number
+  created_at: string
+}
+
+export type Award = {
+  id: string
+  year?: number          // 年份
+  name: string           // 獎項名稱 (zh)
+  name_en?: string       // 獎項名稱 (en)
+  category: string       // 競賽類別 (zh)
+  category_en?: string   // 競賽類別 (en)
+  award: string          // 獎項 (zh)
+  award_en?: string      // 獎項 (en)
   sort_order: number
   created_at: string
 }

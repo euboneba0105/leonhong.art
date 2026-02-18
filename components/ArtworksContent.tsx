@@ -5,27 +5,63 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import ArtworkGrid from './ArtworkGrid'
-import type { Artwork } from '@/lib/supabaseClient'
+import type { Artwork, Series } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface ArtworksContentProps {
   artworks: Artwork[]
+  seriesList: Series[]
   error: string | null
 }
 
-export default function ArtworksContent({ artworks, error }: ArtworksContentProps) {
+export default function ArtworksContent({ artworks, seriesList, error }: ArtworksContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
   const router = useRouter()
   const isAdmin = !!(session?.user as any)?.isAdmin
 
+  // Series form state
+  const [showSeriesForm, setShowSeriesForm] = useState(false)
+  const [savingSeries, setSavingSeries] = useState(false)
+  const [seriesForm, setSeriesForm] = useState({
+    name: '', name_en: '', description: '', description_en: '',
+  })
+
+  // Artwork form state
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
-    title: '', year: '', medium: '', size: '', description: '', image_url: '',
+    title: '', title_en: '', series_id: '', year: '',
+    medium: '', medium_en: '', size: '', description: '', description_en: '',
   })
+
+  async function handleSeriesSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingSeries(true)
+    const res = await fetch('/api/series', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(seriesForm),
+    })
+    setSavingSeries(false)
+    if (res.ok) {
+      setShowSeriesForm(false)
+      setSeriesForm({ name: '', name_en: '', description: '', description_en: '' })
+      router.refresh()
+    }
+  }
+
+  async function handleSeriesDelete(id: string) {
+    if (!confirm(zh ? '確定要刪除此系列？' : 'Delete this series?')) return
+    await fetch('/api/series', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    router.refresh()
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,12 +72,13 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
       body: JSON.stringify({
         ...form,
         year: form.year ? Number(form.year) : null,
+        series_id: form.series_id || null,
       }),
     })
     setSaving(false)
     if (res.ok) {
       setShowForm(false)
-      setForm({ title: '', year: '', medium: '', size: '', description: '', image_url: '' })
+      setForm({ title: '', title_en: '', series_id: '', year: '', medium: '', medium_en: '', size: '', description: '', description_en: '' })
       router.refresh()
     }
   }
@@ -59,6 +96,35 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
+
+        {/* ── 系列管理 (admin only) ── */}
+        {isAdmin && (
+          <section style={{ marginBottom: '2rem' }}>
+            <div className={admin.adminBar}>
+              <span style={{ fontWeight: 600 }}>{zh ? '系列管理' : 'Series'}</span>
+              <button className={admin.addBtn} onClick={() => setShowSeriesForm(true)}>
+                + {zh ? '新增系列' : 'Add Series'}
+              </button>
+            </div>
+
+            {seriesList.length > 0 && (
+              <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0' }}>
+                {seriesList.map((s) => (
+                  <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 0', borderBottom: '1px solid #eee' }}>
+                    <span style={{ flex: 1 }}>
+                      {zh ? s.name : (s.name_en || s.name)}
+                    </span>
+                    <button className={admin.deleteBtn} onClick={() => handleSeriesDelete(s.id)}>
+                      {zh ? '刪除' : 'Delete'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* ── 作品區塊 ── */}
         {isAdmin && (
           <div className={admin.adminBar}>
             <button className={admin.addBtn} onClick={() => setShowForm(true)}>
@@ -82,15 +148,80 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
           <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onDelete={handleDelete} />
         )}
 
+        {/* ── 新增系列 Modal ── */}
+        {showSeriesForm && (
+          <div className={admin.overlay} onClick={() => setShowSeriesForm(false)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSeriesSubmit}>
+              <h2 className={admin.modalTitle}>{zh ? '新增系列' : 'Add Series'}</h2>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>系列名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={seriesForm.name}
+                    onChange={(e) => setSeriesForm({ ...seriesForm, name: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Series Name (EN)</label>
+                  <input className={admin.formInput} value={seriesForm.name_en}
+                    onChange={(e) => setSeriesForm({ ...seriesForm, name_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>敘述 (中文)</label>
+                  <textarea className={admin.formTextarea} value={seriesForm.description}
+                    onChange={(e) => setSeriesForm({ ...seriesForm, description: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Description (EN)</label>
+                  <textarea className={admin.formTextarea} value={seriesForm.description_en}
+                    onChange={(e) => setSeriesForm({ ...seriesForm, description_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setShowSeriesForm(false)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={savingSeries}>
+                  {savingSeries ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ── 新增作品 Modal ── */}
         {showForm && (
           <div className={admin.overlay} onClick={() => setShowForm(false)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
               <h2 className={admin.modalTitle}>{zh ? '新增作品' : 'Add Artwork'}</h2>
 
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>作品名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Title (EN)</label>
+                  <input className={admin.formInput} value={form.title_en}
+                    onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
+                </div>
+              </div>
+
               <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '作品名稱' : 'Title'} *</label>
-                <input className={admin.formInput} required value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                <label className={admin.formLabel}>{zh ? '系列' : 'Series'}</label>
+                <select className={admin.formInput} value={form.series_id}
+                  onChange={(e) => setForm({ ...form, series_id: e.target.value })}>
+                  <option value="">{zh ? '（無系列）' : '(None)'}</option>
+                  {seriesList.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {zh ? s.name : (s.name_en || s.name)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className={admin.formRow}>
@@ -100,28 +231,36 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
                     onChange={(e) => setForm({ ...form, year: e.target.value })} />
                 </div>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '媒材' : 'Medium'}</label>
-                  <input className={admin.formInput} value={form.medium}
-                    onChange={(e) => setForm({ ...form, medium: e.target.value })} />
+                  <label className={admin.formLabel}>{zh ? '尺寸' : 'Size'}</label>
+                  <input className={admin.formInput} value={form.size} placeholder="e.g. 120 x 80 cm"
+                    onChange={(e) => setForm({ ...form, size: e.target.value })} />
                 </div>
               </div>
 
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '尺寸' : 'Size'}</label>
-                <input className={admin.formInput} value={form.size} placeholder="e.g. 120 x 80 cm"
-                  onChange={(e) => setForm({ ...form, size: e.target.value })} />
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>媒材 (中文)</label>
+                  <input className={admin.formInput} value={form.medium}
+                    onChange={(e) => setForm({ ...form, medium: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Medium (EN)</label>
+                  <input className={admin.formInput} value={form.medium_en}
+                    onChange={(e) => setForm({ ...form, medium_en: e.target.value })} />
+                </div>
               </div>
 
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '說明' : 'Description'}</label>
-                <textarea className={admin.formTextarea} value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '圖片網址' : 'Image URL'}</label>
-                <input className={admin.formInput} value={form.image_url}
-                  onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>敘述 (中文)</label>
+                  <textarea className={admin.formTextarea} value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Description (EN)</label>
+                  <textarea className={admin.formTextarea} value={form.description_en}
+                    onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
+                </div>
               </div>
 
               <div className={admin.modalActions}>

@@ -9,15 +9,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const { data, error: dbError } = await supabaseAdmin
-    .from('artworks')
+    .from('series')
     .insert({
-      title: body.title,
-      title_en: body.title_en || null,
-      series_id: body.series_id || null,
-      year: body.year || null,
-      medium: body.medium || null,
-      medium_en: body.medium_en || null,
-      size: body.size || null,
+      name: body.name,
+      name_en: body.name_en || null,
       description: body.description || null,
       description_en: body.description_en || null,
       sort_order: body.sort_order ?? 0,
@@ -36,7 +31,7 @@ export async function DELETE(req: NextRequest) {
 
   const { id } = await req.json()
   const { error: dbError } = await supabaseAdmin
-    .from('artworks')
+    .from('series')
     .delete()
     .eq('id', id)
 

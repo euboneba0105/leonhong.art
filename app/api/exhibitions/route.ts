@@ -11,16 +11,13 @@ export async function POST(req: NextRequest) {
   const { data, error: dbError } = await supabaseAdmin
     .from('exhibitions')
     .insert({
+      year: body.year || null,
       title: body.title,
       title_en: body.title_en || null,
-      description: body.description || null,
-      description_en: body.description_en || null,
-      cover_image_url: body.cover_image_url || null,
-      start_date: body.start_date || null,
-      end_date: body.end_date || null,
-      location: body.location || null,
-      location_en: body.location_en || null,
-      location_url: body.location_url || null,
+      venue: body.venue || null,
+      venue_en: body.venue_en || null,
+      region: body.region || null,
+      region_en: body.region_en || null,
       sort_order: body.sort_order ?? 0,
     })
     .select()
