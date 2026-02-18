@@ -19,6 +19,7 @@ export default function Home() {
         <ul>
           <li><Link href="/" className={styles.navLink}>Home</Link></li>
           <li><Link href="/artworks" className={styles.navLink}>Gallery</Link></li>
+          <li><Link href="/about" className={styles.navLink}>About</Link></li>
         </ul>
       </nav>
 
