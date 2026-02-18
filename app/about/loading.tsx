@@ -3,10 +3,6 @@ import styles from '@/styles/about.module.css'
 export default function Loading() {
   return (
     <div className={styles.pageContainer}>
-      <header className={styles.pageHeader}>
-        <h1>About</h1>
-      </header>
-
       <main className={styles.mainContent}>
         <section className={styles.bioSection}>
           <div className={styles.skeletonPortrait} />

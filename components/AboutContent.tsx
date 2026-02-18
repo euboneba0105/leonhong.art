@@ -1,8 +1,6 @@
 'use client'
 
-import Link from 'next/link'
 import { useLanguage } from './LanguageProvider'
-import Footer from './Footer'
 import type { Experience } from '@/lib/supabaseClient'
 import styles from '@/styles/about.module.css'
 
@@ -27,13 +25,6 @@ export default function AboutContent({ experiences }: AboutContentProps) {
 
   return (
     <div className={styles.pageContainer}>
-      <header className={styles.pageHeader}>
-        <h1>{zh ? '關於' : 'About'}</h1>
-        <Link href="/" className={styles.backLink}>
-          {zh ? '← 回到首頁' : '← Back to Home'}
-        </Link>
-      </header>
-
       <main className={styles.mainContent}>
         {/* Artist Bio Section */}
         <section className={styles.bioSection}>
@@ -94,8 +85,6 @@ export default function AboutContent({ experiences }: AboutContentProps) {
           )}
         </section>
       </main>
-
-      <Footer />
     </div>
   )
 }
