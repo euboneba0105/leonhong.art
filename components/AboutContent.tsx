@@ -1,9 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import type { Experience } from '@/lib/supabaseClient'
 import styles from '@/styles/about.module.css'
+import admin from '@/styles/adminUI.module.css'
 
 interface AboutContentProps {
   experiences: Experience[]
@@ -12,6 +16,16 @@ interface AboutContentProps {
 export default function AboutContent({ experiences }: AboutContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
+  const { data: session } = useSession()
+  const router = useRouter()
+  const isAdmin = !!(session?.user as any)?.isAdmin
+
+  const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({
+    year: '', title: '', title_en: '', category: '', category_en: '',
+    description: '', description_en: '',
+  })
 
   // Group experiences by year
   const experiencesByYear = experiences.reduce<Record<number, Experience[]>>((acc, exp) => {
@@ -23,6 +37,35 @@ export default function AboutContent({ experiences }: AboutContentProps) {
   const sortedYears = Object.keys(experiencesByYear)
     .map(Number)
     .sort((a, b) => b - a)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    const res = await fetch('/api/experiences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        year: Number(form.year),
+      }),
+    })
+    setSaving(false)
+    if (res.ok) {
+      setShowForm(false)
+      setForm({ year: '', title: '', title_en: '', category: '', category_en: '', description: '', description_en: '' })
+      router.refresh()
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm(zh ? '確定要刪除此經歷？' : 'Delete this experience?')) return
+    await fetch('/api/experiences', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    router.refresh()
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -62,7 +105,14 @@ export default function AboutContent({ experiences }: AboutContentProps) {
 
         {/* Experience Timeline Section */}
         <section className={styles.timelineSection}>
-          <h2 className={styles.sectionTitle}>{zh ? '經歷' : 'Experience'}</h2>
+          <div className={styles.timelineHeader}>
+            <h2 className={styles.sectionTitle}>{zh ? '經歷' : 'Experience'}</h2>
+            {isAdmin && (
+              <button className={admin.addBtn} onClick={() => setShowForm(true)}>
+                + {zh ? '新增經歷' : 'Add Experience'}
+              </button>
+            )}
+          </div>
 
           {sortedYears.length === 0 ? (
             <div className={styles.emptyState}>
@@ -86,6 +136,11 @@ export default function AboutContent({ experiences }: AboutContentProps) {
                           {description && (
                             <p className={styles.entryDescription}>{description}</p>
                           )}
+                          {isAdmin && (
+                            <button className={admin.deleteBtn} onClick={() => handleDelete(exp.id)}>
+                              刪除
+                            </button>
+                          )}
                         </div>
                       )
                     })}
@@ -95,6 +150,66 @@ export default function AboutContent({ experiences }: AboutContentProps) {
             </div>
           )}
         </section>
+
+        {showForm && (
+          <div className={admin.overlay} onClick={() => setShowForm(false)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
+              <h2 className={admin.modalTitle}>{zh ? '新增經歷' : 'Add Experience'}</h2>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>年份 *</label>
+                  <input className={admin.formInput} type="number" required value={form.year}
+                    onChange={(e) => setForm({ ...form, year: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>類別 (中文) *</label>
+                  <input className={admin.formInput} required value={form.category} placeholder="例：個展、聯展、獲獎"
+                    onChange={(e) => setForm({ ...form, category: e.target.value })} />
+                </div>
+              </div>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>Category (EN)</label>
+                <input className={admin.formInput} value={form.category_en} placeholder="e.g. Solo Exhibition"
+                  onChange={(e) => setForm({ ...form, category_en: e.target.value })} />
+              </div>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>標題 (中文) *</label>
+                <input className={admin.formInput} required value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              </div>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>Title (EN)</label>
+                <input className={admin.formInput} value={form.title_en}
+                  onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
+              </div>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>說明 (中文)</label>
+                <textarea className={admin.formTextarea} value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>Description (EN)</label>
+                <textarea className={admin.formTextarea} value={form.description_en}
+                  onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
+              </div>
+
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={saving}>
+                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </main>
     </div>
   )

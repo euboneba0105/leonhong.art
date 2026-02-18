@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 import { useLanguage } from './LanguageProvider'
 import styles from '@/styles/header.module.css'
 
@@ -12,6 +13,8 @@ export default function Header() {
   const zh = lang === 'zh'
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { data: session } = useSession()
+  const isAdmin = !!(session?.user as any)?.isAdmin
 
   const navItems = [
     { href: '/', label: zh ? '作品集' : 'Gallery' },
@@ -59,6 +62,13 @@ export default function Header() {
                 </Link>
               </li>
             ))}
+            {isAdmin && (
+              <li>
+                <button onClick={() => signOut()} className={styles.signOutBtn}>
+                  {zh ? '登出' : 'Sign Out'}
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
 
@@ -81,6 +91,16 @@ export default function Header() {
                 </Link>
               </li>
             ))}
+            {isAdmin && (
+              <li>
+                <button
+                  onClick={() => { signOut(); setMenuOpen(false) }}
+                  className={styles.mobileSignOutBtn}
+                >
+                  {zh ? '登出' : 'Sign Out'}
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       )}

@@ -9,7 +9,8 @@ async function getArtworks(): Promise<Artwork[]> {
     const { data, error } = await supabase
       .from('artworks')
       .select('*')
-      .order('sort_order', { ascending: true })
+      .order('year', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error('Supabase error:', error)

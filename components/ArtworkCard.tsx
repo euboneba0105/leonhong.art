@@ -3,14 +3,17 @@
 import Image from 'next/image'
 import type { Artwork } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
+import admin from '@/styles/adminUI.module.css'
 
 interface ArtworkCardProps {
   artwork: Artwork
+  isAdmin?: boolean
+  onDelete?: (id: string) => void
 }
 
-export default function ArtworkCard({ artwork }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, isAdmin, onDelete }: ArtworkCardProps) {
   const imageUrl = artwork.image_url || '/placeholder.png'
-  
+
   return (
     <article className={styles.artworkCard}>
       <div className={styles.imageWrapper}>
@@ -23,10 +26,10 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
           priority={false}
         />
       </div>
-      
+
       <div className={styles.cardContent}>
         <h3 className={styles.title}>{artwork.title}</h3>
-        
+
         <div className={styles.metadata}>
           {artwork.year && (
             <span className={styles.metaItem}>{artwork.year}</span>
@@ -38,9 +41,15 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
             <span className={styles.metaItem}>{artwork.size}</span>
           )}
         </div>
-        
+
         {artwork.description && (
           <p className={styles.description}>{artwork.description}</p>
+        )}
+
+        {isAdmin && onDelete && (
+          <button className={admin.deleteBtn} onClick={() => onDelete(artwork.id)}>
+            刪除
+          </button>
         )}
       </div>
     </article>

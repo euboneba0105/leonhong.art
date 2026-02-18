@@ -9,7 +9,8 @@ async function getEvents(): Promise<Exhibition[]> {
     const { data, error } = await supabase
       .from('exhibitions')
       .select('*')
-      .order('sort_order', { ascending: true })
+      .order('start_date', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error('Supabase error (events):', error)
