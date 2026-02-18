@@ -25,7 +25,7 @@
 
 .logo {
   display: block;
-  height: 64px;
+  height: 100px;
   width: auto;
   object-fit: contain;
 }
@@ -147,6 +147,10 @@
 
   .spacer {
     display: block;
+  }
+
+  .logo {
+    height: 64px;
   }
 
   /* Center logo between hamburger and spacer */
