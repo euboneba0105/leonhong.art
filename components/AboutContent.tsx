@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useLanguage } from './LanguageProvider'
 import type { Experience } from '@/lib/supabaseClient'
 import styles from '@/styles/about.module.css'
@@ -28,6 +29,16 @@ export default function AboutContent({ experiences }: AboutContentProps) {
       <main className={styles.mainContent}>
         {/* Artist Bio Section */}
         <section className={styles.bioSection}>
+          <div className={styles.portraitWrapper}>
+            <Image
+              src="/portrait.jpg"
+              alt="洪德忠 Leon Hong"
+              width={320}
+              height={320}
+              className={styles.portrait}
+              priority
+            />
+          </div>
           <div className={styles.bioContent}>
             {zh ? (
               <>
