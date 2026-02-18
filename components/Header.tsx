@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -7,9 +8,10 @@ import { useLanguage } from './LanguageProvider'
 import styles from '@/styles/header.module.css'
 
 export default function Header() {
-  const { lang, toggle } = useLanguage()
+  const { lang } = useLanguage()
   const zh = lang === 'zh'
   const pathname = usePathname()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const navItems = [
     { href: '/', label: zh ? '作品集' : 'Gallery' },
@@ -20,6 +22,18 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
+        {/* Hamburger button – mobile only */}
+        <button
+          className={styles.hamburger}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineTop : ''}`} />
+          <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineMid : ''}`} />
+          <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineBot : ''}`} />
+        </button>
+
+        {/* Logo – always centered on mobile */}
         <Link href="/" className={styles.logoLink}>
           <Image
             src="/logo.png"
@@ -31,6 +45,7 @@ export default function Header() {
           />
         </Link>
 
+        {/* Desktop nav */}
         <nav className={styles.nav}>
           <ul className={styles.navList}>
             {navItems.map((item) => (
@@ -44,11 +59,30 @@ export default function Header() {
               </li>
             ))}
           </ul>
-          <button onClick={toggle} className={styles.langToggle}>
-            {zh ? 'EN' : '中文'}
-          </button>
         </nav>
+
+        {/* Spacer to balance hamburger on mobile */}
+        <div className={styles.spacer} />
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <nav className={styles.mobileNav}>
+          <ul className={styles.mobileNavList}>
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`${styles.mobileNavLink} ${pathname === item.href ? styles.navLinkActive : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </header>
   )
 }
