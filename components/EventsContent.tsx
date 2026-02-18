@@ -38,6 +38,7 @@ export default function EventsContent({ events }: EventsContentProps) {
 
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [errMsg, setErrMsg] = useState('')
   const [form, setForm] = useState({
     title: '', title_en: '', description: '', description_en: '',
     start_date: '', end_date: '', location: '', location_en: '',
@@ -47,21 +48,29 @@ export default function EventsContent({ events }: EventsContentProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    const res = await fetch('/api/exhibitions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-    setSaving(false)
-    if (res.ok) {
-      setShowForm(false)
-      setForm({
-        title: '', title_en: '', description: '', description_en: '',
-        start_date: '', end_date: '', location: '', location_en: '',
-        location_url: '', cover_image_url: '',
+    setErrMsg('')
+    try {
+      const res = await fetch('/api/exhibitions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
       })
-      router.refresh()
+      if (res.ok) {
+        setShowForm(false)
+        setForm({
+          title: '', title_en: '', description: '', description_en: '',
+          start_date: '', end_date: '', location: '', location_en: '',
+          location_url: '', cover_image_url: '',
+        })
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => null)
+        setErrMsg(data?.error || `儲存失敗 (${res.status})`)
+      }
+    } catch (err: any) {
+      setErrMsg(err.message || '網路錯誤')
     }
+    setSaving(false)
   }
 
   async function handleDelete(id: string) {
@@ -218,6 +227,7 @@ export default function EventsContent({ events }: EventsContentProps) {
                   onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
               </div>
 
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
                   {zh ? '取消' : 'Cancel'}
