@@ -62,6 +62,19 @@
   margin-bottom: 3rem;
 }
 
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.timelineHeader .sectionTitle {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
 .sectionTitle {
   font-size: 1.75rem;
   font-weight: 700;
