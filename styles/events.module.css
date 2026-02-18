@@ -9,20 +9,20 @@
   padding: 3rem 2rem;
 }
 
-/* ── Exhibition List ── */
-.exhibitionList {
+/* ── Event List ── */
+.eventList {
   display: flex;
   flex-direction: column;
   gap: 3rem;
 }
 
-.exhibitionCard {
+.eventCard {
   border: 2px solid #e5e5e5;
   overflow: hidden;
   transition: border-color 0.3s ease;
 }
 
-.exhibitionCard:hover {
+.eventCard:hover {
   border-color: #404040;
 }
 
@@ -45,7 +45,7 @@
   padding: 2rem;
 }
 
-.exhibitionTitle {
+.eventTitle {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
@@ -103,7 +103,7 @@
     padding: 2rem 1rem;
   }
 
-  .exhibitionList {
+  .eventList {
     gap: 2rem;
   }
 
@@ -111,7 +111,7 @@
     padding: 1.5rem;
   }
 
-  .exhibitionTitle {
+  .eventTitle {
     font-size: 1.25rem;
   }
 
@@ -129,7 +129,7 @@
     padding: 1.25rem;
   }
 
-  .exhibitionTitle {
+  .eventTitle {
     font-size: 1.1rem;
   }
 

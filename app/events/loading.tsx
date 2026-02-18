@@ -1,12 +1,12 @@
-import styles from '@/styles/exhibitions.module.css'
+import styles from '@/styles/events.module.css'
 
 export default function Loading() {
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
-        <div className={styles.exhibitionList}>
+        <div className={styles.eventList}>
           {[...Array(2)].map((_, i) => (
-            <div key={i} className={styles.exhibitionCard}>
+            <div key={i} className={styles.eventCard}>
               <div style={{ width: '100%', paddingBottom: '50%', backgroundColor: '#e5e5e5', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
               <div style={{ padding: '2rem' }}>
                 <div style={{ width: '60%', height: '1.5rem', backgroundColor: '#e5e5e5', marginBottom: '0.75rem', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />

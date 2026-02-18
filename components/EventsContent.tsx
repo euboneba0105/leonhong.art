@@ -3,10 +3,10 @@
 import Image from 'next/image'
 import { useLanguage } from './LanguageProvider'
 import type { Exhibition } from '@/lib/supabaseClient'
-import styles from '@/styles/exhibitions.module.css'
+import styles from '@/styles/events.module.css'
 
-interface ExhibitionsContentProps {
-  exhibitions: Exhibition[]
+interface EventsContentProps {
+  events: Exhibition[]
 }
 
 function formatDate(dateStr: string, zh: boolean): string {
@@ -25,31 +25,31 @@ function formatDateRange(start?: string, end?: string, zh?: boolean): string {
   return `${s} — ${e}`
 }
 
-export default function ExhibitionsContent({ exhibitions }: ExhibitionsContentProps) {
+export default function EventsContent({ events }: EventsContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
 
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
-        {exhibitions.length === 0 ? (
+        {events.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>{zh ? '目前尚無展覽資訊。' : 'No exhibitions listed yet.'}</p>
+            <p>{zh ? '目前尚無活動資訊。' : 'No events listed yet.'}</p>
           </div>
         ) : (
-          <div className={styles.exhibitionList}>
-            {exhibitions.map((exhibition) => {
-              const title = zh ? exhibition.title : (exhibition.title_en || exhibition.title)
-              const description = zh ? exhibition.description : (exhibition.description_en || exhibition.description)
-              const location = zh ? exhibition.location : (exhibition.location_en || exhibition.location)
-              const dateRange = formatDateRange(exhibition.start_date, exhibition.end_date, zh)
+          <div className={styles.eventList}>
+            {events.map((event) => {
+              const title = zh ? event.title : (event.title_en || event.title)
+              const description = zh ? event.description : (event.description_en || event.description)
+              const location = zh ? event.location : (event.location_en || event.location)
+              const dateRange = formatDateRange(event.start_date, event.end_date, zh)
 
               return (
-                <article key={exhibition.id} className={styles.exhibitionCard}>
-                  {exhibition.cover_image_url && (
+                <article key={event.id} className={styles.eventCard}>
+                  {event.cover_image_url && (
                     <div className={styles.coverWrapper}>
                       <Image
-                        src={exhibition.cover_image_url}
+                        src={event.cover_image_url}
                         alt={title}
                         fill
                         sizes="(max-width: 768px) 100vw, 50vw"
@@ -58,7 +58,7 @@ export default function ExhibitionsContent({ exhibitions }: ExhibitionsContentPr
                     </div>
                   )}
                   <div className={styles.cardBody}>
-                    <h2 className={styles.exhibitionTitle}>{title}</h2>
+                    <h2 className={styles.eventTitle}>{title}</h2>
 
                     {dateRange && (
                       <p className={styles.date}>{dateRange}</p>
@@ -66,9 +66,9 @@ export default function ExhibitionsContent({ exhibitions }: ExhibitionsContentPr
 
                     {location && (
                       <p className={styles.location}>
-                        {exhibition.location_url ? (
+                        {event.location_url ? (
                           <a
-                            href={exhibition.location_url}
+                            href={event.location_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={styles.locationLink}
