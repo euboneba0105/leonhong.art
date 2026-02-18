@@ -47,3 +47,19 @@ export type Experience = {
   sort_order: number
   created_at: string
 }
+
+export type Exhibition = {
+  id: string
+  title: string
+  title_en?: string
+  description?: string
+  description_en?: string
+  cover_image_url?: string
+  start_date?: string
+  end_date?: string
+  location?: string
+  location_en?: string
+  location_url?: string
+  sort_order: number
+  created_at: string
+}

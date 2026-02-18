@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 
 export const metadata = {
-  title: 'Artworks Gallery',
-  description: 'Browse my collection of artwork pieces',
+  title: 'Exhibitions',
+  description: 'Exhibition information and upcoming shows.',
 }
 
-export default function ArtworksLayout({
+export default function ExhibitionsLayout({
   children,
 }: {
   children: ReactNode
