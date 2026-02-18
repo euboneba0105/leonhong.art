@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 
 export const metadata = {
-  title: 'Exhibitions',
-  description: 'Exhibition information and upcoming shows.',
+  title: 'Events',
+  description: 'Events, exhibitions, talks and more.',
 }
 
-export default function ExhibitionsLayout({
+export default function EventsLayout({
   children,
 }: {
   children: ReactNode
