@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -34,6 +34,16 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
     size: artwork.size || '', description: artwork.description || '',
     description_en: artwork.description_en || '',
   })
+
+  const [showZoom, setShowZoom] = useState(false)
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setZoomPos({ x, y })
+  }, [])
 
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
   const medium = zh ? artwork.medium : (artwork.medium_en || artwork.medium)
@@ -88,8 +98,13 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
           ← {zh ? '返回' : 'Back'}
         </Link>
 
-        {/* Large image on top, full width, no crop */}
-        <div className={styles.imageSection}>
+        {/* Large image on top, full width, no crop — hover to zoom */}
+        <div
+          className={styles.imageSection}
+          onMouseEnter={() => setShowZoom(true)}
+          onMouseLeave={() => setShowZoom(false)}
+          onMouseMove={handleMouseMove}
+        >
           <Image
             src={imageUrl}
             alt={title}
@@ -99,6 +114,15 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
             className={styles.image}
             priority
           />
+          {showZoom && (
+            <div
+              className={styles.zoomLens}
+              style={{
+                backgroundImage: `url(${imageUrl})`,
+                backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+              }}
+            />
+          )}
         </div>
 
         {/* Info below */}
