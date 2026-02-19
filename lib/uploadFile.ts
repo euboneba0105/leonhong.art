@@ -10,24 +10,34 @@ export async function uploadFile(file: File, folder = 'artworks'): Promise<strin
   const ext = file.name.split('.').pop() || 'jpg'
 
   // 1. Get a presigned upload URL from our API (small JSON request)
-  const urlRes = await fetch('/api/upload-url', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ folder, ext, contentType: file.type }),
-  })
+  let urlRes: Response
+  try {
+    urlRes = await fetch('/api/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder, ext, contentType: file.type }),
+    })
+  } catch (e: any) {
+    throw new Error(`[步驟1] 無法取得上傳網址: ${e.message}`)
+  }
   if (!urlRes.ok) {
     const err = await urlRes.json().catch(() => null)
-    throw new Error(err?.error || '取得上傳網址失敗')
+    throw new Error(`[步驟1] 取得上傳網址失敗 (${urlRes.status}): ${err?.error || '未知錯誤'}`)
   }
   const { signedUrl, publicUrl } = await urlRes.json()
 
   // 2. Upload the file directly to R2 (bypasses server body limits)
-  const uploadRes = await fetch(signedUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type },
-    body: file,
-  })
-  if (!uploadRes.ok) throw new Error('檔案上傳失敗')
+  let uploadRes: Response
+  try {
+    uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    })
+  } catch (e: any) {
+    throw new Error(`[步驟2] 上傳到R2失敗: ${e.message}`)
+  }
+  if (!uploadRes.ok) throw new Error(`[步驟2] R2回傳錯誤 (${uploadRes.status})`)
 
   return publicUrl
 }
