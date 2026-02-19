@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -37,14 +37,59 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   })
 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
-  const [showZoom, setShowZoom] = useState(false)
+  const [zooming, setZooming] = useState(false)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isTouchZooming = useRef(false)
+  const imageSectionRef = useRef<HTMLDivElement>(null)
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
     setZoomPos({ x, y })
+  }, [])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0]
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = ((touch.clientX - rect.left) / rect.width) * 100
+    const y = ((touch.clientY - rect.top) / rect.height) * 100
+    setZoomPos({ x, y })
+
+    longPressTimer.current = setTimeout(() => {
+      isTouchZooming.current = true
+      setZooming(true)
+    }, 400)
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isTouchZooming.current) {
+      // User is scrolling, cancel long-press
+      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
+      return
+    }
+    e.preventDefault()
+    const touch = e.touches[0]
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width) * 100))
+    const y = Math.max(0, Math.min(100, ((touch.clientY - rect.top) / rect.height) * 100))
+    setZoomPos({ x, y })
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
+    isTouchZooming.current = false
+    setZooming(false)
+  }, [])
+
+  // Prevent context menu on long press
+  useEffect(() => {
+    const el = imageSectionRef.current
+    if (!el) return
+    const prevent = (e: Event) => { if (isTouchZooming.current) e.preventDefault() }
+    el.addEventListener('contextmenu', prevent)
+    return () => el.removeEventListener('contextmenu', prevent)
   }, [])
 
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
@@ -98,12 +143,17 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
           ← {zh ? '返回' : 'Back'}
         </Link>
 
-        {/* Large image on top, full width, no crop — hover to zoom */}
+        {/* Large image on top — hover / long-press to zoom */}
         <div
-          className={styles.imageSection}
-          onMouseEnter={() => setShowZoom(true)}
-          onMouseLeave={() => setShowZoom(false)}
+          ref={imageSectionRef}
+          className={`${styles.imageSection} ${zooming ? styles.zooming : ''}`}
+          onMouseEnter={() => setZooming(true)}
+          onMouseLeave={() => setZooming(false)}
           onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
         >
           <Image
             src={imageUrl}
@@ -113,16 +163,15 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
             sizes="(max-width: 768px) 100vw, 900px"
             className={styles.image}
             priority
+            draggable={false}
           />
-          {showZoom && (
-            <div
-              className={styles.zoomLens}
-              style={{
-                backgroundImage: `url(${imageUrl})`,
-                backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-              }}
-            />
-          )}
+          <div
+            className={`${styles.zoomLens} ${zooming ? styles.zoomActive : ''}`}
+            style={{
+              backgroundImage: `url(${imageUrl})`,
+              backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+            }}
+          />
         </div>
 
         {/* Info below */}

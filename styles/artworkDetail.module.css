@@ -29,12 +29,24 @@
   text-align: center;
   overflow: hidden;
   cursor: zoom-in;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.imageSection.zooming {
+  cursor: crosshair;
 }
 
 .image {
   width: 100%;
   height: auto;
   display: block;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zooming .image {
+  opacity: 0;
 }
 
 .zoomLens {
@@ -47,13 +59,11 @@
   background-repeat: no-repeat;
   pointer-events: none;
   opacity: 0;
-  animation: zoomFadeIn 0.2s ease forwards;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes zoomFadeIn {
-  to {
-    opacity: 1;
-  }
+.zoomLens.zoomActive {
+  opacity: 1;
 }
 
 /* Info below */
