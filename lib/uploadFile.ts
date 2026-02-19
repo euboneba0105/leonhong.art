@@ -1,6 +1,7 @@
 /**
- * Upload a file directly to Supabase storage via signed URL.
- * This bypasses the Next.js API route body size limit so large files (up to 50 MB) work.
+ * Upload a file directly to Cloudflare R2 via presigned URL.
+ * Flow: client → our API (get presigned URL) → client → R2 (upload file directly).
+ * This bypasses all server body size limits — supports up to 50 MB.
  */
 export async function uploadFile(file: File, folder = 'artworks'): Promise<string> {
   const MAX_SIZE = 50 * 1024 * 1024 // 50 MB
@@ -8,11 +9,11 @@ export async function uploadFile(file: File, folder = 'artworks'): Promise<strin
 
   const ext = file.name.split('.').pop() || 'jpg'
 
-  // 1. Get a signed upload URL from our API (small JSON request)
+  // 1. Get a presigned upload URL from our API (small JSON request)
   const urlRes = await fetch('/api/upload-url', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ folder, ext }),
+    body: JSON.stringify({ folder, ext, contentType: file.type }),
   })
   if (!urlRes.ok) {
     const err = await urlRes.json().catch(() => null)
@@ -20,7 +21,7 @@ export async function uploadFile(file: File, folder = 'artworks'): Promise<strin
   }
   const { signedUrl, publicUrl } = await urlRes.json()
 
-  // 2. Upload the file directly to Supabase (bypasses server body limits)
+  // 2. Upload the file directly to R2 (bypasses server body limits)
   const uploadRes = await fetch(signedUrl, {
     method: 'PUT',
     headers: { 'Content-Type': file.type },
