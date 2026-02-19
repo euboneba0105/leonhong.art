@@ -93,3 +93,12 @@ export type Exhibition = {
   sort_order: number
   created_at: string
 }
+
+// ---- 活動花絮照片 Event Gallery Photos ----
+export type EventGalleryPhoto = {
+  id: string
+  exhibition_id: string
+  image_url: string
+  sort_order: number
+  created_at: string
+}
