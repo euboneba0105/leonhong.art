@@ -88,6 +88,63 @@
   flex: 1;
 }
 
+/* ── Series Admin ── */
+.seriesAdminList {
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+}
+
+.seriesAdminTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem 0;
+}
+
+.seriesChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.seriesChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  font-size: 0.85rem;
+  color: #333333;
+}
+
+.seriesChipDelete {
+  background: none;
+  border: none;
+  color: #cc0000;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.seriesChipDelete:hover {
+  color: #990000;
+}
+
+/* ── Artwork Card Link ── */
+.artworkLink {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /* Loading skeleton */
 .skeletonCard {
   background-color: #ffffff;
