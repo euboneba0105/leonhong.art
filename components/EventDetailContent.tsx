@@ -79,8 +79,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
           setSaving(false)
           return
         }
-        const uploadData = await uploadRes.json()
-        cover_image_url = uploadData.url
+        cover_image_url = (await uploadRes.json()).url
       }
 
       const res = await fetch('/api/exhibitions', {
@@ -116,12 +115,11 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
         formData.append('folder', 'gallery')
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
         if (!uploadRes.ok) continue
-        const uploadData = await uploadRes.json()
-
+        const imageUrl = (await uploadRes.json()).url
         const res = await fetch('/api/event-gallery', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ exhibition_id: event.id, image_url: uploadData.url }),
+          body: JSON.stringify({ exhibition_id: event.id, image_url: imageUrl }),
         })
         if (res.ok) {
           const photo = await res.json()

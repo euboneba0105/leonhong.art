@@ -75,8 +75,7 @@ export default function EventsContent({ events }: EventsContentProps) {
           setSaving(false)
           return
         }
-        const uploadData = await uploadRes.json()
-        cover_image_url = uploadData.url
+        cover_image_url = (await uploadRes.json()).url
       }
 
       const res = await fetch('/api/exhibitions', {

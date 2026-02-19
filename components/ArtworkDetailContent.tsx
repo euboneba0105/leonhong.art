@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { uploadFile } from '@/lib/uploadFile'
 import type { Artwork, Series } from '@/lib/supabaseClient'
 import styles from '@/styles/artworkDetail.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -60,11 +61,8 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
     try {
       let image_url = artwork.image_url
       if (imageFile) {
-        const fd = new FormData()
-        fd.append('file', imageFile)
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
-        if (!uploadRes.ok) { setErrMsg('Image upload failed'); setSaving(false); return }
-        image_url = (await uploadRes.json()).url
+        try { image_url = await uploadFile(imageFile) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); return }
       }
       const res = await fetch('/api/artworks', {
         method: 'PATCH',
