@@ -192,7 +192,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
         {/* Gallery Photos Section */}
         {(galleryPhotos.length > 0 || isAdmin) && (
           <section className={styles.gallerySection}>
-            <h2 className={styles.galleryTitle}>{zh ? '花絮照片' : 'Gallery'}</h2>
+            <h2 className={styles.galleryTitle}>{zh ? '活動花絮' : 'Event Highlights'}</h2>
 
             {galleryPhotos.length > 0 && (
               <div className={styles.galleryGrid}>
@@ -209,7 +209,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
                       <button
                         className={styles.galleryDeleteBtn}
                         onClick={() => handleDeleteGalleryPhoto(photo.id)}
-                        title={zh ? '刪除照片' : 'Delete photo'}
+                        title={zh ? '刪除此花絮' : 'Delete photo'}
                       >
                         ×
                       </button>
@@ -224,7 +224,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
                 <label className={admin.addBtn} style={{ cursor: 'pointer', display: 'inline-block' }}>
                   {uploadingGallery
                     ? (zh ? '上傳中...' : 'Uploading...')
-                    : (zh ? '+ 上傳花絮照片' : '+ Upload Photos')}
+                    : (zh ? '+ 上傳活動花絮' : '+ Upload Highlights')}
                   <input
                     type="file"
                     accept="image/*"
