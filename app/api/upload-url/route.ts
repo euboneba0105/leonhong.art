@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
       ContentType: file.type,
     }))
 
-    const publicUrl = `${R2_PUBLIC_URL}/${key}`
+    const baseUrl = R2_PUBLIC_URL.replace(/\/+$/, '')
+    const publicUrl = `${baseUrl}/${key}`
     return NextResponse.json({ url: publicUrl })
   } catch (err: any) {
     console.error('POST /api/upload-url error:', err)
