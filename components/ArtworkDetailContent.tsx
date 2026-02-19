@@ -280,7 +280,7 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
               </div>
               {allTags.length > 0 && (
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '媒材標籤' : 'Medium Tags'}</label>
+                  <label className={admin.formLabel}>{zh ? '媒材' : 'Medium'}</label>
                   <div className={filterStyles.filterChips}>
                     {allTags.map((t) => (
                       <button key={t.id} type="button"

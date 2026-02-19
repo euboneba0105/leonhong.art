@@ -275,7 +275,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
   }
 
   async function handleTagDelete(id: string) {
-    if (!confirm(zh ? '確定要刪除此標籤？' : 'Delete this tag?')) return
+    if (!confirm(zh ? '確定要刪除此媒材？' : 'Delete this medium?')) return
     await fetch('/api/tags', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -301,7 +301,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
               + {zh ? '新增系列' : 'Add Series'}
             </button>
             <button className={admin.addBtn} onClick={() => setShowTagForm(true)}>
-              + {zh ? '新增標籤' : 'Add Tag'}
+              + {zh ? '新增媒材' : 'Add Medium'}
             </button>
             <button className={admin.addBtn} onClick={() => setShowForm(true)}>
               + {zh ? '新增作品' : 'Add Artwork'}
@@ -312,7 +312,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
         {/* Tag management (admin only) */}
         {isAdmin && allTags.length > 0 && (
           <div className={styles.seriesAdminList}>
-            <h3 className={styles.seriesAdminTitle}>{zh ? '標籤管理' : 'Tag Management'}</h3>
+            <h3 className={styles.seriesAdminTitle}>{zh ? '媒材管理' : 'Medium Management'}</h3>
             <div className={styles.seriesChips}>
               {allTags.map((t) => (
                 <span key={t.id} className={styles.seriesChip}>
@@ -447,15 +447,15 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
         {editingTag && (
           <div className={admin.overlay} onClick={() => setEditingTag(null)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleTagEdit}>
-              <h2 className={admin.modalTitle}>{zh ? '編輯標籤' : 'Edit Tag'}</h2>
+              <h2 className={admin.modalTitle}>{zh ? '編輯媒材' : 'Edit Medium'}</h2>
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>標籤名稱 (中文) *</label>
+                  <label className={admin.formLabel}>媒材名稱 (中文) *</label>
                   <input className={admin.formInput} required value={editTagForm.name}
                     onChange={(e) => setEditTagForm({ ...editTagForm, name: e.target.value })} />
                 </div>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Tag Name (EN)</label>
+                  <label className={admin.formLabel}>Medium Name (EN)</label>
                   <input className={admin.formInput} value={editTagForm.name_en}
                     onChange={(e) => setEditTagForm({ ...editTagForm, name_en: e.target.value })} />
                 </div>
@@ -514,7 +514,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
               </div>
               {allTags.length > 0 && (
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '媒材標籤' : 'Medium Tags'}</label>
+                  <label className={admin.formLabel}>{zh ? '媒材' : 'Medium'}</label>
                   <div className={styles.filterChips}>
                     {allTags.map((t) => (
                       <button key={t.id} type="button"
@@ -605,15 +605,15 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
         {showTagForm && (
           <div className={admin.overlay} onClick={() => setShowTagForm(false)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleTagSubmit}>
-              <h2 className={admin.modalTitle}>{zh ? '新增標籤' : 'Add Tag'}</h2>
+              <h2 className={admin.modalTitle}>{zh ? '新增媒材' : 'Add Medium'}</h2>
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>標籤名稱 (中文) *</label>
+                  <label className={admin.formLabel}>媒材名稱 (中文) *</label>
                   <input className={admin.formInput} required value={tagForm.name}
                     onChange={(e) => setTagForm({ ...tagForm, name: e.target.value })} />
                 </div>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Tag Name (EN)</label>
+                  <label className={admin.formLabel}>Medium Name (EN)</label>
                   <input className={admin.formInput} value={tagForm.name_en}
                     onChange={(e) => setTagForm({ ...tagForm, name_en: e.target.value })} />
                 </div>
@@ -672,7 +672,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
               </div>
               {allTags.length > 0 && (
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '媒材標籤' : 'Medium Tags'}</label>
+                  <label className={admin.formLabel}>{zh ? '媒材' : 'Medium'}</label>
                   <div className={styles.filterChips}>
                     {allTags.map((t) => (
                       <button key={t.id} type="button"
