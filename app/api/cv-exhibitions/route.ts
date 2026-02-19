@@ -9,16 +9,15 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const { data, error: dbError } = await supabaseAdmin
-    .from('experiences')
+    .from('cv_exhibitions')
     .insert({
       year: body.year,
       title: body.title,
       title_en: body.title_en || null,
-      category: body.category,
-      category_en: body.category_en || null,
-      description: body.description || null,
-      description_en: body.description_en || null,
-      sort_order: body.sort_order ?? 0,
+      venue: body.venue,
+      venue_en: body.venue_en || null,
+      region: body.region,
+      region_en: body.region_en || null,
     })
     .select()
     .single()
@@ -34,7 +33,7 @@ export async function DELETE(req: NextRequest) {
 
   const { id } = await req.json()
   const { error: dbError } = await supabaseAdmin
-    .from('experiences')
+    .from('cv_exhibitions')
     .delete()
     .eq('id', id)
 

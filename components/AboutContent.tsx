@@ -5,70 +5,114 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
-import type { Experience } from '@/lib/supabaseClient'
+import type { Award, CvExhibition } from '@/lib/supabaseClient'
 import styles from '@/styles/about.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface AboutContentProps {
-  experiences: Experience[]
+  awards: Award[]
+  cvExhibitions: CvExhibition[]
 }
 
-export default function AboutContent({ experiences }: AboutContentProps) {
+export default function AboutContent({ awards, cvExhibitions }: AboutContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
   const router = useRouter()
   const isAdmin = !!(session?.user as any)?.isAdmin
 
-  const [showForm, setShowForm] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [errMsg, setErrMsg] = useState('')
-  const [form, setForm] = useState({
-    year: '', title: '', title_en: '', category: '', category_en: '',
-    description: '', description_en: '',
+  // ---- Awards form ----
+  const [showAwardForm, setShowAwardForm] = useState(false)
+  const [savingAward, setSavingAward] = useState(false)
+  const [awardErr, setAwardErr] = useState('')
+  const [awardForm, setAwardForm] = useState({
+    year: '', name: '', name_en: '', competition: '', competition_en: '', prize: '', prize_en: '',
   })
 
-  // Group experiences by year
-  const experiencesByYear = experiences.reduce<Record<number, Experience[]>>((acc, exp) => {
-    if (!acc[exp.year]) acc[exp.year] = []
-    acc[exp.year].push(exp)
+  // ---- CV Exhibitions form ----
+  const [showExhForm, setShowExhForm] = useState(false)
+  const [savingExh, setSavingExh] = useState(false)
+  const [exhErr, setExhErr] = useState('')
+  const [exhForm, setExhForm] = useState({
+    year: '', title: '', title_en: '', venue: '', venue_en: '', region: '', region_en: '',
+  })
+
+  // Group by year
+  const awardsByYear = awards.reduce<Record<number, Award[]>>((acc, a) => {
+    if (!acc[a.year]) acc[a.year] = []
+    acc[a.year].push(a)
     return acc
   }, {})
+  const awardYears = Object.keys(awardsByYear).map(Number).sort((a, b) => b - a)
 
-  const sortedYears = Object.keys(experiencesByYear)
-    .map(Number)
-    .sort((a, b) => b - a)
+  const exhByYear = cvExhibitions.reduce<Record<number, CvExhibition[]>>((acc, e) => {
+    if (!acc[e.year]) acc[e.year] = []
+    acc[e.year].push(e)
+    return acc
+  }, {})
+  const exhYears = Object.keys(exhByYear).map(Number).sort((a, b) => b - a)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleAwardSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setSaving(true)
-    setErrMsg('')
+    setSavingAward(true)
+    setAwardErr('')
     try {
-      const res = await fetch('/api/experiences', {
+      const res = await fetch('/api/awards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          year: Number(form.year),
-        }),
+        body: JSON.stringify({ ...awardForm, year: Number(awardForm.year) }),
       })
       if (res.ok) {
-        setShowForm(false)
-        setForm({ year: '', title: '', title_en: '', category: '', category_en: '', description: '', description_en: '' })
+        setShowAwardForm(false)
+        setAwardForm({ year: '', name: '', name_en: '', competition: '', competition_en: '', prize: '', prize_en: '' })
         router.refresh()
       } else {
         const data = await res.json().catch(() => null)
-        setErrMsg(data?.error || `儲存失敗 (${res.status})`)
+        setAwardErr(data?.error || `儲存失敗 (${res.status})`)
       }
     } catch (err: any) {
-      setErrMsg(err.message || '網路錯誤')
+      setAwardErr(err.message || '網路錯誤')
     }
-    setSaving(false)
+    setSavingAward(false)
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm(zh ? '確定要刪除此經歷？' : 'Delete this experience?')) return
-    await fetch('/api/experiences', {
+  async function handleExhSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingExh(true)
+    setExhErr('')
+    try {
+      const res = await fetch('/api/cv-exhibitions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...exhForm, year: Number(exhForm.year) }),
+      })
+      if (res.ok) {
+        setShowExhForm(false)
+        setExhForm({ year: '', title: '', title_en: '', venue: '', venue_en: '', region: '', region_en: '' })
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => null)
+        setExhErr(data?.error || `儲存失敗 (${res.status})`)
+      }
+    } catch (err: any) {
+      setExhErr(err.message || '網路錯誤')
+    }
+    setSavingExh(false)
+  }
+
+  async function handleDeleteAward(id: string) {
+    if (!confirm(zh ? '確定要刪除此獲獎紀錄？' : 'Delete this award?')) return
+    await fetch('/api/awards', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    router.refresh()
+  }
+
+  async function handleDeleteExh(id: string) {
+    if (!confirm(zh ? '確定要刪除此展覽紀錄？' : 'Delete this exhibition?')) return
+    await fetch('/api/cv-exhibitions', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
@@ -112,41 +156,39 @@ export default function AboutContent({ experiences }: AboutContentProps) {
           </div>
         </section>
 
-        {/* Experience Timeline Section */}
+        {/* ---- 獲獎 Awards Section ---- */}
         <section className={styles.timelineSection}>
           <div className={styles.timelineHeader}>
-            <h2 className={styles.sectionTitle}>{zh ? '經歷' : 'Experience'}</h2>
+            <h2 className={styles.sectionTitle}>{zh ? '獲獎' : 'Awards'}</h2>
             {isAdmin && (
-              <button className={admin.addBtn} onClick={() => setShowForm(true)}>
-                + {zh ? '新增經歷' : 'Add Experience'}
+              <button className={admin.addBtn} onClick={() => setShowAwardForm(true)}>
+                + {zh ? '新增獲獎' : 'Add Award'}
               </button>
             )}
           </div>
 
-          {sortedYears.length === 0 ? (
+          {awardYears.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>{zh ? '尚無經歷資料。' : 'No experiences listed yet.'}</p>
+              <p>{zh ? '尚無獲獎資料。' : 'No awards listed yet.'}</p>
             </div>
           ) : (
             <div className={styles.timeline}>
-              {sortedYears.map((year) => (
+              {awardYears.map((year) => (
                 <div key={year} className={styles.yearGroup}>
                   <div className={styles.yearLabel}>{year}</div>
                   <div className={styles.yearEntries}>
-                    {experiencesByYear[year].map((exp) => {
-                      const title = zh ? exp.title : (exp.title_en || exp.title)
-                      const category = zh ? exp.category : (exp.category_en || exp.category)
-                      const description = zh ? exp.description : (exp.description_en || exp.description)
+                    {awardsByYear[year].map((award) => {
+                      const name = zh ? award.name : (award.name_en || award.name)
+                      const competition = zh ? award.competition : (award.competition_en || award.competition)
+                      const prize = zh ? award.prize : (award.prize_en || award.prize)
 
                       return (
-                        <div key={exp.id} className={styles.entry}>
-                          <span className={styles.categoryBadge}>{category}</span>
-                          <h3 className={styles.entryTitle}>{title}</h3>
-                          {description && (
-                            <p className={styles.entryDescription}>{description}</p>
-                          )}
+                        <div key={award.id} className={styles.entry}>
+                          <span className={styles.categoryBadge}>{competition}</span>
+                          <h3 className={styles.entryTitle}>{name}</h3>
+                          <p className={styles.entryDescription}>{prize}</p>
                           {isAdmin && (
-                            <button className={admin.deleteBtn} onClick={() => handleDelete(exp.id)}>
+                            <button className={admin.deleteBtn} onClick={() => handleDeleteAward(award.id)}>
                               刪除
                             </button>
                           )}
@@ -160,61 +202,174 @@ export default function AboutContent({ experiences }: AboutContentProps) {
           )}
         </section>
 
-        {showForm && (
-          <div className={admin.overlay} onClick={() => setShowForm(false)}>
-            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-              <h2 className={admin.modalTitle}>{zh ? '新增經歷' : 'Add Experience'}</h2>
+        {/* ---- 展覽 CV Exhibitions Section ---- */}
+        <section className={styles.timelineSection}>
+          <div className={styles.timelineHeader}>
+            <h2 className={styles.sectionTitle}>{zh ? '展覽' : 'Exhibitions'}</h2>
+            {isAdmin && (
+              <button className={admin.addBtn} onClick={() => setShowExhForm(true)}>
+                + {zh ? '新增展覽' : 'Add Exhibition'}
+              </button>
+            )}
+          </div>
+
+          {exhYears.length === 0 ? (
+            <div className={styles.emptyState}>
+              <p>{zh ? '尚無展覽資料。' : 'No exhibitions listed yet.'}</p>
+            </div>
+          ) : (
+            <div className={styles.timeline}>
+              {exhYears.map((year) => (
+                <div key={year} className={styles.yearGroup}>
+                  <div className={styles.yearLabel}>{year}</div>
+                  <div className={styles.yearEntries}>
+                    {exhByYear[year].map((exh) => {
+                      const title = zh ? exh.title : (exh.title_en || exh.title)
+                      const venue = zh ? exh.venue : (exh.venue_en || exh.venue)
+                      const region = zh ? exh.region : (exh.region_en || exh.region)
+
+                      return (
+                        <div key={exh.id} className={styles.entry}>
+                          <span className={styles.categoryBadge}>{region}</span>
+                          <h3 className={styles.entryTitle}>{title}</h3>
+                          <p className={styles.entryDescription}>{venue}</p>
+                          {isAdmin && (
+                            <button className={admin.deleteBtn} onClick={() => handleDeleteExh(exh.id)}>
+                              刪除
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ---- Award Modal ---- */}
+        {showAwardForm && (
+          <div className={admin.overlay} onClick={() => setShowAwardForm(false)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleAwardSubmit}>
+              <h2 className={admin.modalTitle}>{zh ? '新增獲獎' : 'Add Award'}</h2>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '年份' : 'Year'} *</label>
+                <input className={admin.formInput} type="number" required value={awardForm.year}
+                  onChange={(e) => setAwardForm({ ...awardForm, year: e.target.value })} />
+              </div>
 
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>年份 *</label>
-                  <input className={admin.formInput} type="number" required value={form.year}
-                    onChange={(e) => setForm({ ...form, year: e.target.value })} />
+                  <label className={admin.formLabel}>獎項名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={awardForm.name}
+                    onChange={(e) => setAwardForm({ ...awardForm, name: e.target.value })} />
                 </div>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>類別 (中文) *</label>
-                  <input className={admin.formInput} required value={form.category} placeholder="例：個展、聯展、獲獎"
-                    onChange={(e) => setForm({ ...form, category: e.target.value })} />
+                  <label className={admin.formLabel}>Award Name (EN)</label>
+                  <input className={admin.formInput} value={awardForm.name_en}
+                    onChange={(e) => setAwardForm({ ...awardForm, name_en: e.target.value })} />
                 </div>
               </div>
 
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Category (EN)</label>
-                <input className={admin.formInput} value={form.category_en} placeholder="e.g. Solo Exhibition"
-                  onChange={(e) => setForm({ ...form, category_en: e.target.value })} />
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>競賽類別 (中文) *</label>
+                  <input className={admin.formInput} required value={awardForm.competition}
+                    onChange={(e) => setAwardForm({ ...awardForm, competition: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Competition (EN)</label>
+                  <input className={admin.formInput} value={awardForm.competition_en}
+                    onChange={(e) => setAwardForm({ ...awardForm, competition_en: e.target.value })} />
+                </div>
               </div>
 
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>標題 (中文) *</label>
-                <input className={admin.formInput} required value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>獎項 (中文) *</label>
+                  <input className={admin.formInput} required value={awardForm.prize}
+                    onChange={(e) => setAwardForm({ ...awardForm, prize: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Prize (EN)</label>
+                  <input className={admin.formInput} value={awardForm.prize_en}
+                    onChange={(e) => setAwardForm({ ...awardForm, prize_en: e.target.value })} />
+                </div>
               </div>
 
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Title (EN)</label>
-                <input className={admin.formInput} value={form.title_en}
-                  onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>說明 (中文)</label>
-                <textarea className={admin.formTextarea} value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Description (EN)</label>
-                <textarea className={admin.formTextarea} value={form.description_en}
-                  onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-              </div>
-
-              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+              {awardErr && <p style={{ color: 'red', margin: '0 0 12px' }}>{awardErr}</p>}
               <div className={admin.modalActions}>
-                <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setShowAwardForm(false)}>
                   {zh ? '取消' : 'Cancel'}
                 </button>
-                <button type="submit" className={admin.submitBtn} disabled={saving}>
-                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                <button type="submit" className={admin.submitBtn} disabled={savingAward}>
+                  {savingAward ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ---- CV Exhibition Modal ---- */}
+        {showExhForm && (
+          <div className={admin.overlay} onClick={() => setShowExhForm(false)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleExhSubmit}>
+              <h2 className={admin.modalTitle}>{zh ? '新增展覽' : 'Add Exhibition'}</h2>
+
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '年份' : 'Year'} *</label>
+                <input className={admin.formInput} type="number" required value={exhForm.year}
+                  onChange={(e) => setExhForm({ ...exhForm, year: e.target.value })} />
+              </div>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>展覽名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={exhForm.title}
+                    onChange={(e) => setExhForm({ ...exhForm, title: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Exhibition Name (EN)</label>
+                  <input className={admin.formInput} value={exhForm.title_en}
+                    onChange={(e) => setExhForm({ ...exhForm, title_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>場地空間 (中文) *</label>
+                  <input className={admin.formInput} required value={exhForm.venue}
+                    onChange={(e) => setExhForm({ ...exhForm, venue: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Venue (EN)</label>
+                  <input className={admin.formInput} value={exhForm.venue_en}
+                    onChange={(e) => setExhForm({ ...exhForm, venue_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>地區 (中文) *</label>
+                  <input className={admin.formInput} required value={exhForm.region}
+                    onChange={(e) => setExhForm({ ...exhForm, region: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Region (EN)</label>
+                  <input className={admin.formInput} value={exhForm.region_en}
+                    onChange={(e) => setExhForm({ ...exhForm, region_en: e.target.value })} />
+                </div>
+              </div>
+
+              {exhErr && <p style={{ color: 'red', margin: '0 0 12px' }}>{exhErr}</p>}
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setShowExhForm(false)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={savingExh}>
+                  {savingExh ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
                 </button>
               </div>
             </form>
