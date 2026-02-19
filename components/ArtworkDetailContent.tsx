@@ -159,9 +159,9 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
-        <Link href={series ? `/series/${series.id}` : '/'} className={styles.backLink}>
+        <button type="button" className={styles.backLink} onClick={() => router.back()}>
           ← {zh ? '返回' : 'Back'}
-        </Link>
+        </button>
 
         {/* Large image on top — hover / long-press to zoom */}
         <div

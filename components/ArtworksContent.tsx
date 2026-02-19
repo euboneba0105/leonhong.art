@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
@@ -48,6 +50,43 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
   const [editSeriesForm, setEditSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
   })
+  const [selectedMediums, setSelectedMediums] = useState<Set<string>>(new Set())
+
+  // Build series cards data: each series with its cover image (first artwork)
+  const seriesCards = useMemo(() => {
+    return seriesList.map((s) => {
+      const cover = artworks.find((a) => a.series_id === s.id)
+      return { series: s, coverUrl: cover?.image_url || null }
+    })
+  }, [seriesList, artworks])
+
+  // Extract unique mediums from all artworks
+  const allMediums = useMemo(() => {
+    const set = new Set<string>()
+    for (const a of artworks) {
+      const m = zh ? a.medium : (a.medium_en || a.medium)
+      if (m) set.add(m)
+    }
+    return Array.from(set).sort()
+  }, [artworks, zh])
+
+  // Filter artworks by selected mediums
+  const filteredArtworks = useMemo(() => {
+    if (selectedMediums.size === 0) return artworks
+    return artworks.filter((a) => {
+      const m = zh ? a.medium : (a.medium_en || a.medium)
+      return m ? selectedMediums.has(m) : false
+    })
+  }, [artworks, selectedMediums, zh])
+
+  function toggleMedium(m: string) {
+    setSelectedMediums((prev) => {
+      const next = new Set(prev)
+      if (next.has(m)) next.delete(m)
+      else next.add(m)
+      return next
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -226,6 +265,59 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           </div>
         )}
 
+        {/* Series cards */}
+        {seriesCards.length > 0 && (
+          <div className={styles.seriesCardsSection}>
+            <div className={styles.seriesCardsGrid}>
+              {seriesCards.map(({ series: s, coverUrl }) => (
+                <Link key={s.id} href={`/series/${s.id}`} className={styles.seriesCard}>
+                  <div className={styles.seriesCardImageWrap}>
+                    {coverUrl ? (
+                      <Image
+                        src={coverUrl}
+                        alt={zh ? s.name : (s.name_en || s.name)}
+                        fill
+                        sizes="(max-width: 768px) 40vw, 200px"
+                        className={styles.seriesCardImage}
+                      />
+                    ) : (
+                      <div className={styles.seriesCardPlaceholder} />
+                    )}
+                  </div>
+                  <span className={styles.seriesCardName}>
+                    {zh ? s.name : (s.name_en || s.name)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Medium filter */}
+        {allMediums.length > 1 && (
+          <div className={styles.filterSection}>
+            <div className={styles.filterChips}>
+              {allMediums.map((m) => (
+                <button
+                  key={m}
+                  className={`${styles.filterChip} ${selectedMediums.has(m) ? styles.filterChipActive : ''}`}
+                  onClick={() => toggleMedium(m)}
+                >
+                  {m}
+                </button>
+              ))}
+              {selectedMediums.size > 0 && (
+                <button
+                  className={styles.filterClear}
+                  onClick={() => setSelectedMediums(new Set())}
+                >
+                  {zh ? '清除' : 'Clear'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {error ? (
           <div className={styles.errorMessage}>
             <p>{zh ? '載入作品失敗，請稍後再試。' : error}</p>
@@ -233,12 +325,12 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
               {zh ? '請檢查網路連線後重新整理頁面。' : 'Please check your connection and try refreshing the page.'}
             </p>
           </div>
-        ) : artworks.length === 0 ? (
+        ) : filteredArtworks.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>{zh ? '尚無作品，請稍後再來！' : 'No artworks found yet. Check back soon!'}</p>
+            <p>{zh ? (selectedMediums.size > 0 ? '沒有符合條件的作品。' : '尚無作品，請稍後再來！') : (selectedMediums.size > 0 ? 'No artworks match the selected filters.' : 'No artworks found yet. Check back soon!')}</p>
           </div>
         ) : (
-          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onEdit={openArtworkEdit} onDelete={handleDelete} />
+          <ArtworkGrid artworks={filteredArtworks} isAdmin={isAdmin} onEdit={openArtworkEdit} onDelete={handleDelete} />
         )}
 
         {editingSeries && (
