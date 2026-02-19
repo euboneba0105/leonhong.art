@@ -16,7 +16,8 @@
 
 .artworkCard {
   background-color: #ffffff;
-  break-inside: avoid;
+  display: inline-block;
+  width: 100%;
   margin-bottom: 1.5rem;
   transition: opacity 0.3s ease;
 }
