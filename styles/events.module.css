@@ -26,6 +26,12 @@
   border-color: #404040;
 }
 
+.eventLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 /* ── Cover Image ── */
 .coverWrapper {
   position: relative;

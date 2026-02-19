@@ -64,6 +64,48 @@
   font-weight: 600;
 }
 
+/* ── Dropdown ── */
+.dropdownWrapper {
+  position: relative;
+}
+
+.dropdownArrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-width: 180px;
+  z-index: 200;
+}
+
+.dropdownItem {
+  display: block;
+  padding: 0.5rem 1.25rem;
+  color: #555555;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 400;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdownItem:hover {
+  background-color: #f5f5f5;
+  color: #1a1a1a;
+}
+
 /* ── Hamburger (hidden on desktop) ── */
 .hamburger {
   display: none;
@@ -119,7 +161,11 @@
 }
 
 .mobileNavLink {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
   padding: 0.75rem 1.5rem;
   color: #555555;
   text-decoration: none;
@@ -127,10 +173,46 @@
   font-weight: 500;
   transition: color 0.2s ease;
   text-align: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .mobileNavLink:hover {
   color: #1a1a1a;
+}
+
+.mobileDropdownArrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.mobileDropdownArrowOpen {
+  transform: rotate(180deg);
+}
+
+.mobileSubMenu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #fafafa;
+}
+
+.mobileSubLink {
+  display: block;
+  padding: 0.6rem 2.5rem;
+  color: #666666;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 400;
+  text-align: center;
+  transition: color 0.2s ease, background-color 0.15s ease;
+}
+
+.mobileSubLink:hover {
+  color: #1a1a1a;
+  background-color: #f0f0f0;
 }
 
 /* ── Sign Out Button ── */

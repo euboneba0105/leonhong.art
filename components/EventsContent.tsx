@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
@@ -108,51 +109,42 @@ export default function EventsContent({ events }: EventsContentProps) {
 
               return (
                 <article key={event.id} className={styles.eventCard}>
-                  {event.cover_image_url && (
-                    <div className={styles.coverWrapper}>
-                      <Image
-                        src={event.cover_image_url}
-                        alt={title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className={styles.coverImage}
-                      />
+                  <Link href={`/events/${event.id}`} className={styles.eventLink}>
+                    {event.cover_image_url && (
+                      <div className={styles.coverWrapper}>
+                        <Image
+                          src={event.cover_image_url}
+                          alt={title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className={styles.coverImage}
+                        />
+                      </div>
+                    )}
+                    <div className={styles.cardBody}>
+                      <h2 className={styles.eventTitle}>{title}</h2>
+
+                      {dateRange && (
+                        <p className={styles.date}>{dateRange}</p>
+                      )}
+
+                      {location && (
+                        <p className={styles.location}>{location}</p>
+                      )}
+
+                      {description && (
+                        <p className={styles.description}>{description}</p>
+                      )}
                     </div>
-                  )}
-                  <div className={styles.cardBody}>
-                    <h2 className={styles.eventTitle}>{title}</h2>
+                  </Link>
 
-                    {dateRange && (
-                      <p className={styles.date}>{dateRange}</p>
-                    )}
-
-                    {location && (
-                      <p className={styles.location}>
-                        {event.location_url ? (
-                          <a
-                            href={event.location_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.locationLink}
-                          >
-                            {location}
-                          </a>
-                        ) : (
-                          location
-                        )}
-                      </p>
-                    )}
-
-                    {description && (
-                      <p className={styles.description}>{description}</p>
-                    )}
-
-                    {isAdmin && (
+                  {isAdmin && (
+                    <div style={{ padding: '0 2rem 1rem' }}>
                       <button className={admin.deleteBtn} onClick={() => handleDelete(event.id)}>
                         刪除
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </article>
               )
             })}

@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useLanguage } from './LanguageProvider'
 import type { Artwork, Series } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
@@ -27,45 +28,49 @@ export default function ArtworkCard({ artwork, seriesList, isAdmin, onDelete }: 
 
   return (
     <article className={styles.artworkCard}>
-      <div className={styles.imageWrapper}>
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className={styles.image}
-          priority={false}
-        />
-      </div>
-
-      <div className={styles.cardContent}>
-        <h3 className={styles.title}>{title}</h3>
-
-        <div className={styles.metadata}>
-          {seriesName && (
-            <span className={styles.metaItem}>{seriesName}</span>
-          )}
-          {artwork.year && (
-            <span className={styles.metaItem}>{artwork.year}</span>
-          )}
-          {medium && (
-            <span className={styles.metaItem}>{medium}</span>
-          )}
-          {artwork.size && (
-            <span className={styles.metaItem}>{artwork.size}</span>
-          )}
+      <Link href={`/artworks/${artwork.id}`} className={styles.artworkLink}>
+        <div className={styles.imageWrapper}>
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className={styles.image}
+            priority={false}
+          />
         </div>
 
-        {description && (
-          <p className={styles.description}>{description}</p>
-        )}
+        <div className={styles.cardContent}>
+          <h3 className={styles.title}>{title}</h3>
 
-        {isAdmin && onDelete && (
+          <div className={styles.metadata}>
+            {seriesName && (
+              <span className={styles.metaItem}>{seriesName}</span>
+            )}
+            {artwork.year && (
+              <span className={styles.metaItem}>{artwork.year}</span>
+            )}
+            {medium && (
+              <span className={styles.metaItem}>{medium}</span>
+            )}
+            {artwork.size && (
+              <span className={styles.metaItem}>{artwork.size}</span>
+            )}
+          </div>
+
+          {description && (
+            <p className={styles.description}>{description}</p>
+          )}
+        </div>
+      </Link>
+
+      {isAdmin && onDelete && (
+        <div style={{ padding: '0 1.5rem 1rem' }}>
           <button className={admin.deleteBtn} onClick={() => onDelete(artwork.id)}>
             刪除
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </article>
   )
 }
