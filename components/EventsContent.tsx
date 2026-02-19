@@ -159,9 +159,12 @@ export default function EventsContent({ events }: EventsContentProps) {
                   </Link>
 
                   {isAdmin && (
-                    <div style={{ padding: '0 2rem 1rem' }}>
+                    <div style={{ padding: '0 2rem 1rem', display: 'flex', gap: '0.5rem' }}>
+                      <Link href={`/events/${event.id}`} className={admin.editBtn}>
+                        {zh ? '編輯' : 'Edit'}
+                      </Link>
                       <button className={admin.deleteBtn} onClick={() => handleDelete(event.id)}>
-                        刪除
+                        {zh ? '刪除' : 'Delete'}
                       </button>
                     </div>
                   )}
