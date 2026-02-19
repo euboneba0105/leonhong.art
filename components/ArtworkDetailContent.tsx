@@ -41,9 +41,21 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTouchZooming = useRef(false)
+  const isTouchDevice = useRef(false)
   const imageSectionRef = useRef<HTMLDivElement>(null)
 
+  const handleMouseEnter = useCallback(() => {
+    if (isTouchDevice.current) return
+    setZooming(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    if (isTouchDevice.current) return
+    setZooming(false)
+  }, [])
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (isTouchDevice.current) return
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
@@ -51,6 +63,7 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   }, [])
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    isTouchDevice.current = true
     const touch = e.touches[0]
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((touch.clientX - rect.left) / rect.width) * 100
@@ -154,8 +167,8 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
         <div
           ref={imageSectionRef}
           className={`${styles.imageSection} ${zooming ? styles.zooming : ''}`}
-          onMouseEnter={() => setZooming(true)}
-          onMouseLeave={() => setZooming(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           onMouseMove={handleMouseMove}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
