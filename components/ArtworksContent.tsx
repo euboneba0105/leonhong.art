@@ -35,6 +35,13 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
   const [seriesForm, setSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
   })
+  const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null)
+  const [editImageFile, setEditImageFile] = useState<File | null>(null)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
+  const [editForm, setEditForm] = useState({
+    title: '', title_en: '', series_id: '', year: '',
+    medium: '', medium_en: '', size: '', description: '', description_en: '',
+  })
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
   const [editSeriesForm, setEditSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
@@ -85,6 +92,47 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     } catch (err: any) {
       setErrMsg(err.message || '網路錯誤')
     }
+    setSaving(false)
+  }
+
+  function openArtworkEdit(artwork: Artwork) {
+    setEditingArtwork(artwork)
+    setEditImageFile(null)
+    setEditForm({
+      title: artwork.title || '', title_en: artwork.title_en || '',
+      series_id: artwork.series_id || '', year: artwork.year ? String(artwork.year) : '',
+      medium: artwork.medium || '', medium_en: artwork.medium_en || '',
+      size: artwork.size || '', description: artwork.description || '',
+      description_en: artwork.description_en || '',
+    })
+  }
+
+  async function handleArtworkEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingArtwork) return
+    setSaving(true)
+    setErrMsg('')
+    try {
+      let image_url = editingArtwork.image_url
+      if (editImageFile) {
+        const fd = new FormData()
+        fd.append('file', editImageFile)
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+        if (!uploadRes.ok) { setErrMsg('Image upload failed'); setSaving(false); return }
+        image_url = (await uploadRes.json()).url
+      }
+      const res = await fetch('/api/artworks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingArtwork.id, ...editForm,
+          year: editForm.year ? Number(editForm.year) : null,
+          series_id: editForm.series_id || null, image_url,
+        }),
+      })
+      if (res.ok) { setEditingArtwork(null); setEditImageFile(null); router.refresh() }
+      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
     setSaving(false)
   }
 
@@ -199,7 +247,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
             <p>{zh ? '尚無作品，請稍後再來！' : 'No artworks found yet. Check back soon!'}</p>
           </div>
         ) : (
-          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onDelete={handleDelete} />
+          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onEdit={openArtworkEdit} onDelete={handleDelete} />
         )}
 
         {editingSeries && (
@@ -231,6 +279,84 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setEditingSeries(null)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={saving}>
+                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {editingArtwork && (
+          <div className={admin.overlay} onClick={() => setEditingArtwork(null)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleArtworkEdit}>
+              <h2 className={admin.modalTitle}>{zh ? '編輯作品' : 'Edit Artwork'}</h2>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '更換圖檔' : 'Replace Image'}</label>
+                <input ref={editFileInputRef} className={admin.formInput} type="file" accept="image/*"
+                  onChange={(e) => setEditImageFile(e.target.files?.[0] || null)} />
+              </div>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>作品名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Title (EN)</label>
+                  <input className={admin.formInput} value={editForm.title_en}
+                    onChange={(e) => setEditForm({ ...editForm, title_en: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>{zh ? '系列' : 'Series'}</label>
+                  <select className={admin.formInput} value={editForm.series_id}
+                    onChange={(e) => setEditForm({ ...editForm, series_id: e.target.value })}>
+                    <option value="">{zh ? '-- 選擇系列 --' : '-- Select Series --'}</option>
+                    {seriesList.map((s) => (
+                      <option key={s.id} value={s.id}>{zh ? s.name : (s.name_en || s.name)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>{zh ? '年份' : 'Year'}</label>
+                  <input className={admin.formInput} type="number" value={editForm.year}
+                    onChange={(e) => setEditForm({ ...editForm, year: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>媒材 (中文)</label>
+                  <input className={admin.formInput} value={editForm.medium}
+                    onChange={(e) => setEditForm({ ...editForm, medium: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Medium (EN)</label>
+                  <input className={admin.formInput} value={editForm.medium_en}
+                    onChange={(e) => setEditForm({ ...editForm, medium_en: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '尺寸' : 'Size'}</label>
+                <input className={admin.formInput} value={editForm.size} placeholder="e.g. 120 x 80 cm"
+                  onChange={(e) => setEditForm({ ...editForm, size: e.target.value })} />
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>敘述 (中文)</label>
+                <textarea className={admin.formTextarea} value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>Description (EN)</label>
+                <textarea className={admin.formTextarea} value={editForm.description_en}
+                  onChange={(e) => setEditForm({ ...editForm, description_en: e.target.value })} />
+              </div>
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setEditingArtwork(null)}>
                   {zh ? '取消' : 'Cancel'}
                 </button>
                 <button type="submit" className={admin.submitBtn} disabled={saving}>

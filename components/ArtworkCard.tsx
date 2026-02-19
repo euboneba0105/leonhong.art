@@ -10,10 +10,11 @@ import admin from '@/styles/adminUI.module.css'
 interface ArtworkCardProps {
   artwork: Artwork
   isAdmin?: boolean
+  onEdit?: (artwork: Artwork) => void
   onDelete?: (id: string) => void
 }
 
-export default function ArtworkCard({ artwork, isAdmin, onDelete }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, isAdmin, onEdit, onDelete }: ArtworkCardProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const imageUrl = artwork.image_url || '/placeholder.png'
@@ -35,9 +36,9 @@ export default function ArtworkCard({ artwork, isAdmin, onDelete }: ArtworkCardP
 
       {isAdmin && onDelete && (
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-          <Link href={`/artworks/${artwork.id}`} className={admin.editBtn}>
+          <button className={admin.editBtn} onClick={() => onEdit?.(artwork)}>
             {zh ? '編輯' : 'Edit'}
-          </Link>
+          </button>
           <button className={admin.deleteBtn} onClick={() => onDelete(artwork.id)}>
             {zh ? '刪除' : 'Delete'}
           </button>
