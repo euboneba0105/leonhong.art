@@ -63,7 +63,7 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
             <p>{zh ? '此系列尚無作品。' : 'No artworks in this series yet.'}</p>
           </div>
         ) : (
-          <ArtworkGrid artworks={artworks} seriesList={seriesList} isAdmin={isAdmin} onDelete={handleDelete} />
+          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onDelete={handleDelete} />
         )}
       </main>
     </div>

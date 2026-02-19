@@ -24,6 +24,22 @@
   background-color: #333333;
 }
 
+.editBtn {
+  padding: 0.3rem 0.6rem;
+  background: transparent;
+  border: 1px solid #1a1a1a;
+  color: #1a1a1a;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.editBtn:hover {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
 .deleteBtn {
   padding: 0.3rem 0.6rem;
   background: transparent;
