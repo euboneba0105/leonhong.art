@@ -3,7 +3,11 @@
  * Flow: client gets presigned URL from our API → client PUTs directly to R2.
  * This bypasses Vercel's 4.5 MB body-size limit.
  */
-export async function uploadFile(file: File, folder = 'artworks'): Promise<string> {
+export async function uploadFile(
+  file: File,
+  folder = 'artworks',
+  onProgress?: (percent: number) => void,
+): Promise<string> {
   const MAX_SIZE = 50 * 1024 * 1024 // 50 MB
   if (file.size > MAX_SIZE) throw new Error('檔案大小超過 50MB 限制')
 
@@ -25,16 +29,30 @@ export async function uploadFile(file: File, folder = 'artworks'): Promise<strin
 
   const { uploadUrl, publicUrl } = await presignRes.json()
 
-  // Step 2: Upload directly to R2 (bypasses Vercel entirely)
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type },
-    body: file,
-  })
+  // Step 2: Upload directly to R2 using XHR for progress tracking
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
 
-  if (!uploadRes.ok) {
-    throw new Error(`上傳失敗 (${uploadRes.status})`)
-  }
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    })
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve()
+      } else {
+        reject(new Error(`上傳失敗 (${xhr.status})`))
+      }
+    })
+
+    xhr.addEventListener('error', () => reject(new Error('上傳失敗（網路錯誤）')))
+
+    xhr.open('PUT', uploadUrl)
+    xhr.setRequestHeader('Content-Type', file.type)
+    xhr.send(file)
+  })
 
   return publicUrl
 }
