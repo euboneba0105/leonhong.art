@@ -42,8 +42,6 @@ export type Artwork = {
   title: string
   title_en?: string
   series_id?: string
-  category?: string | null
-  venue?: string | null
   year?: number
   medium?: string
   medium_en?: string

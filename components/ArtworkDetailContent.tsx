@@ -30,8 +30,7 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     title: artwork.title || '', title_en: artwork.title_en || '',
-    series_id: artwork.series_id || '', category: artwork.category || '',
-    venue: artwork.venue || '', year: artwork.year ? String(artwork.year) : '',
+    series_id: artwork.series_id || '', year: artwork.year ? String(artwork.year) : '',
     medium: artwork.medium || '', medium_en: artwork.medium_en || '',
     size: artwork.size || '', description: artwork.description || '',
     description_en: artwork.description_en || '',
@@ -71,9 +70,7 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
         body: JSON.stringify({
           id: artwork.id, ...form,
           year: form.year ? Number(form.year) : null,
-          series_id: form.series_id || null,
-          category: form.category || null,
-          venue: form.venue || null, image_url,
+          series_id: form.series_id || null, image_url,
         }),
       })
       if (res.ok) { setShowEdit(false); setImageFile(null); router.refresh() }
@@ -135,18 +132,6 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
               <div className={styles.metaRow}>
                 <span className={styles.metaLabel}>{zh ? '系列' : 'Series'}</span>
                 <Link href={`/series/${series!.id}`} className={styles.metaValueLink}>{seriesName}</Link>
-              </div>
-            )}
-            {artwork.category && (
-              <div className={styles.metaRow}>
-                <span className={styles.metaLabel}>{zh ? '類別' : 'Category'}</span>
-                <span className={styles.metaValue}>{artwork.category}</span>
-              </div>
-            )}
-            {artwork.venue && (
-              <div className={styles.metaRow}>
-                <span className={styles.metaLabel}>{zh ? '展出地點' : 'Venue'}</span>
-                <span className={styles.metaValue}>{artwork.venue}</span>
               </div>
             )}
             {artwork.year && (
@@ -216,18 +201,6 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
                   <label className={admin.formLabel}>{zh ? '年份' : 'Year'}</label>
                   <input className={admin.formInput} type="number" value={form.year}
                     onChange={(e) => setForm({ ...form, year: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '類別' : 'Category'}</label>
-                  <input className={admin.formInput} value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '展出地點' : 'Venue'}</label>
-                  <input className={admin.formInput} value={form.venue}
-                    onChange={(e) => setForm({ ...form, venue: e.target.value })} />
                 </div>
               </div>
               <div className={admin.formRow}>

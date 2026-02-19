@@ -30,7 +30,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
   const [imageFile, setImageFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
-    title: '', title_en: '', series_id: '', category: '', venue: '', year: '',
+    title: '', title_en: '', series_id: '', year: '',
     medium: '', medium_en: '', size: '', description: '', description_en: '',
   })
   const [seriesForm, setSeriesForm] = useState({
@@ -40,7 +40,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const editFileInputRef = useRef<HTMLInputElement>(null)
   const [editForm, setEditForm] = useState({
-    title: '', title_en: '', series_id: '', category: '', venue: '', year: '',
+    title: '', title_en: '', series_id: '', year: '',
     medium: '', medium_en: '', size: '', description: '', description_en: '',
   })
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
@@ -68,14 +68,12 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           ...form,
           year: form.year ? Number(form.year) : null,
           series_id: form.series_id || null,
-          category: form.category || null,
-          venue: form.venue || null,
           image_url,
         }),
       })
       if (res.ok) {
         setShowForm(false)
-        setForm({ title: '', title_en: '', series_id: '', category: '', venue: '', year: '', medium: '', medium_en: '', size: '', description: '', description_en: '' })
+        setForm({ title: '', title_en: '', series_id: '', year: '', medium: '', medium_en: '', size: '', description: '', description_en: '' })
         setImageFile(null)
         router.refresh()
       } else {
@@ -93,8 +91,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     setEditImageFile(null)
     setEditForm({
       title: artwork.title || '', title_en: artwork.title_en || '',
-      series_id: artwork.series_id || '', category: artwork.category || '',
-      venue: artwork.venue || '', year: artwork.year ? String(artwork.year) : '',
+      series_id: artwork.series_id || '', year: artwork.year ? String(artwork.year) : '',
       medium: artwork.medium || '', medium_en: artwork.medium_en || '',
       size: artwork.size || '', description: artwork.description || '',
       description_en: artwork.description_en || '',
@@ -118,9 +115,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
         body: JSON.stringify({
           id: editingArtwork.id, ...editForm,
           year: editForm.year ? Number(editForm.year) : null,
-          series_id: editForm.series_id || null,
-          category: editForm.category || null,
-          venue: editForm.venue || null, image_url,
+          series_id: editForm.series_id || null, image_url,
         }),
       })
       if (res.ok) { setEditingArtwork(null); setEditImageFile(null); router.refresh() }
@@ -322,18 +317,6 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
               </div>
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '類別' : 'Category'}</label>
-                  <input className={admin.formInput} value={editForm.category}
-                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '展出地點' : 'Venue'}</label>
-                  <input className={admin.formInput} value={editForm.venue}
-                    onChange={(e) => setEditForm({ ...editForm, venue: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
                   <label className={admin.formLabel}>媒材 (中文)</label>
                   <input className={admin.formInput} value={editForm.medium}
                     onChange={(e) => setEditForm({ ...editForm, medium: e.target.value })} />
@@ -461,19 +444,6 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                   <label className={admin.formLabel}>{zh ? '年份' : 'Year'}</label>
                   <input className={admin.formInput} type="number" value={form.year}
                     onChange={(e) => setForm({ ...form, year: e.target.value })} />
-                </div>
-              </div>
-
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '類別' : 'Category'}</label>
-                  <input className={admin.formInput} value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '展出地點' : 'Venue'}</label>
-                  <input className={admin.formInput} value={form.venue}
-                    onChange={(e) => setForm({ ...form, venue: e.target.value })} />
                 </div>
               </div>
 
