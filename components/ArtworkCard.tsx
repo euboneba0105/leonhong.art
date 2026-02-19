@@ -34,10 +34,14 @@ export default function ArtworkCard({ artwork, isAdmin, onDelete }: ArtworkCardP
       </Link>
 
       {isAdmin && onDelete && (
-        <button className={admin.deleteBtn} onClick={() => onDelete(artwork.id)}
-          style={{ marginTop: '0.5rem' }}>
-          刪除
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <Link href={`/artworks/${artwork.id}`} className={admin.editBtn}>
+            {zh ? '編輯' : 'Edit'}
+          </Link>
+          <button className={admin.deleteBtn} onClick={() => onDelete(artwork.id)}>
+            {zh ? '刪除' : 'Delete'}
+          </button>
+        </div>
       )}
     </article>
   )
