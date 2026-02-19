@@ -7,16 +7,18 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import { uploadFile } from '@/lib/uploadFile'
-import type { Artwork, Series } from '@/lib/supabaseClient'
+import type { Artwork, Series, Tag } from '@/lib/supabaseClient'
 import styles from '@/styles/artworkDetail.module.css'
+import filterStyles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface ArtworkDetailContentProps {
   artwork: Artwork
   seriesList: Series[]
+  allTags: Tag[]
 }
 
-export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDetailContentProps) {
+export default function ArtworkDetailContent({ artwork, seriesList, allTags }: ArtworkDetailContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
@@ -31,10 +33,12 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   const [form, setForm] = useState({
     title: artwork.title || '', title_en: artwork.title_en || '',
     series_id: artwork.series_id || '', year: artwork.year ? String(artwork.year) : '',
-    medium: artwork.medium || '', medium_en: artwork.medium_en || '',
     size: artwork.size || '', description: artwork.description || '',
     description_en: artwork.description_en || '',
   })
+  const [editTagIds, setEditTagIds] = useState<Set<string>>(
+    new Set((artwork.tags || []).map((t) => t.id))
+  )
 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [zooming, setZooming] = useState(false)
@@ -113,7 +117,7 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
   }, [])
 
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
-  const medium = zh ? artwork.medium : (artwork.medium_en || artwork.medium)
+  const tagNames = (artwork.tags || []).map((t) => zh ? t.name : (t.name_en || t.name)).filter(Boolean)
   const description = zh ? artwork.description : (artwork.description_en || artwork.description)
   const imageUrl = artwork.image_url || '/placeholder.png'
 
@@ -138,6 +142,7 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
           id: artwork.id, ...form,
           year: form.year ? Number(form.year) : null,
           series_id: form.series_id || null, image_url,
+          tag_ids: Array.from(editTagIds),
         }),
       })
       if (res.ok) { setShowEdit(false); setImageFile(null); router.refresh() }
@@ -210,10 +215,10 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
                 <span className={styles.metaValue}>{artwork.year}</span>
               </div>
             )}
-            {medium && (
+            {tagNames.length > 0 && (
               <div className={styles.metaRow}>
                 <span className={styles.metaLabel}>{zh ? '媒材' : 'Medium'}</span>
-                <span className={styles.metaValue}>{medium}</span>
+                <span className={styles.metaValue}>{tagNames.join(', ')}</span>
               </div>
             )}
             {artwork.size && (
@@ -273,18 +278,26 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
                     onChange={(e) => setForm({ ...form, year: e.target.value })} />
                 </div>
               </div>
-              <div className={admin.formRow}>
+              {allTags.length > 0 && (
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>媒材 (中文)</label>
-                  <input className={admin.formInput} value={form.medium}
-                    onChange={(e) => setForm({ ...form, medium: e.target.value })} />
+                  <label className={admin.formLabel}>{zh ? '媒材標籤' : 'Medium Tags'}</label>
+                  <div className={filterStyles.filterChips}>
+                    {allTags.map((t) => (
+                      <button key={t.id} type="button"
+                        className={`${filterStyles.filterChip} ${editTagIds.has(t.id) ? filterStyles.filterChipActive : ''}`}
+                        onClick={() => {
+                          const next = new Set(editTagIds)
+                          if (next.has(t.id)) next.delete(t.id)
+                          else next.add(t.id)
+                          setEditTagIds(next)
+                        }}
+                      >
+                        {zh ? t.name : (t.name_en || t.name)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Medium (EN)</label>
-                  <input className={admin.formInput} value={form.medium_en}
-                    onChange={(e) => setForm({ ...form, medium_en: e.target.value })} />
-                </div>
-              </div>
+              )}
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>{zh ? '尺寸' : 'Size'}</label>
                 <input className={admin.formInput} value={form.size} placeholder="e.g. 120 x 80 cm"

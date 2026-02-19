@@ -5,6 +5,13 @@ import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
 import { notFound } from 'next/navigation'
 import SeriesDetailContent from '@/components/SeriesDetailContent'
 
+function attachTags(rows: any[]): Artwork[] {
+  return (rows || []).map(({ artwork_tags, ...rest }) => ({
+    ...rest,
+    tags: (artwork_tags || []).map((at: any) => at.tags).filter(Boolean),
+  }))
+}
+
 async function getSeriesById(id: string): Promise<Series | null> {
   if (id === 'standalone') return null
   const { data, error } = await supabase
@@ -17,7 +24,7 @@ async function getSeriesById(id: string): Promise<Series | null> {
 }
 
 async function getArtworksBySeries(seriesId: string | null): Promise<Artwork[]> {
-  let query = supabase.from('artworks').select('*')
+  let query = supabase.from('artworks').select('*, artwork_tags(tags(id, name, name_en))')
 
   if (seriesId) {
     query = query.eq('series_id', seriesId)
@@ -29,7 +36,7 @@ async function getArtworksBySeries(seriesId: string | null): Promise<Artwork[]> 
     .order('year', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
-  return data || []
+  return attachTags(data)
 }
 
 async function getAllSeries(): Promise<Series[]> {
