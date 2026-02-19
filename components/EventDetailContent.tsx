@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { uploadFile } from '@/lib/uploadFile'
 import type { Exhibition, EventGalleryPhoto } from '@/lib/supabaseClient'
 import styles from '@/styles/eventDetail.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -69,17 +70,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
       let cover_image_url = event.cover_image_url || null
 
       if (coverFile) {
-        const formData = new FormData()
-        formData.append('file', coverFile)
-        formData.append('folder', 'events')
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!uploadRes.ok) {
-          const uploadErr = await uploadRes.json().catch(() => null)
-          setErrMsg(uploadErr?.error || '圖片上傳失敗')
-          setSaving(false)
-          return
-        }
-        cover_image_url = (await uploadRes.json()).url
+        cover_image_url = await uploadFile(coverFile, 'events')
       }
 
       const res = await fetch('/api/exhibitions', {
@@ -110,12 +101,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
 
     for (let i = 0; i < files.length; i++) {
       try {
-        const formData = new FormData()
-        formData.append('file', files[i])
-        formData.append('folder', 'gallery')
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!uploadRes.ok) continue
-        const imageUrl = (await uploadRes.json()).url
+        const imageUrl = await uploadFile(files[i], 'gallery')
         const res = await fetch('/api/event-gallery', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

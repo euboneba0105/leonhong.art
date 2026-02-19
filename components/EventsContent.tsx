@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { uploadFile } from '@/lib/uploadFile'
 import type { Exhibition } from '@/lib/supabaseClient'
 import styles from '@/styles/events.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -65,17 +66,7 @@ export default function EventsContent({ events }: EventsContentProps) {
       let cover_image_url: string | null = null
 
       if (coverFile) {
-        const formData = new FormData()
-        formData.append('file', coverFile)
-        formData.append('folder', 'events')
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!uploadRes.ok) {
-          const uploadErr = await uploadRes.json().catch(() => null)
-          setErrMsg(uploadErr?.error || '圖片上傳失敗')
-          setSaving(false)
-          return
-        }
-        cover_image_url = (await uploadRes.json()).url
+        cover_image_url = await uploadFile(coverFile, 'events')
       }
 
       const res = await fetch('/api/exhibitions', {
@@ -122,16 +113,7 @@ export default function EventsContent({ events }: EventsContentProps) {
     try {
       let cover_image_url = editingEvent.cover_image_url || null
       if (editCoverFile) {
-        const formData = new FormData()
-        formData.append('file', editCoverFile)
-        formData.append('folder', 'events')
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!uploadRes.ok) {
-          setErrMsg('圖片上傳失敗')
-          setSaving(false)
-          return
-        }
-        cover_image_url = (await uploadRes.json()).url
+        cover_image_url = await uploadFile(editCoverFile, 'events')
       }
       const res = await fetch('/api/exhibitions', {
         method: 'PATCH',
