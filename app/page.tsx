@@ -1,14 +1,21 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
+import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
 import ArtworksContent from '@/components/ArtworksContent'
+
+function attachTags(rows: any[]): Artwork[] {
+  return (rows || []).map(({ artwork_tags, ...rest }) => ({
+    ...rest,
+    tags: (artwork_tags || []).map((at: any) => at.tags).filter(Boolean),
+  }))
+}
 
 async function getArtworks(): Promise<Artwork[]> {
   try {
     const { data, error } = await supabase
       .from('artworks')
-      .select('*')
+      .select('*, artwork_tags(tags(id, name, name_en))')
       .order('year', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
 
@@ -17,7 +24,7 @@ async function getArtworks(): Promise<Artwork[]> {
       throw new Error('Failed to fetch artworks')
     }
 
-    return data || []
+    return attachTags(data)
   } catch (error) {
     console.error('Error fetching artworks:', error)
     throw error
@@ -43,6 +50,18 @@ async function getSeries(): Promise<Series[]> {
   }
 }
 
+async function getTags(): Promise<Tag[]> {
+  try {
+    const { data } = await supabase
+      .from('tags')
+      .select('*')
+      .order('name', { ascending: true })
+    return data || []
+  } catch {
+    return []
+  }
+}
+
 export const metadata = {
   title: 'Gallery — Leon Hong',
   description: 'Browse the collection of original artworks by Leon Hong.',
@@ -60,6 +79,7 @@ export default async function GalleryPage() {
   }
 
   const seriesList = await getSeries()
+  const allTags = await getTags()
 
-  return <ArtworksContent artworks={artworks} seriesList={seriesList} error={error} />
+  return <ArtworksContent artworks={artworks} seriesList={seriesList} allTags={allTags} error={error} />
 }

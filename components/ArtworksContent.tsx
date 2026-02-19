@@ -8,17 +8,18 @@ import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import { uploadFile } from '@/lib/uploadFile'
 import ArtworkGrid from './ArtworkGrid'
-import type { Artwork, Series } from '@/lib/supabaseClient'
+import type { Artwork, Series, Tag } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface ArtworksContentProps {
   artworks: Artwork[]
   seriesList: Series[]
+  allTags: Tag[]
   error: string | null
 }
 
-export default function ArtworksContent({ artworks, seriesList, error }: ArtworksContentProps) {
+export default function ArtworksContent({ artworks, seriesList, allTags, error }: ArtworksContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
@@ -27,32 +28,38 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
 
   const [showForm, setShowForm] = useState(false)
   const [showSeriesForm, setShowSeriesForm] = useState(false)
+  const [showTagForm, setShowTagForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errMsg, setErrMsg] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     title: '', title_en: '', series_id: '', year: '',
-    medium: '', medium_en: '', size: '', description: '', description_en: '',
+    size: '', description: '', description_en: '',
   })
+  const [formTagIds, setFormTagIds] = useState<Set<string>>(new Set())
   const [seriesForm, setSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
   })
+  const [tagForm, setTagForm] = useState({ name: '', name_en: '' })
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null)
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const editFileInputRef = useRef<HTMLInputElement>(null)
   const [editForm, setEditForm] = useState({
     title: '', title_en: '', series_id: '', year: '',
-    medium: '', medium_en: '', size: '', description: '', description_en: '',
+    size: '', description: '', description_en: '',
   })
+  const [editTagIds, setEditTagIds] = useState<Set<string>>(new Set())
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
   const [editSeriesForm, setEditSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
   })
-  const [selectedMediums, setSelectedMediums] = useState<Set<string>>(new Set())
+  const [editingTag, setEditingTag] = useState<Tag | null>(null)
+  const [editTagForm, setEditTagForm] = useState({ name: '', name_en: '' })
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set())
 
-  // Build series cards data: each series with its cover image (first artwork)
+  // Build series cards data
   const seriesCards = useMemo(() => {
     return seriesList.map((s) => {
       const cover = artworks.find((a) => a.series_id === s.id)
@@ -60,48 +67,35 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     })
   }, [seriesList, artworks])
 
-  // Extract unique mediums from all artworks
-  const allMediums = useMemo(() => {
-    const set = new Set<string>()
-    for (const a of artworks) {
-      const m = zh ? a.medium : (a.medium_en || a.medium)
-      if (m) set.add(m)
-    }
-    return Array.from(set).sort()
-  }, [artworks, zh])
-
-  // Filter artworks by selected mediums
+  // Filter artworks by selected tags
   const filteredArtworks = useMemo(() => {
-    if (selectedMediums.size === 0) return artworks
-    return artworks.filter((a) => {
-      const m = zh ? a.medium : (a.medium_en || a.medium)
-      return m ? selectedMediums.has(m) : false
-    })
-  }, [artworks, selectedMediums, zh])
+    if (selectedTagIds.size === 0) return artworks
+    return artworks.filter((a) =>
+      a.tags?.some((t) => selectedTagIds.has(t.id))
+    )
+  }, [artworks, selectedTagIds])
 
-  function toggleMedium(m: string) {
-    setSelectedMediums((prev) => {
+  function toggleFilterTag(id: string) {
+    setSelectedTagIds((prev) => {
       const next = new Set(prev)
-      if (next.has(m)) next.delete(m)
-      else next.add(m)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
 
+  // ── Artwork CRUD ──
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
     setErrMsg('')
-
     try {
       let image_url: string | null = null
-
       if (imageFile) {
         try { image_url = await uploadFile(imageFile, 'artworks', (p) => setUploadProgress(p)) }
         catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
         setUploadProgress(null)
       }
-
       const res = await fetch('/api/artworks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,20 +104,20 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           year: form.year ? Number(form.year) : null,
           series_id: form.series_id || null,
           image_url,
+          tag_ids: Array.from(formTagIds),
         }),
       })
       if (res.ok) {
         setShowForm(false)
-        setForm({ title: '', title_en: '', series_id: '', year: '', medium: '', medium_en: '', size: '', description: '', description_en: '' })
+        setForm({ title: '', title_en: '', series_id: '', year: '', size: '', description: '', description_en: '' })
+        setFormTagIds(new Set())
         setImageFile(null)
         router.refresh()
       } else {
         const data = await res.json().catch(() => null)
         setErrMsg(data?.error || `儲存失敗 (${res.status})`)
       }
-    } catch (err: any) {
-      setErrMsg(err.message || '網路錯誤')
-    }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
     setSaving(false)
   }
 
@@ -133,10 +127,10 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     setEditForm({
       title: artwork.title || '', title_en: artwork.title_en || '',
       series_id: artwork.series_id || '', year: artwork.year ? String(artwork.year) : '',
-      medium: artwork.medium || '', medium_en: artwork.medium_en || '',
       size: artwork.size || '', description: artwork.description || '',
       description_en: artwork.description_en || '',
     })
+    setEditTagIds(new Set((artwork.tags || []).map((t) => t.id)))
   }
 
   async function handleArtworkEdit(e: React.FormEvent) {
@@ -158,6 +152,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           id: editingArtwork.id, ...editForm,
           year: editForm.year ? Number(editForm.year) : null,
           series_id: editForm.series_id || null, image_url,
+          tag_ids: Array.from(editTagIds),
         }),
       })
       if (res.ok) { setEditingArtwork(null); setEditImageFile(null); router.refresh() }
@@ -166,6 +161,17 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     setSaving(false)
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm(zh ? '確定要刪除此作品？' : 'Delete this artwork?')) return
+    await fetch('/api/artworks', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    router.refresh()
+  }
+
+  // ── Series CRUD ──
   async function handleSeriesSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -184,9 +190,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
         const data = await res.json().catch(() => null)
         setErrMsg(data?.error || `儲存失敗 (${res.status})`)
       }
-    } catch (err: any) {
-      setErrMsg(err.message || '網路錯誤')
-    }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
     setSaving(false)
   }
 
@@ -225,14 +229,67 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     router.refresh()
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm(zh ? '確定要刪除此作品？' : 'Delete this artwork?')) return
-    await fetch('/api/artworks', {
+  // ── Tag CRUD ──
+  async function handleTagSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setErrMsg('')
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tagForm),
+      })
+      if (res.ok) {
+        setShowTagForm(false)
+        setTagForm({ name: '', name_en: '' })
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => null)
+        setErrMsg(data?.error || `儲存失敗 (${res.status})`)
+      }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
+    setSaving(false)
+  }
+
+  function openTagEdit(t: Tag) {
+    setEditingTag(t)
+    setEditTagForm({ name: t.name || '', name_en: t.name_en || '' })
+  }
+
+  async function handleTagEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingTag) return
+    setSaving(true)
+    setErrMsg('')
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingTag.id, ...editTagForm }),
+      })
+      if (res.ok) { setEditingTag(null); router.refresh() }
+      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
+    setSaving(false)
+  }
+
+  async function handleTagDelete(id: string) {
+    if (!confirm(zh ? '確定要刪除此標籤？' : 'Delete this tag?')) return
+    await fetch('/api/tags', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     })
     router.refresh()
+  }
+
+  // Tag multi-select toggle helper
+  function toggleTag(set: Set<string>, id: string): Set<string> {
+    const next = new Set(set)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
   }
 
   return (
@@ -243,13 +300,16 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
             <button className={admin.addBtn} onClick={() => setShowSeriesForm(true)}>
               + {zh ? '新增系列' : 'Add Series'}
             </button>
+            <button className={admin.addBtn} onClick={() => setShowTagForm(true)}>
+              + {zh ? '新增標籤' : 'Add Tag'}
+            </button>
             <button className={admin.addBtn} onClick={() => setShowForm(true)}>
               + {zh ? '新增作品' : 'Add Artwork'}
             </button>
           </div>
         )}
 
-        {/* Series management list (admin only) */}
+        {/* Series management (admin only) */}
         {isAdmin && seriesList.length > 0 && (
           <div className={styles.seriesAdminList}>
             <h3 className={styles.seriesAdminTitle}>{zh ? '系列管理' : 'Series Management'}</h3>
@@ -259,6 +319,22 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                   {zh ? s.name : (s.name_en || s.name)}
                   <button className={styles.seriesChipEdit} onClick={() => openSeriesEdit(s)}>✎</button>
                   <button className={styles.seriesChipDelete} onClick={() => handleSeriesDelete(s.id)}>×</button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tag management (admin only) */}
+        {isAdmin && allTags.length > 0 && (
+          <div className={styles.seriesAdminList}>
+            <h3 className={styles.seriesAdminTitle}>{zh ? '標籤管理' : 'Tag Management'}</h3>
+            <div className={styles.seriesChips}>
+              {allTags.map((t) => (
+                <span key={t.id} className={styles.seriesChip}>
+                  {zh ? t.name : (t.name_en || t.name)}
+                  <button className={styles.seriesChipEdit} onClick={() => openTagEdit(t)}>✎</button>
+                  <button className={styles.seriesChipDelete} onClick={() => handleTagDelete(t.id)}>×</button>
                 </span>
               ))}
             </div>
@@ -293,23 +369,23 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           </div>
         )}
 
-        {/* Medium filter */}
-        {allMediums.length > 1 && (
+        {/* Tag filter */}
+        {allTags.length > 1 && (
           <div className={styles.filterSection}>
             <div className={styles.filterChips}>
-              {allMediums.map((m) => (
+              {allTags.map((t) => (
                 <button
-                  key={m}
-                  className={`${styles.filterChip} ${selectedMediums.has(m) ? styles.filterChipActive : ''}`}
-                  onClick={() => toggleMedium(m)}
+                  key={t.id}
+                  className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ''}`}
+                  onClick={() => toggleFilterTag(t.id)}
                 >
-                  {m}
+                  {zh ? t.name : (t.name_en || t.name)}
                 </button>
               ))}
-              {selectedMediums.size > 0 && (
+              {selectedTagIds.size > 0 && (
                 <button
                   className={styles.filterClear}
-                  onClick={() => setSelectedMediums(new Set())}
+                  onClick={() => setSelectedTagIds(new Set())}
                 >
                   {zh ? '清除' : 'Clear'}
                 </button>
@@ -327,12 +403,15 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           </div>
         ) : filteredArtworks.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>{zh ? (selectedMediums.size > 0 ? '沒有符合條件的作品。' : '尚無作品，請稍後再來！') : (selectedMediums.size > 0 ? 'No artworks match the selected filters.' : 'No artworks found yet. Check back soon!')}</p>
+            <p>{zh ? (selectedTagIds.size > 0 ? '沒有符合條件的作品。' : '尚無作品，請稍後再來！') : (selectedTagIds.size > 0 ? 'No artworks match the selected filters.' : 'No artworks found yet. Check back soon!')}</p>
           </div>
         ) : (
           <ArtworkGrid artworks={filteredArtworks} isAdmin={isAdmin} onEdit={openArtworkEdit} onDelete={handleDelete} />
         )}
 
+        {/* ── Modals ── */}
+
+        {/* Edit Series */}
         {editingSeries && (
           <div className={admin.overlay} onClick={() => setEditingSeries(null)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSeriesEdit}>
@@ -372,6 +451,37 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           </div>
         )}
 
+        {/* Edit Tag */}
+        {editingTag && (
+          <div className={admin.overlay} onClick={() => setEditingTag(null)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleTagEdit}>
+              <h2 className={admin.modalTitle}>{zh ? '編輯標籤' : 'Edit Tag'}</h2>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>標籤名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={editTagForm.name}
+                    onChange={(e) => setEditTagForm({ ...editTagForm, name: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Tag Name (EN)</label>
+                  <input className={admin.formInput} value={editTagForm.name_en}
+                    onChange={(e) => setEditTagForm({ ...editTagForm, name_en: e.target.value })} />
+                </div>
+              </div>
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setEditingTag(null)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={saving}>
+                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Edit Artwork */}
         {editingArtwork && (
           <div className={admin.overlay} onClick={() => setEditingArtwork(null)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleArtworkEdit}>
@@ -410,18 +520,21 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                     onChange={(e) => setEditForm({ ...editForm, year: e.target.value })} />
                 </div>
               </div>
-              <div className={admin.formRow}>
+              {allTags.length > 0 && (
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>媒材 (中文)</label>
-                  <input className={admin.formInput} value={editForm.medium}
-                    onChange={(e) => setEditForm({ ...editForm, medium: e.target.value })} />
+                  <label className={admin.formLabel}>{zh ? '媒材標籤' : 'Medium Tags'}</label>
+                  <div className={styles.filterChips}>
+                    {allTags.map((t) => (
+                      <button key={t.id} type="button"
+                        className={`${styles.filterChip} ${editTagIds.has(t.id) ? styles.filterChipActive : ''}`}
+                        onClick={() => setEditTagIds(toggleTag(editTagIds, t.id))}
+                      >
+                        {zh ? t.name : (t.name_en || t.name)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Medium (EN)</label>
-                  <input className={admin.formInput} value={editForm.medium_en}
-                    onChange={(e) => setEditForm({ ...editForm, medium_en: e.target.value })} />
-                </div>
-              </div>
+              )}
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>{zh ? '尺寸' : 'Size'}</label>
                 <input className={admin.formInput} value={editForm.size} placeholder="e.g. 120 x 80 cm"
@@ -456,11 +569,11 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           </div>
         )}
 
+        {/* Add Series */}
         {showSeriesForm && (
           <div className={admin.overlay} onClick={() => setShowSeriesForm(false)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSeriesSubmit}>
               <h2 className={admin.modalTitle}>{zh ? '新增系列' : 'Add Series'}</h2>
-
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
                   <label className={admin.formLabel}>系列名稱 (中文) *</label>
@@ -473,19 +586,16 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                     onChange={(e) => setSeriesForm({ ...seriesForm, name_en: e.target.value })} />
                 </div>
               </div>
-
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>敘述 (中文，選填)</label>
                 <textarea className={admin.formTextarea} value={seriesForm.description}
                   onChange={(e) => setSeriesForm({ ...seriesForm, description: e.target.value })} />
               </div>
-
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>Description (EN, optional)</label>
                 <textarea className={admin.formTextarea} value={seriesForm.description_en}
                   onChange={(e) => setSeriesForm({ ...seriesForm, description_en: e.target.value })} />
               </div>
-
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowSeriesForm(false)}>
@@ -499,22 +609,46 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
           </div>
         )}
 
+        {/* Add Tag */}
+        {showTagForm && (
+          <div className={admin.overlay} onClick={() => setShowTagForm(false)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleTagSubmit}>
+              <h2 className={admin.modalTitle}>{zh ? '新增標籤' : 'Add Tag'}</h2>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>標籤名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={tagForm.name}
+                    onChange={(e) => setTagForm({ ...tagForm, name: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Tag Name (EN)</label>
+                  <input className={admin.formInput} value={tagForm.name_en}
+                    onChange={(e) => setTagForm({ ...tagForm, name_en: e.target.value })} />
+                </div>
+              </div>
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setShowTagForm(false)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={saving}>
+                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Add Artwork */}
         {showForm && (
           <div className={admin.overlay} onClick={() => setShowForm(false)}>
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
               <h2 className={admin.modalTitle}>{zh ? '新增作品' : 'Add Artwork'}</h2>
-
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>{zh ? '作品圖檔' : 'Artwork Image'}</label>
-                <input
-                  ref={fileInputRef}
-                  className={admin.formInput}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                />
+                <input ref={fileInputRef} className={admin.formInput} type="file" accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
               </div>
-
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
                   <label className={admin.formLabel}>作品名稱 (中文) *</label>
@@ -527,7 +661,6 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                     onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
                 </div>
               </div>
-
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
                   <label className={admin.formLabel}>{zh ? '系列' : 'Series'}</label>
@@ -535,9 +668,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                     onChange={(e) => setForm({ ...form, series_id: e.target.value })}>
                     <option value="">{zh ? '-- 選擇系列 --' : '-- Select Series --'}</option>
                     {seriesList.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {zh ? s.name : (s.name_en || s.name)}
-                      </option>
+                      <option key={s.id} value={s.id}>{zh ? s.name : (s.name_en || s.name)}</option>
                     ))}
                   </select>
                 </div>
@@ -547,38 +678,36 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                     onChange={(e) => setForm({ ...form, year: e.target.value })} />
                 </div>
               </div>
-
-              <div className={admin.formRow}>
+              {allTags.length > 0 && (
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>媒材 (中文)</label>
-                  <input className={admin.formInput} value={form.medium}
-                    onChange={(e) => setForm({ ...form, medium: e.target.value })} />
+                  <label className={admin.formLabel}>{zh ? '媒材標籤' : 'Medium Tags'}</label>
+                  <div className={styles.filterChips}>
+                    {allTags.map((t) => (
+                      <button key={t.id} type="button"
+                        className={`${styles.filterChip} ${formTagIds.has(t.id) ? styles.filterChipActive : ''}`}
+                        onClick={() => setFormTagIds(toggleTag(formTagIds, t.id))}
+                      >
+                        {zh ? t.name : (t.name_en || t.name)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Medium (EN)</label>
-                  <input className={admin.formInput} value={form.medium_en}
-                    onChange={(e) => setForm({ ...form, medium_en: e.target.value })} />
-                </div>
-              </div>
-
+              )}
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>{zh ? '尺寸' : 'Size'}</label>
                 <input className={admin.formInput} value={form.size} placeholder="e.g. 120 x 80 cm"
                   onChange={(e) => setForm({ ...form, size: e.target.value })} />
               </div>
-
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>敘述 (中文，選填)</label>
                 <textarea className={admin.formTextarea} value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
-
               <div className={admin.formGroup}>
                 <label className={admin.formLabel}>Description (EN, optional)</label>
                 <textarea className={admin.formTextarea} value={form.description_en}
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </div>
-
               {uploadProgress !== null && (
                 <div className={admin.progressWrapper}>
                   <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>

@@ -35,6 +35,14 @@ export type Series = {
   created_at: string
 }
 
+// ---- 媒材標籤 Tags ----
+export type Tag = {
+  id: string
+  name: string
+  name_en?: string
+  created_at: string
+}
+
 // ---- 作品 Artworks ----
 export type Artwork = {
   id: string
@@ -48,6 +56,7 @@ export type Artwork = {
   size?: string
   description?: string
   description_en?: string
+  tags?: Tag[]
   created_at: string
 }
 
