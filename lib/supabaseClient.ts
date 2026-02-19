@@ -11,11 +11,13 @@ if (supabaseUrl && supabaseAnonKey) {
   supabase = createClient(supabaseUrl, supabaseAnonKey)
 } else {
   // Minimal stub that supports the chained calls used in this project.
+  const orderChain: any = {
+    order: (_col: string, _opts?: any) => orderChain,
+    then: (resolve: any) => resolve({ data: [], error: null }),
+  }
   const stub = {
     from: (_table: string) => ({
-      select: (_cols?: string) => ({
-        order: (_col: string, _opts?: any) => Promise.resolve({ data: [], error: null })
-      })
+      select: (_cols?: string) => orderChain
     })
   }
   supabase = stub
@@ -23,31 +25,59 @@ if (supabaseUrl && supabaseAnonKey) {
 
 export { supabase }
 
-export type Artwork = {
+// ---- 系列 Series ----
+export type Series = {
   id: string
-  title: string
-  year?: number
-  medium?: string
-  size?: string
+  name: string
+  name_en?: string
   description?: string
-  image_url?: string
-  sort_order: number
+  description_en?: string
   created_at: string
 }
 
-export type Experience = {
+// ---- 作品 Artworks ----
+export type Artwork = {
+  id: string
+  image_url?: string
+  title: string
+  title_en?: string
+  series_id?: string
+  year?: number
+  medium?: string
+  medium_en?: string
+  size?: string
+  description?: string
+  description_en?: string
+  created_at: string
+}
+
+// ---- 獲獎 Awards ----
+export type Award = {
+  id: string
+  year: number
+  name: string
+  name_en?: string
+  competition: string
+  competition_en?: string
+  prize: string
+  prize_en?: string
+  created_at: string
+}
+
+// ---- 展覽 CV Exhibitions (About page) ----
+export type CvExhibition = {
   id: string
   year: number
   title: string
   title_en?: string
-  category: string
-  category_en?: string
-  description?: string
-  description_en?: string
-  sort_order: number
+  venue: string
+  venue_en?: string
+  region: string
+  region_en?: string
   created_at: string
 }
 
+// ---- 活動 Events (保持原樣) ----
 export type Exhibition = {
   id: string
   title: string

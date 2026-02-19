@@ -1,20 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import ArtworkGrid from './ArtworkGrid'
-import type { Artwork } from '@/lib/supabaseClient'
+import type { Artwork, Series } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface ArtworksContentProps {
   artworks: Artwork[]
+  seriesList: Series[]
   error: string | null
 }
 
-export default function ArtworksContent({ artworks, error }: ArtworksContentProps) {
+export default function ArtworksContent({ artworks, seriesList, error }: ArtworksContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
@@ -23,27 +24,60 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
 
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [errMsg, setErrMsg] = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
-    title: '', year: '', medium: '', size: '', description: '', image_url: '',
+    title: '', title_en: '', series_id: '', year: '',
+    medium: '', medium_en: '', size: '', description: '', description_en: '',
   })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    const res = await fetch('/api/artworks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        year: form.year ? Number(form.year) : null,
-      }),
-    })
-    setSaving(false)
-    if (res.ok) {
-      setShowForm(false)
-      setForm({ title: '', year: '', medium: '', size: '', description: '', image_url: '' })
-      router.refresh()
+    setErrMsg('')
+
+    try {
+      let image_url: string | null = null
+
+      // Upload image file if provided
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append('file', imageFile)
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (!uploadRes.ok) {
+          const uploadErr = await uploadRes.json().catch(() => null)
+          setErrMsg(uploadErr?.error || 'Image upload failed')
+          setSaving(false)
+          return
+        }
+        const uploadData = await uploadRes.json()
+        image_url = uploadData.url
+      }
+
+      const res = await fetch('/api/artworks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          year: form.year ? Number(form.year) : null,
+          series_id: form.series_id || null,
+          image_url,
+        }),
+      })
+      if (res.ok) {
+        setShowForm(false)
+        setForm({ title: '', title_en: '', series_id: '', year: '', medium: '', medium_en: '', size: '', description: '', description_en: '' })
+        setImageFile(null)
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => null)
+        setErrMsg(data?.error || `儲存失敗 (${res.status})`)
+      }
+    } catch (err: any) {
+      setErrMsg(err.message || '網路錯誤')
     }
+    setSaving(false)
   }
 
   async function handleDelete(id: string) {
@@ -79,7 +113,7 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
             <p>{zh ? '尚無作品，請稍後再來！' : 'No artworks found yet. Check back soon!'}</p>
           </div>
         ) : (
-          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onDelete={handleDelete} />
+          <ArtworkGrid artworks={artworks} seriesList={seriesList} isAdmin={isAdmin} onDelete={handleDelete} />
         )}
 
         {showForm && (
@@ -88,21 +122,59 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
               <h2 className={admin.modalTitle}>{zh ? '新增作品' : 'Add Artwork'}</h2>
 
               <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '作品名稱' : 'Title'} *</label>
-                <input className={admin.formInput} required value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                <label className={admin.formLabel}>{zh ? '作品圖檔' : 'Artwork Image'}</label>
+                <input
+                  ref={fileInputRef}
+                  className={admin.formInput}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                />
               </div>
 
               <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>作品名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Title (EN)</label>
+                  <input className={admin.formInput} value={form.title_en}
+                    onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>{zh ? '系列' : 'Series'}</label>
+                  <select className={admin.formInput} value={form.series_id}
+                    onChange={(e) => setForm({ ...form, series_id: e.target.value })}>
+                    <option value="">{zh ? '-- 選擇系列 --' : '-- Select Series --'}</option>
+                    {seriesList.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {zh ? s.name : (s.name_en || s.name)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className={admin.formGroup}>
                   <label className={admin.formLabel}>{zh ? '年份' : 'Year'}</label>
                   <input className={admin.formInput} type="number" value={form.year}
                     onChange={(e) => setForm({ ...form, year: e.target.value })} />
                 </div>
+              </div>
+
+              <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>{zh ? '媒材' : 'Medium'}</label>
+                  <label className={admin.formLabel}>媒材 (中文)</label>
                   <input className={admin.formInput} value={form.medium}
                     onChange={(e) => setForm({ ...form, medium: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Medium (EN)</label>
+                  <input className={admin.formInput} value={form.medium_en}
+                    onChange={(e) => setForm({ ...form, medium_en: e.target.value })} />
                 </div>
               </div>
 
@@ -113,17 +185,18 @@ export default function ArtworksContent({ artworks, error }: ArtworksContentProp
               </div>
 
               <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '說明' : 'Description'}</label>
+                <label className={admin.formLabel}>敘述 (中文，選填)</label>
                 <textarea className={admin.formTextarea} value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
 
               <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '圖片網址' : 'Image URL'}</label>
-                <input className={admin.formInput} value={form.image_url}
-                  onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                <label className={admin.formLabel}>Description (EN, optional)</label>
+                <textarea className={admin.formTextarea} value={form.description_en}
+                  onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </div>
 
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
                   {zh ? '取消' : 'Cancel'}
