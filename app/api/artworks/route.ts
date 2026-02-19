@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const { data, error: dbError } = await supabaseAdmin
     .from('artworks')
     .insert({
-      image_url: body.image_url || null,
+      image_url: body.image_url,
       title: body.title,
       title_en: body.title_en || null,
       series_id: body.series_id || null,

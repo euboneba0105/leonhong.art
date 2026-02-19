@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       year: body.year,
       title: body.title,
       title_en: body.title_en || null,
-      venue: body.venue,
+      venue: body.venue || null,
       venue_en: body.venue_en || null,
       region: body.region,
       region_en: body.region_en || null,

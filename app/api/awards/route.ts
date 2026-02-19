@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       year: body.year,
       name: body.name,
       name_en: body.name_en || null,
-      competition: body.competition,
+      competition: body.competition || null,
       competition_en: body.competition_en || null,
       prize: body.prize,
       prize_en: body.prize_en || null,
