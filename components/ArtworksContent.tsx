@@ -309,22 +309,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
           </div>
         )}
 
-        {/* Series management (admin only) */}
-        {isAdmin && seriesList.length > 0 && (
-          <div className={styles.seriesAdminList}>
-            <h3 className={styles.seriesAdminTitle}>{zh ? '系列管理' : 'Series Management'}</h3>
-            <div className={styles.seriesChips}>
-              {seriesList.map((s) => (
-                <span key={s.id} className={styles.seriesChip}>
-                  {zh ? s.name : (s.name_en || s.name)}
-                  <button className={styles.seriesChipEdit} onClick={() => openSeriesEdit(s)}>✎</button>
-                  <button className={styles.seriesChipDelete} onClick={() => handleSeriesDelete(s.id)}>×</button>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Tag management (admin only) */}
         {isAdmin && allTags.length > 0 && (
           <div className={styles.seriesAdminList}>
@@ -346,24 +330,32 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
           <div className={styles.seriesCardsSection}>
             <div className={styles.seriesCardsGrid}>
               {seriesCards.map(({ series: s, coverUrl }) => (
-                <Link key={s.id} href={`/series/${s.id}`} className={styles.seriesCard}>
-                  <div className={styles.seriesCardImageWrap}>
-                    {coverUrl ? (
-                      <Image
-                        src={coverUrl}
-                        alt={zh ? s.name : (s.name_en || s.name)}
-                        fill
-                        sizes="(max-width: 768px) 40vw, 200px"
-                        className={styles.seriesCardImage}
-                      />
-                    ) : (
-                      <div className={styles.seriesCardPlaceholder} />
-                    )}
-                  </div>
-                  <span className={styles.seriesCardName}>
-                    {zh ? s.name : (s.name_en || s.name)}
-                  </span>
-                </Link>
+                <div key={s.id} className={styles.seriesCardWrap}>
+                  <Link href={`/series/${s.id}`} className={styles.seriesCard}>
+                    <div className={styles.seriesCardImageWrap}>
+                      {coverUrl ? (
+                        <Image
+                          src={coverUrl}
+                          alt={zh ? s.name : (s.name_en || s.name)}
+                          fill
+                          sizes="(max-width: 768px) 40vw, 200px"
+                          className={styles.seriesCardImage}
+                        />
+                      ) : (
+                        <div className={styles.seriesCardPlaceholder} />
+                      )}
+                    </div>
+                    <span className={styles.seriesCardName}>
+                      {zh ? s.name : (s.name_en || s.name)}
+                    </span>
+                  </Link>
+                  {isAdmin && (
+                    <div className={styles.seriesCardAdmin}>
+                      <button className={styles.seriesCardAdminBtn} onClick={() => openSeriesEdit(s)}>✎</button>
+                      <button className={`${styles.seriesCardAdminBtn} ${styles.seriesCardDeleteBtn}`} onClick={() => handleSeriesDelete(s.id)}>×</button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

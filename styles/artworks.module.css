@@ -50,9 +50,13 @@
   display: none;
 }
 
-.seriesCard {
+.seriesCardWrap {
   flex: 0 0 auto;
   width: 160px;
+  position: relative;
+}
+
+.seriesCard {
   text-decoration: none;
   color: inherit;
   display: flex;
@@ -64,6 +68,36 @@
 
 .seriesCard:hover {
   opacity: 0.75;
+}
+
+.seriesCardAdmin {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.seriesCardAdminBtn {
+  background: none;
+  border: none;
+  color: #999999;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.seriesCardAdminBtn:hover {
+  color: #1a1a1a;
+}
+
+.seriesCardDeleteBtn {
+  font-size: 1rem;
+}
+
+.seriesCardDeleteBtn:hover {
+  color: #cc0000;
 }
 
 .seriesCardImageWrap {
@@ -146,7 +180,7 @@
   color: #555555;
 }
 
-/* ── Series Admin ── */
+/* ── Tag Admin (chips) ── */
 .seriesAdminList {
   margin-bottom: 2rem;
   padding: 1rem 1.5rem;
@@ -309,7 +343,7 @@
     padding: 1.5rem 1rem;
   }
 
-  .seriesCard {
+  .seriesCardWrap {
     width: 120px;
   }
 
