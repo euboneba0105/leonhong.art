@@ -52,6 +52,8 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
     location_url: event.location_url || '',
   })
 
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
+
   // Gallery state
   const [galleryPhotos, setGalleryPhotos] = useState<EventGalleryPhoto[]>(initialPhotos)
   const [uploadingGallery, setUploadingGallery] = useState(false)
@@ -70,7 +72,9 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
       let cover_image_url = event.cover_image_url || null
 
       if (coverFile) {
-        cover_image_url = await uploadFile(coverFile, 'events')
+        try { cover_image_url = await uploadFile(coverFile, 'events', (p) => setUploadProgress(p)) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
+        setUploadProgress(null)
       }
 
       const res = await fetch('/api/exhibitions', {
@@ -101,7 +105,9 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
 
     for (let i = 0; i < files.length; i++) {
       try {
-        const imageUrl = await uploadFile(files[i], 'gallery')
+        setUploadProgress(0)
+        const imageUrl = await uploadFile(files[i], 'gallery', (p) => setUploadProgress(p))
+        setUploadProgress(null)
         const res = await fetch('/api/event-gallery', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -116,6 +122,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
       }
     }
 
+    setUploadProgress(null)
     setUploadingGallery(false)
     if (galleryInputRef.current) galleryInputRef.current.value = ''
   }
@@ -219,6 +226,12 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
                     disabled={uploadingGallery}
                   />
                 </label>
+                {uploadingGallery && uploadProgress !== null && (
+                  <div className={admin.progressWrapper}>
+                    <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                    <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -296,6 +309,12 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
                 <textarea className={admin.formTextarea} value={form.description_en}
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </div>
+              {uploadProgress !== null && (
+                <div className={admin.progressWrapper}>
+                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                </div>
+              )}
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowEdit(false)}>

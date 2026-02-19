@@ -43,6 +43,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     title: '', title_en: '', series_id: '', year: '',
     medium: '', medium_en: '', size: '', description: '', description_en: '',
   })
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
   const [editSeriesForm, setEditSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
@@ -57,8 +58,9 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
       let image_url: string | null = null
 
       if (imageFile) {
-        try { image_url = await uploadFile(imageFile) }
-        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); return }
+        try { image_url = await uploadFile(imageFile, 'artworks', (p) => setUploadProgress(p)) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
+        setUploadProgress(null)
       }
 
       const res = await fetch('/api/artworks', {
@@ -106,8 +108,9 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     try {
       let image_url = editingArtwork.image_url
       if (editImageFile) {
-        try { image_url = await uploadFile(editImageFile) }
-        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); return }
+        try { image_url = await uploadFile(editImageFile, 'artworks', (p) => setUploadProgress(p)) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
+        setUploadProgress(null)
       }
       const res = await fetch('/api/artworks', {
         method: 'PATCH',
@@ -342,6 +345,12 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                 <textarea className={admin.formTextarea} value={editForm.description_en}
                   onChange={(e) => setEditForm({ ...editForm, description_en: e.target.value })} />
               </div>
+              {uploadProgress !== null && (
+                <div className={admin.progressWrapper}>
+                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                </div>
+              )}
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setEditingArtwork(null)}>
@@ -478,6 +487,12 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </div>
 
+              {uploadProgress !== null && (
+                <div className={admin.progressWrapper}>
+                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                </div>
+              )}
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>

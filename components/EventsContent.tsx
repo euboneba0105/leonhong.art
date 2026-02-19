@@ -49,6 +49,7 @@ export default function EventsContent({ events }: EventsContentProps) {
     location_url: '',
   })
 
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingEvent, setEditingEvent] = useState<Exhibition | null>(null)
   const [editCoverFile, setEditCoverFile] = useState<File | null>(null)
   const editCoverInputRef = useRef<HTMLInputElement>(null)
@@ -66,7 +67,9 @@ export default function EventsContent({ events }: EventsContentProps) {
       let cover_image_url: string | null = null
 
       if (coverFile) {
-        cover_image_url = await uploadFile(coverFile, 'events')
+        try { cover_image_url = await uploadFile(coverFile, 'events', (p) => setUploadProgress(p)) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
+        setUploadProgress(null)
       }
 
       const res = await fetch('/api/exhibitions', {
@@ -113,7 +116,9 @@ export default function EventsContent({ events }: EventsContentProps) {
     try {
       let cover_image_url = editingEvent.cover_image_url || null
       if (editCoverFile) {
-        cover_image_url = await uploadFile(editCoverFile, 'events')
+        try { cover_image_url = await uploadFile(editCoverFile, 'events', (p) => setUploadProgress(p)) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
+        setUploadProgress(null)
       }
       const res = await fetch('/api/exhibitions', {
         method: 'PATCH',
@@ -279,6 +284,12 @@ export default function EventsContent({ events }: EventsContentProps) {
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </div>
 
+              {uploadProgress !== null && (
+                <div className={admin.progressWrapper}>
+                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                </div>
+              )}
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
@@ -356,6 +367,12 @@ export default function EventsContent({ events }: EventsContentProps) {
                 <textarea className={admin.formTextarea} value={editForm.description_en}
                   onChange={(e) => setEditForm({ ...editForm, description_en: e.target.value })} />
               </div>
+              {uploadProgress !== null && (
+                <div className={admin.progressWrapper}>
+                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                </div>
+              )}
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setEditingEvent(null)}>

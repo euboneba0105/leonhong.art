@@ -36,6 +36,7 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
     description_en: artwork.description_en || '',
   })
 
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [showZoom, setShowZoom] = useState(false)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
 
@@ -61,8 +62,9 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
     try {
       let image_url = artwork.image_url
       if (imageFile) {
-        try { image_url = await uploadFile(imageFile) }
-        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); return }
+        try { image_url = await uploadFile(imageFile, 'artworks', (p) => setUploadProgress(p)) }
+        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
+        setUploadProgress(null)
       }
       const res = await fetch('/api/artworks', {
         method: 'PATCH',
@@ -230,6 +232,12 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
                 <textarea className={admin.formTextarea} value={form.description_en}
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </div>
+              {uploadProgress !== null && (
+                <div className={admin.progressWrapper}>
+                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
+                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
+                </div>
+              )}
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowEdit(false)}>
