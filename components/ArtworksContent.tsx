@@ -35,6 +35,10 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
   const [seriesForm, setSeriesForm] = useState({
     name: '', name_en: '', description: '', description_en: '',
   })
+  const [editingSeries, setEditingSeries] = useState<Series | null>(null)
+  const [editSeriesForm, setEditSeriesForm] = useState({
+    name: '', name_en: '', description: '', description_en: '',
+  })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -108,6 +112,31 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
     setSaving(false)
   }
 
+  function openSeriesEdit(s: Series) {
+    setEditingSeries(s)
+    setEditSeriesForm({
+      name: s.name || '', name_en: s.name_en || '',
+      description: s.description || '', description_en: s.description_en || '',
+    })
+  }
+
+  async function handleSeriesEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingSeries) return
+    setSaving(true)
+    setErrMsg('')
+    try {
+      const res = await fetch('/api/series', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingSeries.id, ...editSeriesForm }),
+      })
+      if (res.ok) { setEditingSeries(null); router.refresh() }
+      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
+    setSaving(false)
+  }
+
   async function handleSeriesDelete(id: string) {
     if (!confirm(zh ? '確定要刪除此系列？' : 'Delete this series?')) return
     await fetch('/api/series', {
@@ -150,6 +179,7 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
               {seriesList.map((s) => (
                 <span key={s.id} className={styles.seriesChip}>
                   {zh ? s.name : (s.name_en || s.name)}
+                  <button className={styles.seriesChipEdit} onClick={() => openSeriesEdit(s)}>✎</button>
                   <button className={styles.seriesChipDelete} onClick={() => handleSeriesDelete(s.id)}>×</button>
                 </span>
               ))}
@@ -169,7 +199,46 @@ export default function ArtworksContent({ artworks, seriesList, error }: Artwork
             <p>{zh ? '尚無作品，請稍後再來！' : 'No artworks found yet. Check back soon!'}</p>
           </div>
         ) : (
-          <ArtworkGrid artworks={artworks} seriesList={seriesList} isAdmin={isAdmin} onDelete={handleDelete} />
+          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onDelete={handleDelete} />
+        )}
+
+        {editingSeries && (
+          <div className={admin.overlay} onClick={() => setEditingSeries(null)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSeriesEdit}>
+              <h2 className={admin.modalTitle}>{zh ? '編輯系列' : 'Edit Series'}</h2>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>系列名稱 (中文) *</label>
+                  <input className={admin.formInput} required value={editSeriesForm.name}
+                    onChange={(e) => setEditSeriesForm({ ...editSeriesForm, name: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Series Name (EN)</label>
+                  <input className={admin.formInput} value={editSeriesForm.name_en}
+                    onChange={(e) => setEditSeriesForm({ ...editSeriesForm, name_en: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>敘述 (中文)</label>
+                <textarea className={admin.formTextarea} value={editSeriesForm.description}
+                  onChange={(e) => setEditSeriesForm({ ...editSeriesForm, description: e.target.value })} />
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>Description (EN)</label>
+                <textarea className={admin.formTextarea} value={editSeriesForm.description_en}
+                  onChange={(e) => setEditSeriesForm({ ...editSeriesForm, description_en: e.target.value })} />
+              </div>
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setEditingSeries(null)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={saving}>
+                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
         )}
 
         {showSeriesForm && (
