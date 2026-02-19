@@ -9,6 +9,7 @@ export const r2Client = (accountId && accessKeyId && secretAccessKey)
       region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: { accessKeyId, secretAccessKey },
+      forcePathStyle: true,
     })
   : null
 
