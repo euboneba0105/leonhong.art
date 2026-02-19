@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -40,10 +40,12 @@ export default function EventsContent({ events }: EventsContentProps) {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errMsg, setErrMsg] = useState('')
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     title: '', title_en: '', description: '', description_en: '',
     start_date: '', end_date: '', location: '', location_en: '',
-    location_url: '', cover_image_url: '',
+    location_url: '',
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,18 +53,36 @@ export default function EventsContent({ events }: EventsContentProps) {
     setSaving(true)
     setErrMsg('')
     try {
+      let cover_image_url: string | null = null
+
+      if (coverFile) {
+        const formData = new FormData()
+        formData.append('file', coverFile)
+        formData.append('folder', 'events')
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (!uploadRes.ok) {
+          const uploadErr = await uploadRes.json().catch(() => null)
+          setErrMsg(uploadErr?.error || '圖片上傳失敗')
+          setSaving(false)
+          return
+        }
+        const uploadData = await uploadRes.json()
+        cover_image_url = uploadData.url
+      }
+
       const res = await fetch('/api/exhibitions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, cover_image_url }),
       })
       if (res.ok) {
         setShowForm(false)
         setForm({
           title: '', title_en: '', description: '', description_en: '',
           start_date: '', end_date: '', location: '', location_en: '',
-          location_url: '', cover_image_url: '',
+          location_url: '',
         })
+        setCoverFile(null)
         router.refresh()
       } else {
         const data = await res.json().catch(() => null)
@@ -156,6 +176,17 @@ export default function EventsContent({ events }: EventsContentProps) {
             <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
               <h2 className={admin.modalTitle}>{zh ? '新增活動' : 'Add Event'}</h2>
 
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '封面圖片' : 'Cover Image'}</label>
+                <input type="file" accept="image/*" ref={coverInputRef}
+                  onChange={(e) => setCoverFile(e.target.files?.[0] || null)} />
+                {coverFile && (
+                  <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
+                    {coverFile.name}
+                  </p>
+                )}
+              </div>
+
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
                   <label className={admin.formLabel}>標題 (中文) *</label>
@@ -211,12 +242,6 @@ export default function EventsContent({ events }: EventsContentProps) {
                 <label className={admin.formLabel}>Description (EN)</label>
                 <textarea className={admin.formTextarea} value={form.description_en}
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>封面圖片網址</label>
-                <input className={admin.formInput} value={form.cover_image_url}
-                  onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
               </div>
 
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}

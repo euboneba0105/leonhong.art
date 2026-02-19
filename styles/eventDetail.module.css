@@ -75,6 +75,71 @@
   white-space: pre-line;
 }
 
+/* ── Gallery Section ── */
+.gallerySection {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.galleryTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 1.5rem 0;
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.galleryItem {
+  position: relative;
+  padding-bottom: 100%;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.galleryImage {
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.galleryItem:hover .galleryImage {
+  transform: scale(1.03);
+}
+
+.galleryDeleteBtn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.galleryItem:hover .galleryDeleteBtn {
+  opacity: 1;
+}
+
+.galleryDeleteBtn:hover {
+  background-color: #cc0000;
+}
+
 @media (max-width: 768px) {
   .mainContent {
     padding: 1.5rem 1rem 3rem;
@@ -86,5 +151,13 @@
 
   .coverWrapper {
     padding-bottom: 56%;
+  }
+
+  .galleryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .galleryDeleteBtn {
+    opacity: 1;
   }
 }
