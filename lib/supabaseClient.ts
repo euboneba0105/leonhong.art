@@ -57,8 +57,8 @@ export type Award = {
   year: number
   name: string
   name_en?: string
-  competition: string
-  competition_en?: string
+  competition?: string | null
+  competition_en?: string | null
   prize: string
   prize_en?: string
   created_at: string
@@ -70,8 +70,8 @@ export type CvExhibition = {
   year: number
   title: string
   title_en?: string
-  venue: string
-  venue_en?: string
+  venue?: string | null
+  venue_en?: string | null
   region: string
   region_en?: string
   created_at: string
