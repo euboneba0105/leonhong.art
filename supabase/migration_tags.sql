@@ -28,3 +28,17 @@ FROM artworks a
 JOIN tags t ON t.name = a.medium
 WHERE a.medium IS NOT NULL AND a.medium != ''
 ON CONFLICT DO NOTHING;
+
+-- RLS 政策
+ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE artwork_tags ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "tags_public_read" ON tags FOR SELECT USING (true);
+CREATE POLICY "tags_auth_insert" ON tags FOR INSERT WITH CHECK (true);
+CREATE POLICY "tags_auth_update" ON tags FOR UPDATE USING (true);
+CREATE POLICY "tags_auth_delete" ON tags FOR DELETE USING (true);
+
+CREATE POLICY "artwork_tags_public_read" ON artwork_tags FOR SELECT USING (true);
+CREATE POLICY "artwork_tags_auth_insert" ON artwork_tags FOR INSERT WITH CHECK (true);
+CREATE POLICY "artwork_tags_auth_update" ON artwork_tags FOR UPDATE USING (true);
+CREATE POLICY "artwork_tags_auth_delete" ON artwork_tags FOR DELETE USING (true);
