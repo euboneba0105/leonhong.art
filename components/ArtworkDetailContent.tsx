@@ -63,33 +63,40 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
     }, 400)
   }, [])
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (!isTouchZooming.current) {
-      // User is scrolling, cancel long-press
-      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
-      return
-    }
-    e.preventDefault()
-    const touch = e.touches[0]
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width) * 100))
-    const y = Math.max(0, Math.min(100, ((touch.clientY - rect.top) / rect.height) * 100))
-    setZoomPos({ x, y })
-  }, [])
-
   const handleTouchEnd = useCallback(() => {
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
     isTouchZooming.current = false
     setZooming(false)
   }, [])
 
-  // Prevent context menu on long press
+  // Native touchmove listener with { passive: false } to allow preventDefault for scroll blocking
+  // Also prevent context menu on long press
   useEffect(() => {
     const el = imageSectionRef.current
     if (!el) return
-    const prevent = (e: Event) => { if (isTouchZooming.current) e.preventDefault() }
-    el.addEventListener('contextmenu', prevent)
-    return () => el.removeEventListener('contextmenu', prevent)
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isTouchZooming.current) {
+        // User is scrolling, cancel long-press
+        if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
+        return
+      }
+      e.preventDefault()
+      const touch = e.touches[0]
+      const rect = el.getBoundingClientRect()
+      const x = Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width) * 100))
+      const y = Math.max(0, Math.min(100, ((touch.clientY - rect.top) / rect.height) * 100))
+      setZoomPos({ x, y })
+    }
+
+    const onContextMenu = (e: Event) => { if (isTouchZooming.current) e.preventDefault() }
+
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('contextmenu', onContextMenu)
+    return () => {
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('contextmenu', onContextMenu)
+    }
   }, [])
 
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
@@ -151,7 +158,6 @@ export default function ArtworkDetailContent({ artwork, seriesList }: ArtworkDet
           onMouseLeave={() => setZooming(false)}
           onMouseMove={handleMouseMove}
           onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
