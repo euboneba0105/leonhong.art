@@ -48,6 +48,15 @@ export default function EventsContent({ events }: EventsContentProps) {
     location_url: '',
   })
 
+  const [editingEvent, setEditingEvent] = useState<Exhibition | null>(null)
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null)
+  const editCoverInputRef = useRef<HTMLInputElement>(null)
+  const [editForm, setEditForm] = useState({
+    title: '', title_en: '', description: '', description_en: '',
+    start_date: '', end_date: '', location: '', location_en: '',
+    location_url: '',
+  })
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -91,6 +100,48 @@ export default function EventsContent({ events }: EventsContentProps) {
     } catch (err: any) {
       setErrMsg(err.message || '網路錯誤')
     }
+    setSaving(false)
+  }
+
+  function openEventEdit(event: Exhibition) {
+    setEditingEvent(event)
+    setEditCoverFile(null)
+    setEditForm({
+      title: event.title || '', title_en: event.title_en || '',
+      description: event.description || '', description_en: event.description_en || '',
+      start_date: event.start_date || '', end_date: event.end_date || '',
+      location: event.location || '', location_en: event.location_en || '',
+      location_url: event.location_url || '',
+    })
+  }
+
+  async function handleEventEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingEvent) return
+    setSaving(true)
+    setErrMsg('')
+    try {
+      let cover_image_url = editingEvent.cover_image_url || null
+      if (editCoverFile) {
+        const formData = new FormData()
+        formData.append('file', editCoverFile)
+        formData.append('folder', 'events')
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (!uploadRes.ok) {
+          setErrMsg('圖片上傳失敗')
+          setSaving(false)
+          return
+        }
+        cover_image_url = (await uploadRes.json()).url
+      }
+      const res = await fetch('/api/exhibitions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingEvent.id, ...editForm, cover_image_url }),
+      })
+      if (res.ok) { setEditingEvent(null); setEditCoverFile(null); router.refresh() }
+      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
+    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
     setSaving(false)
   }
 
@@ -160,9 +211,9 @@ export default function EventsContent({ events }: EventsContentProps) {
 
                   {isAdmin && (
                     <div style={{ padding: '0 2rem 1rem', display: 'flex', gap: '0.5rem' }}>
-                      <Link href={`/events/${event.id}`} className={admin.editBtn}>
+                      <button className={admin.editBtn} onClick={() => openEventEdit(event)}>
                         {zh ? '編輯' : 'Edit'}
-                      </Link>
+                      </button>
                       <button className={admin.deleteBtn} onClick={() => handleDelete(event.id)}>
                         {zh ? '刪除' : 'Delete'}
                       </button>
@@ -250,6 +301,83 @@ export default function EventsContent({ events }: EventsContentProps) {
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
                 <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
+                  {zh ? '取消' : 'Cancel'}
+                </button>
+                <button type="submit" className={admin.submitBtn} disabled={saving}>
+                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+        {editingEvent && (
+          <div className={admin.overlay} onClick={() => setEditingEvent(null)}>
+            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleEventEdit}>
+              <h2 className={admin.modalTitle}>{zh ? '編輯活動' : 'Edit Event'}</h2>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '封面圖片' : 'Cover Image'}</label>
+                {editingEvent.cover_image_url && !editCoverFile && (
+                  <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>
+                    {zh ? '目前已有封面圖片，選擇新檔案將會替換' : 'Current cover exists. Choose a new file to replace.'}
+                  </p>
+                )}
+                <input type="file" accept="image/*" ref={editCoverInputRef}
+                  onChange={(e) => setEditCoverFile(e.target.files?.[0] || null)} />
+              </div>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>標題 (中文) *</label>
+                  <input className={admin.formInput} required value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Title (EN)</label>
+                  <input className={admin.formInput} value={editForm.title_en}
+                    onChange={(e) => setEditForm({ ...editForm, title_en: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>開始日期</label>
+                  <input className={admin.formInput} type="date" value={editForm.start_date}
+                    onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>結束日期</label>
+                  <input className={admin.formInput} type="date" value={editForm.end_date}
+                    onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formRow}>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>地點 (中文)</label>
+                  <input className={admin.formInput} value={editForm.location}
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                </div>
+                <div className={admin.formGroup}>
+                  <label className={admin.formLabel}>Location (EN)</label>
+                  <input className={admin.formInput} value={editForm.location_en}
+                    onChange={(e) => setEditForm({ ...editForm, location_en: e.target.value })} />
+                </div>
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>地點連結</label>
+                <input className={admin.formInput} type="url" value={editForm.location_url}
+                  onChange={(e) => setEditForm({ ...editForm, location_url: e.target.value })} />
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>說明 (中文)</label>
+                <textarea className={admin.formTextarea} value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>Description (EN)</label>
+                <textarea className={admin.formTextarea} value={editForm.description_en}
+                  onChange={(e) => setEditForm({ ...editForm, description_en: e.target.value })} />
+              </div>
+              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+              <div className={admin.modalActions}>
+                <button type="button" className={admin.cancelBtn} onClick={() => setEditingEvent(null)}>
                   {zh ? '取消' : 'Cancel'}
                 </button>
                 <button type="submit" className={admin.submitBtn} disabled={saving}>

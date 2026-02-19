@@ -10,6 +10,10 @@
 /.next/
 /out/
 
+# typescript
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
 # production
 /build
 
