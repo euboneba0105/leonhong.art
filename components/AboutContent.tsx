@@ -244,7 +244,7 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
 
                       return (
                         <div key={award.id} className={styles.entry}>
-                          <span className={styles.categoryBadge}>{competition}</span>
+                          {competition && <span className={styles.categoryBadge}>{competition}</span>}
                           <h3 className={styles.entryTitle}>{name}</h3>
                           <p className={styles.entryDescription}>{prize}</p>
                           {isAdmin && (
@@ -297,7 +297,7 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                         <div key={exh.id} className={styles.entry}>
                           <span className={styles.categoryBadge}>{region}</span>
                           <h3 className={styles.entryTitle}>{title}</h3>
-                          <p className={styles.entryDescription}>{venue}</p>
+                          {venue && <p className={styles.entryDescription}>{venue}</p>}
                           {isAdmin && (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <button className={admin.editBtn} onClick={() => openExhEdit(exh)}>
@@ -463,8 +463,8 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
 
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>競賽類別 (中文) *</label>
-                  <input className={admin.formInput} required value={awardForm.competition}
+                  <label className={admin.formLabel}>競賽類別 (中文)</label>
+                  <input className={admin.formInput} value={awardForm.competition}
                     onChange={(e) => setAwardForm({ ...awardForm, competition: e.target.value })} />
                 </div>
                 <div className={admin.formGroup}>
@@ -527,8 +527,8 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
 
               <div className={admin.formRow}>
                 <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>場地空間 (中文) *</label>
-                  <input className={admin.formInput} required value={exhForm.venue}
+                  <label className={admin.formLabel}>場地空間 (中文)</label>
+                  <input className={admin.formInput} value={exhForm.venue}
                     onChange={(e) => setExhForm({ ...exhForm, venue: e.target.value })} />
                 </div>
                 <div className={admin.formGroup}>
