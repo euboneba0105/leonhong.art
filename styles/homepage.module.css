@@ -137,7 +137,7 @@
   z-index: 10;
   padding: 0 0 5rem;
   opacity: 0;
-  transform: translateY(50px);
+  transform: translateY(3.125rem);
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -149,12 +149,12 @@
 .seriesGrid {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  padding: 0 2rem;
+  padding: 0 1.25rem;
 }
 
 .seriesGrid::-webkit-scrollbar {
@@ -163,7 +163,7 @@
 
 .seriesCard {
   flex: 0 0 auto;
-  width: 170px;
+  width: clamp(7.5rem, 11vw, 10rem);
   text-decoration: none;
   color: inherit;
   display: flex;
