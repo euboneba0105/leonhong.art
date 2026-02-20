@@ -1,6 +1,6 @@
 .footer {
-  background-color: #1a1a1a;
-  color: #aaaaaa;
+  background-color: #f5f5f5;
+  color: #555555;
   padding: 2rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -11,14 +11,14 @@
 /* ── Language toggle ── */
 .langToggle {
   display: inline-flex;
-  border: 1px solid #555555;
+  border: 1px solid #cccccc;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .langOption {
   background: transparent;
-  color: #888888;
+  color: #666666;
   border: none;
   padding: 0.35rem 1rem;
   font-size: 0.8rem;
@@ -30,12 +30,12 @@
 }
 
 .langOption:first-child {
-  border-right: 1px solid #555555;
+  border-right: 1px solid #cccccc;
 }
 
 .langActive {
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background-color: #333333;
+  color: #ffffff;
 }
 
 /* ── Social icons ── */
@@ -46,7 +46,7 @@
 }
 
 .socialIcon {
-  color: #aaaaaa;
+  color: #888888;
   transition: color 0.2s ease;
   display: flex;
   align-items: center;
@@ -54,7 +54,7 @@
 }
 
 .socialIcon:hover {
-  color: #ffffff;
+  color: #333333;
 }
 
 /* ── Copyright ── */
