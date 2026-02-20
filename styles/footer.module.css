@@ -11,7 +11,7 @@
 /* ── Language toggle ── */
 .langToggle {
   display: inline-flex;
-  border: 1px solid #cccccc;
+  border: 1px solid #999999;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -20,7 +20,7 @@
   background: transparent;
   color: #666666;
   border: none;
-  padding: 0.5rem 0.6rem;
+  padding: 0.3rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -31,12 +31,12 @@
 }
 
 .langOption:first-child {
-  border-right: 1px solid #cccccc;
+  border-right: 1px solid #999999;
 }
 
 .langActive {
-  background-color: #e8e8e8;
-  color: #333333;
+  background-color: #333333;
+  color: #ffffff;
 }
 
 /* ── Social icons ── */
