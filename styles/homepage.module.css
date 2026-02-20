@@ -127,7 +127,7 @@
 .enterBtn:hover {
   border-color: #ffffff;
   color: #ffffff;
-  padding-right: 3rem;
+  padding-right: 1.2rem;
 }
 
 .enterBtnArrow {
@@ -142,7 +142,7 @@
 .enterBtn:hover .enterBtnArrow {
   max-width: 1.5rem;
   opacity: 1;
-  margin-left: 0.6rem;
+  margin-left: 1.5rem;
 }
 
 /* ── Series cards section — transparent, single row, desktop only ── */
