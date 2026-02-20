@@ -20,13 +20,14 @@
   background: transparent;
   color: #666666;
   border: none;
-  padding: 0.35rem 1rem;
+  padding: 0.5rem 0.6rem;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   letter-spacing: 0.03em;
   flex: 1;
+  white-space: nowrap;
 }
 
 .langOption:first-child {
@@ -34,8 +35,8 @@
 }
 
 .langActive {
-  background-color: #333333;
-  color: #ffffff;
+  background-color: #e8e8e8;
+  color: #333333;
 }
 
 /* ── Social icons ── */
