@@ -90,7 +90,12 @@ export default function HomepageContent({
   // ── Series cards data ──
   const seriesCards = useMemo(() => {
     return seriesList.map((s) => {
-      const cover = allArtworks.find((a) => a.series_id === s.id)
+      let cover = null
+      if (s.cover_image_id) {
+        cover = allArtworks.find((a) => a.id === s.cover_image_id)
+      } else {
+        cover = allArtworks.find((a) => a.series_id === s.id)
+      }
       return { series: s, coverUrl: cover?.image_url || null }
     })
   }, [seriesList, allArtworks])

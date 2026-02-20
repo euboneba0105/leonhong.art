@@ -35,9 +35,6 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
     }
   }
 
-  // 找到選中的封面圖片
-  const selectedArtwork = form.cover_image_id ? artworks.find(a => a.id === form.cover_image_id) : null
-
   return (
     <form className={admin.modal} onSubmit={handleSubmit}>
       <h2 className={admin.modalTitle}>{zh ? (series ? '編輯系列' : '創建系列') : (series ? 'Edit Series' : 'Create Series')}</h2>
@@ -81,42 +78,63 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
       </div>
 
       <div className={admin.formGroup}>
-        <label className={admin.formLabel}>{zh ? '封面圖片' : 'Cover Image'}</label>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-          <select
-            className={admin.formInput}
-            value={form.cover_image_id}
-            onChange={(e) => setForm({ ...form, cover_image_id: e.target.value })}
-            style={{ flex: 1 }}
-          >
-            <option value="">{zh ? '-- 選擇封面 --' : '-- Select Cover --'}</option>
-            {artworks.map(artwork => (
-              <option key={artwork.id} value={artwork.id}>
-                {artwork.title} ({artwork.year || 'N/A'})
-              </option>
-            ))}
-          </select>
-
-          {selectedArtwork && selectedArtwork.image_url && (
-            <div style={{
-              width: '80px',
-              height: '80px',
+        <label className={admin.formLabel}>{zh ? '選擇封面圖片' : 'Select Cover Image'}</label>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+          gap: '0.75rem'
+        }}>
+          {/* Clear button */}
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, cover_image_id: '' })}
+            style={{
+              padding: '0.75rem',
+              border: form.cover_image_id === '' ? '2px solid #333' : '1px solid #ddd',
               borderRadius: '4px',
-              overflow: 'hidden',
-              border: '1px solid #ddd',
-              flexShrink: 0
-            }}>
-              <img
-                src={selectedArtwork.image_url}
-                alt="cover preview"
+              backgroundColor: form.cover_image_id === '' ? '#f0f0f0' : '#fff',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: form.cover_image_id === '' ? 'bold' : 'normal',
+              transition: 'all 0.2s'
+            }}
+          >
+            {zh ? '無封面' : 'None'}
+          </button>
+
+          {/* Artwork thumbnails */}
+          {artworks
+            .filter(a => !series || a.series_id === series.id)
+            .map(artwork => (
+              <button
+                key={artwork.id}
+                type="button"
+                onClick={() => setForm({ ...form, cover_image_id: artwork.id })}
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
+                  padding: 0,
+                  border: form.cover_image_id === artwork.id ? '2px solid #333' : '1px solid #ddd',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  aspectRatio: '1',
+                  backgroundColor: '#f5f5f5',
+                  transition: 'border 0.2s'
                 }}
-              />
-            </div>
-          )}
+                title={artwork.title}
+              >
+                {artwork.image_url && (
+                  <img
+                    src={artwork.image_url}
+                    alt={artwork.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                )}
+              </button>
+            ))}
         </div>
       </div>
 
