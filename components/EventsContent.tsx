@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
-import { uploadFile } from '@/lib/uploadFile'
+import EventForm from './EventForm'
 import type { Exhibition } from '@/lib/supabaseClient'
 import styles from '@/styles/events.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -39,96 +39,34 @@ export default function EventsContent({ events }: EventsContentProps) {
   const isAdmin = !!(session?.user as any)?.isAdmin
 
   const [showForm, setShowForm] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [errMsg, setErrMsg] = useState('')
-  const [coverFile, setCoverFile] = useState<File | null>(null)
-  const coverInputRef = useRef<HTMLInputElement>(null)
-  const [form, setForm] = useState({
-    title: '', title_en: '', description: '', description_en: '',
-    start_date: '', end_date: '', location: '', location_en: '',
-    location_url: '',
-  })
-
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingEvent, setEditingEvent] = useState<Exhibition | null>(null)
-  const [editCoverFile, setEditCoverFile] = useState<File | null>(null)
-  const editCoverInputRef = useRef<HTMLInputElement>(null)
-  const [editForm, setEditForm] = useState({
-    title: '', title_en: '', description: '', description_en: '',
-    start_date: '', end_date: '', location: '', location_en: '',
-    location_url: '',
-  })
+  const [saving, setSaving] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleEventSubmit(form: any) {
     setSaving(true)
-    setErrMsg('')
     try {
-      let cover_image_url: string | null = null
-
-      if (coverFile) {
-        try { cover_image_url = await uploadFile(coverFile, 'events', (p) => setUploadProgress(p)) }
-        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
-        setUploadProgress(null)
-      }
+      const method = editingEvent ? 'PATCH' : 'POST'
+      const body = editingEvent ? { id: editingEvent.id, ...form } : form
 
       const res = await fetch('/api/exhibitions', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, cover_image_url }),
+        body: JSON.stringify(body),
       })
-      if (res.ok) {
-        setShowForm(false)
-        setForm({
-          title: '', title_en: '', description: '', description_en: '',
-          start_date: '', end_date: '', location: '', location_en: '',
-          location_url: '',
-        })
-        setCoverFile(null)
-        router.refresh()
+      if (!res.ok) {
+        const d = await res.json().catch(() => null)
+        throw new Error(d?.error || `Error (${res.status})`)
+      }
+
+      if (editingEvent) {
+        setEditingEvent(null)
       } else {
-        const data = await res.json().catch(() => null)
-        setErrMsg(data?.error || `儲存失敗 (${res.status})`)
+        setShowForm(false)
       }
-    } catch (err: any) {
-      setErrMsg(err.message || '網路錯誤')
+      router.refresh()
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
-  }
-
-  function openEventEdit(event: Exhibition) {
-    setEditingEvent(event)
-    setEditCoverFile(null)
-    setEditForm({
-      title: event.title || '', title_en: event.title_en || '',
-      description: event.description || '', description_en: event.description_en || '',
-      start_date: event.start_date || '', end_date: event.end_date || '',
-      location: event.location || '', location_en: event.location_en || '',
-      location_url: event.location_url || '',
-    })
-  }
-
-  async function handleEventEdit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!editingEvent) return
-    setSaving(true)
-    setErrMsg('')
-    try {
-      let cover_image_url = editingEvent.cover_image_url || null
-      if (editCoverFile) {
-        try { cover_image_url = await uploadFile(editCoverFile, 'events', (p) => setUploadProgress(p)) }
-        catch (uploadErr: any) { setErrMsg(uploadErr.message); setSaving(false); setUploadProgress(null); return }
-        setUploadProgress(null)
-      }
-      const res = await fetch('/api/exhibitions', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingEvent.id, ...editForm, cover_image_url }),
-      })
-      if (res.ok) { setEditingEvent(null); setEditCoverFile(null); router.refresh() }
-      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
-    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
-    setSaving(false)
   }
 
   async function handleDelete(id: string) {
@@ -197,7 +135,7 @@ export default function EventsContent({ events }: EventsContentProps) {
 
                   {isAdmin && (
                     <div style={{ padding: '0 2rem 1rem', display: 'flex', gap: '0.5rem' }}>
-                      <button className={admin.editBtn} onClick={() => openEventEdit(event)}>
+                      <button className={admin.editBtn} onClick={() => setEditingEvent(event)}>
                         {zh ? '編輯' : 'Edit'}
                       </button>
                       <button className={admin.deleteBtn} onClick={() => handleDelete(event.id)}>
@@ -213,176 +151,25 @@ export default function EventsContent({ events }: EventsContentProps) {
 
         {showForm && (
           <div className={admin.overlay} onClick={() => setShowForm(false)}>
-            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-              <h2 className={admin.modalTitle}>{zh ? '新增活動' : 'Add Event'}</h2>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '封面圖片' : 'Cover Image'}</label>
-                <input type="file" accept="image/*" ref={coverInputRef}
-                  onChange={(e) => setCoverFile(e.target.files?.[0] || null)} />
-                {coverFile && (
-                  <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
-                    {coverFile.name}
-                  </p>
-                )}
-              </div>
-
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>標題 (中文) *</label>
-                  <input className={admin.formInput} required value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Title (EN)</label>
-                  <input className={admin.formInput} value={form.title_en}
-                    onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
-                </div>
-              </div>
-
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>開始日期</label>
-                  <input className={admin.formInput} type="date" value={form.start_date}
-                    onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>結束日期</label>
-                  <input className={admin.formInput} type="date" value={form.end_date}
-                    onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
-                </div>
-              </div>
-
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>地點 (中文)</label>
-                  <input className={admin.formInput} value={form.location}
-                    onChange={(e) => setForm({ ...form, location: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Location (EN)</label>
-                  <input className={admin.formInput} value={form.location_en}
-                    onChange={(e) => setForm({ ...form, location_en: e.target.value })} />
-                </div>
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>地點連結</label>
-                <input className={admin.formInput} type="url" value={form.location_url}
-                  onChange={(e) => setForm({ ...form, location_url: e.target.value })} />
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>說明 (中文)</label>
-                <textarea className={admin.formTextarea} value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Description (EN)</label>
-                <textarea className={admin.formTextarea} value={form.description_en}
-                  onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-              </div>
-
-              {uploadProgress !== null && (
-                <div className={admin.progressWrapper}>
-                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
-                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
-                </div>
-              )}
-              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
-              <div className={admin.modalActions}>
-                <button type="button" className={admin.cancelBtn} onClick={() => setShowForm(false)}>
-                  {zh ? '取消' : 'Cancel'}
-                </button>
-                <button type="submit" className={admin.submitBtn} disabled={saving}>
-                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
-                </button>
-              </div>
-            </form>
+            <div onClick={(e) => e.stopPropagation()}>
+              <EventForm
+                onSubmit={handleEventSubmit}
+                onCancel={() => setShowForm(false)}
+                loading={saving}
+              />
+            </div>
           </div>
         )}
         {editingEvent && (
           <div className={admin.overlay} onClick={() => setEditingEvent(null)}>
-            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleEventEdit}>
-              <h2 className={admin.modalTitle}>{zh ? '編輯活動' : 'Edit Event'}</h2>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '封面圖片' : 'Cover Image'}</label>
-                {editingEvent.cover_image_url && !editCoverFile && (
-                  <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>
-                    {zh ? '目前已有封面圖片，選擇新檔案將會替換' : 'Current cover exists. Choose a new file to replace.'}
-                  </p>
-                )}
-                <input type="file" accept="image/*" ref={editCoverInputRef}
-                  onChange={(e) => setEditCoverFile(e.target.files?.[0] || null)} />
-              </div>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>標題 (中文) *</label>
-                  <input className={admin.formInput} required value={editForm.title}
-                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Title (EN)</label>
-                  <input className={admin.formInput} value={editForm.title_en}
-                    onChange={(e) => setEditForm({ ...editForm, title_en: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>開始日期</label>
-                  <input className={admin.formInput} type="date" value={editForm.start_date}
-                    onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>結束日期</label>
-                  <input className={admin.formInput} type="date" value={editForm.end_date}
-                    onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>地點 (中文)</label>
-                  <input className={admin.formInput} value={editForm.location}
-                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Location (EN)</label>
-                  <input className={admin.formInput} value={editForm.location_en}
-                    onChange={(e) => setEditForm({ ...editForm, location_en: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>地點連結</label>
-                <input className={admin.formInput} type="url" value={editForm.location_url}
-                  onChange={(e) => setEditForm({ ...editForm, location_url: e.target.value })} />
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>說明 (中文)</label>
-                <textarea className={admin.formTextarea} value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Description (EN)</label>
-                <textarea className={admin.formTextarea} value={editForm.description_en}
-                  onChange={(e) => setEditForm({ ...editForm, description_en: e.target.value })} />
-              </div>
-              {uploadProgress !== null && (
-                <div className={admin.progressWrapper}>
-                  <div className={admin.progressLabel}>{zh ? `上傳中 ${uploadProgress}%` : `Uploading ${uploadProgress}%`}</div>
-                  <div className={admin.progressTrack}><div className={admin.progressFill} style={{ width: `${uploadProgress}%` }} /></div>
-                </div>
-              )}
-              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
-              <div className={admin.modalActions}>
-                <button type="button" className={admin.cancelBtn} onClick={() => setEditingEvent(null)}>
-                  {zh ? '取消' : 'Cancel'}
-                </button>
-                <button type="submit" className={admin.submitBtn} disabled={saving}>
-                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
-                </button>
-              </div>
-            </form>
+            <div onClick={(e) => e.stopPropagation()}>
+              <EventForm
+                event={editingEvent}
+                onSubmit={handleEventSubmit}
+                onCancel={() => setEditingEvent(null)}
+                loading={saving}
+              />
+            </div>
           </div>
         )}
       </main>

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import ArtworkGrid from './ArtworkGrid'
+import SeriesForm from './SeriesForm'
 import type { Artwork, Series } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -26,13 +27,6 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
 
   const [showEdit, setShowEdit] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [errMsg, setErrMsg] = useState('')
-  const [form, setForm] = useState({
-    name: series?.name || '',
-    name_en: series?.name_en || '',
-    description: series?.description || '',
-    description_en: series?.description_en || '',
-  })
 
   const title = isStandalone
     ? (zh ? '獨立作品' : 'Standalone')
@@ -52,21 +46,24 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
     router.refresh()
   }
 
-  async function handleEditSeries(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleEditSeries(form: any) {
     if (!series) return
     setSaving(true)
-    setErrMsg('')
     try {
       const res = await fetch('/api/series', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: series.id, ...form }),
       })
-      if (res.ok) { setShowEdit(false); router.refresh() }
-      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
-    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
-    setSaving(false)
+      if (!res.ok) {
+        const d = await res.json().catch(() => null)
+        throw new Error(d?.error || `Error (${res.status})`)
+      }
+      setShowEdit(false)
+      router.refresh()
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleDeleteSeries() {
@@ -114,40 +111,15 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
 
         {showEdit && series && (
           <div className={admin.overlay} onClick={() => setShowEdit(false)}>
-            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSeries}>
-              <h2 className={admin.modalTitle}>{zh ? '編輯系列' : 'Edit Series'}</h2>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>系列名稱 (中文) *</label>
-                  <input className={admin.formInput} required value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Series Name (EN)</label>
-                  <input className={admin.formInput} value={form.name_en}
-                    onChange={(e) => setForm({ ...form, name_en: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>敘述 (中文)</label>
-                <textarea className={admin.formTextarea} value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Description (EN)</label>
-                <textarea className={admin.formTextarea} value={form.description_en}
-                  onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-              </div>
-              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
-              <div className={admin.modalActions}>
-                <button type="button" className={admin.cancelBtn} onClick={() => setShowEdit(false)}>
-                  {zh ? '取消' : 'Cancel'}
-                </button>
-                <button type="submit" className={admin.submitBtn} disabled={saving}>
-                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
-                </button>
-              </div>
-            </form>
+            <div onClick={(e) => e.stopPropagation()}>
+              <SeriesForm
+                series={series}
+                artworks={artworks}
+                onSubmit={handleEditSeries}
+                onCancel={() => setShowEdit(false)}
+                loading={saving}
+              />
+            </div>
           </div>
         )}
       </main>

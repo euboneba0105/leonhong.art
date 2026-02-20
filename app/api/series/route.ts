@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       name_en: body.name_en || null,
       description: body.description || null,
       description_en: body.description_en || null,
+      cover_image_id: body.cover_image_id || null,
     })
     .select()
     .single()
