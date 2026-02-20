@@ -85,52 +85,64 @@
   pointer-events: none;
 }
 
-/* ── Navigation section — transparent, overlays hero ── */
+/* ── Title + Enter section — transparent, overlays hero ── */
 .navSection {
   position: relative;
   z-index: 10;
   padding: 4rem 2rem 2rem;
   text-align: center;
-  /* No background — hero shows through */
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   margin: 0 4rem;
-}
-
-.homeNav {
   display: flex;
-  justify-content: center;
-  gap: 5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
 }
 
-.homeNavLink {
-  font-size: 1.05rem;
+.heroTitle {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.enterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.7rem 2.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 9999px;
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  transition: color 0.2s ease;
-  position: relative;
-  padding-bottom: 2px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  transition: border-color 0.3s ease, color 0.3s ease;
+  background: transparent;
+  cursor: pointer;
 }
 
-.homeNavLink::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: #ffffff;
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
-.homeNavLink:hover {
+.enterBtn:hover {
+  border-color: #ffffff;
   color: #ffffff;
 }
 
-.homeNavLink:hover::after {
-  transform: scaleX(1);
+.enterBtnArrow {
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 0.35s ease, opacity 0.3s ease, margin-left 0.35s ease;
+  margin-left: 0;
+}
+
+.enterBtn:hover .enterBtnArrow {
+  max-width: 1.5rem;
+  opacity: 1;
+  margin-left: 0.5rem;
 }
 
 /* ── Series cards section — transparent, single row, desktop only ── */
@@ -298,19 +310,14 @@
    ═══════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  /* Nav stacks vertically on mobile */
-  .homeNav {
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: center;
-  }
-
-  .homeNavLink {
-    font-size: 1rem;
-  }
-
   .navSection {
-    padding: 3rem 1.5rem 2.5rem;
+    padding: 3rem 1.5rem 2rem;
+    margin: 0 1.5rem;
+  }
+
+  .heroTitle {
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
   }
 
   /* Hide series cards on mobile */
@@ -335,8 +342,8 @@
 }
 
 @media (max-width: 480px) {
-  .homeNav {
-    gap: 1.25rem;
+  .heroTitle {
+    font-size: 1rem;
   }
 
   .heroLogoImage {
