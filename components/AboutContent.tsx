@@ -246,7 +246,7 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                         <div key={award.id} className={styles.entry}>
                           <h3 className={styles.entryTitle}>{name}</h3>
                           <p className={styles.entryDescription}>
-                            {competition && prize && `${competition} / ${prize}`}
+                            {competition && prize && `${competition} · ${prize}`}
                             {competition && !prize && competition}
                             {!competition && prize && prize}
                           </p>
@@ -300,7 +300,7 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                         <div key={exh.id} className={styles.entry}>
                           <h3 className={styles.entryTitle}>{title}</h3>
                           <p className={styles.entryDescription}>
-                            {venue && region && `${venue} / ${region}`}
+                            {venue && region && `${venue} · ${region}`}
                             {venue && !region && venue}
                             {!venue && region && region}
                           </p>
