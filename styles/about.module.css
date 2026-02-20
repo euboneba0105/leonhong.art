@@ -98,11 +98,11 @@
 
 .yearLabel {
   flex-shrink: 0;
-  width: 3rem;
+  width: 5rem;
   font-size: 1.25rem;
   font-weight: 700;
   color: #1a1a1a;
-  padding-left: 1rem;
+  padding-left: 2rem;
 }
 
 .yearEntries {
@@ -248,5 +248,6 @@
 
   .yearLabel {
     padding-left: 0;
+    width: 3rem;
   }
 }
