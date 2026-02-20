@@ -43,10 +43,42 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [zooming, setZooming] = useState(false)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTouchZooming = useRef(false)
   const isTouchDevice = useRef(false)
   const imageSectionRef = useRef<HTMLDivElement>(null)
+
+  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget
+    const ratio = img.naturalWidth / img.naturalHeight
+    setImageAspectRatio(ratio)
+  }, [])
+
+  const MAX_ASPECT_RATIO = 5 / 3 // 5:3 (1.667)
+  const MIN_ASPECT_RATIO = 3 / 5 // 3:5 (0.6)
+
+  // 計算約束後的寬高比
+  let displayAspectRatio = imageAspectRatio
+  let isImageOutOfRange = false
+
+  if (imageAspectRatio) {
+    if (imageAspectRatio > MAX_ASPECT_RATIO) {
+      displayAspectRatio = MAX_ASPECT_RATIO
+      isImageOutOfRange = true
+    } else if (imageAspectRatio < MIN_ASPECT_RATIO) {
+      displayAspectRatio = MIN_ASPECT_RATIO
+      isImageOutOfRange = true
+    }
+  }
+
+  // 計算縮放倍數：超寬圖片要放大更多
+  let zoomScale = 250 // 預設 2.5 倍 (250%)
+  if (imageAspectRatio && imageAspectRatio > MAX_ASPECT_RATIO) {
+    // 超出範圍的倍數
+    const excessRatio = imageAspectRatio / MAX_ASPECT_RATIO
+    zoomScale = Math.round(250 * excessRatio)
+  }
 
   const handleMouseEnter = useCallback(() => {
     if (isTouchDevice.current) return
@@ -171,7 +203,10 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
         {/* Large image on top — hover / long-press to zoom */}
         <div
           ref={imageSectionRef}
-          className={`${styles.imageSection} ${zooming ? styles.zooming : ''}`}
+          className={`${styles.imageSection} ${zooming ? styles.zooming : ''} ${isImageOutOfRange ? styles.constrainedImage : ''}`}
+          style={{
+            aspectRatio: displayAspectRatio ? `${displayAspectRatio} / 1` : 'auto',
+          }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onMouseMove={handleMouseMove}
@@ -188,12 +223,14 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
             className={styles.image}
             priority
             draggable={false}
+            onLoad={handleImageLoad}
           />
           <div
             className={`${styles.zoomLens} ${zooming ? styles.zoomActive : ''}`}
             style={{
               backgroundImage: `url(${imageUrl})`,
               backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+              backgroundSize: `${zoomScale}%`,
             }}
           />
         </div>

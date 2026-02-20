@@ -27,7 +27,7 @@
   color: #1a1a1a;
 }
 
-/* Large image on top — no crop, full aspect ratio */
+/* Large image on top — constrain aspect ratio if needed */
 .imageSection {
   position: relative;
   margin-bottom: 2.5rem;
@@ -37,10 +37,18 @@
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  width: 100%;
 }
 
 .imageSection.zooming {
   cursor: crosshair;
+}
+
+/* For images that need aspect ratio constraints */
+.imageSection.constrainedImage {
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .image {
@@ -48,6 +56,12 @@
   height: auto;
   display: block;
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* For constrained images: use object-fit contain to show full image with whitespace */
+.constrainedImage .image {
+  height: 100%;
+  object-fit: contain;
 }
 
 .zooming .image {
