@@ -49,9 +49,8 @@ export default function HomepageContent({
     return () => clearInterval(interval)
   }, [heroArtworks.length])
 
-  // ── Scroll-driven overlay, logo, fog & logo push ──
+  // ── Scroll-driven overlay, fog & logo push ──
   const [overlayOpacity, setOverlayOpacity] = useState(0)
-  const [logoOpacity, setLogoOpacity] = useState(0)
   const [fogAmount, setFogAmount] = useState(0)
   const [logoOffsetY, setLogoOffsetY] = useState(0)
 
@@ -61,25 +60,18 @@ export default function HomepageContent({
       const vh = window.innerHeight
 
       // Overlay: starts immediately, max 50%
-      setOverlayOpacity(Math.min(1, scrollY / (vh * 1.2)) * 0.5)
+      setOverlayOpacity(Math.min(1, scrollY / (vh * 0.8)) * 0.5)
 
-      // Logo: appears almost immediately (10% → 50% viewport scroll)
-      const lStart = vh * 0.1
-      const lEnd = vh * 0.5
-      setLogoOpacity(
-        Math.min(1, Math.max(0, (scrollY - lStart) / (lEnd - lStart)))
-      )
-
-      // Fog: background blurs as nav approaches (1.0vh → 1.5vh)
-      const fStart = vh * 1.0
-      const fEnd = vh * 1.5
+      // Fog: background blurs as nav approaches (0.3vh → 0.8vh)
+      const fStart = vh * 0.3
+      const fEnd = vh * 0.8
       setFogAmount(
         Math.min(1, Math.max(0, (scrollY - fStart) / (fEnd - fStart)))
       )
 
-      // Logo push: nav section top in viewport = 1.5*vh - scrollY
+      // Logo push: nav section top in viewport = 1.0*vh - scrollY
       // When nav rises to meet the logo center (42vh), push logo up with it
-      const navTopInVp = vh * 1.5 - scrollY
+      const navTopInVp = vh * 1.0 - scrollY
       const logoCenterY = vh * 0.42
       const pushMargin = 60 // px gap between logo bottom and nav top
       const pushPoint = logoCenterY + pushMargin
@@ -205,11 +197,10 @@ export default function HomepageContent({
           />
         </div>
 
-        {/* White logo — opacity driven by scroll, pushed up by nav */}
+        {/* White logo — always visible, pushed up by nav on scroll */}
         <div
           className={styles.heroLogo}
           style={{
-            opacity: logoOpacity,
             transform: `translate(-50%, calc(-50% - ${logoOffsetY}px))`,
           }}
         >
