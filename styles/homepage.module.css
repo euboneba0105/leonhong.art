@@ -79,7 +79,7 @@
 /* ── Scroll spacer ──
    2× viewport height: first vh for hero view, second vh for logo reveal */
 .heroSpacer {
-  height: 200vh;
+  height: 100vh;
   position: relative;
   z-index: 0;
   pointer-events: none;
@@ -92,6 +92,10 @@
   padding: 4rem 2rem 3rem;
   text-align: center;
   /* No background — hero shows through */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 0 auto;
+  width: fit-content;
+  padding-bottom: 2rem;
 }
 
 .homeNav {
@@ -207,7 +211,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 1000;
+  z-index: 100;
   background: #1a1a1a;
   color: #ffffff;
   border: none;
