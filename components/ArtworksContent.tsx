@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -34,13 +34,9 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
   const [showTagForm, setShowTagForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errMsg, setErrMsg] = useState('')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null)
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
   const [editingTag, setEditingTag] = useState<Tag | null>(null)
-  const [editTagForm, setEditTagForm] = useState({ name: '', name_en: '' })
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set())
 
   // Build series cards data
@@ -333,7 +329,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
                     })
                     if (res.ok) {
                       setShowSeriesForm(false)
-                      setSeriesForm({ name: '', name_en: '', description: '', description_en: '' })
                       router.refresh()
                     } else {
                       const d = await res.json().catch(() => null)
@@ -368,7 +363,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
                     })
                     if (res.ok) {
                       setShowTagForm(false)
-                      setTagForm({ name: '', name_en: '' })
                       router.refresh()
                     } else {
                       const d = await res.json().catch(() => null)
@@ -405,9 +399,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
                     })
                     if (res.ok) {
                       setShowForm(false)
-                      setForm({ title: '', title_en: '', series_id: '', year: '', size: '', description: '', description_en: '' })
-                      setFormTagIds(new Set())
-                      setImageFile(null)
                       router.refresh()
                     } else {
                       const d = await res.json().catch(() => null)
