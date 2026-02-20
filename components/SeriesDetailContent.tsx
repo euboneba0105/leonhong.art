@@ -84,7 +84,7 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
         <div style={{ marginBottom: '2rem' }}>
-          <Link href="/" style={{ color: '#555', textDecoration: 'none', fontSize: '0.95rem' }}>
+          <Link href="/gallery" style={{ color: '#555', textDecoration: 'none', fontSize: '0.95rem' }}>
             ← {zh ? '返回全部作品' : 'Back to All Works'}
           </Link>
         </div>
