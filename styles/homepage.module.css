@@ -111,7 +111,8 @@
 .enterBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  justify-content: center;
+  position: relative;
   padding: 0.7rem 2.2rem;
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 9999px;
@@ -131,18 +132,14 @@
 }
 
 .enterBtnArrow {
-  display: inline-block;
-  max-width: 0;
-  overflow: hidden;
+  position: absolute;
+  right: 1.2rem;
   opacity: 0;
-  transition: max-width 0.35s ease, opacity 0.3s ease, margin-left 0.35s ease;
-  margin-left: 0;
+  transition: opacity 0.3s ease;
 }
 
 .enterBtn:hover .enterBtnArrow {
-  max-width: 1.5rem;
   opacity: 1;
-  margin-left: 0.8rem;
 }
 
 /* ── Series cards section — transparent, single row, desktop only ── */
