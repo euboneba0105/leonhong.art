@@ -163,7 +163,7 @@
 
 .seriesCard {
   flex: 0 0 auto;
-  width: 210px;
+  width: 200px;
   text-decoration: none;
   color: inherit;
   display: flex;
@@ -183,6 +183,10 @@
   aspect-ratio: 1;
   overflow: hidden;
   background: #f5f5f5;
+}
+
+.seriesCardImageWrap img {
+  transform: scale(1.05);
 }
 
 .seriesCardPlaceholder {
