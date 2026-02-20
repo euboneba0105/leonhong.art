@@ -1,2 +1,12 @@
-:root { font-family: 'Unna', 'Noto Serif TC', serif; font-weight: 600; }
+:root {
+  font-family: 'Unna', 'Noto Serif TC', serif;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-size-adjust: 0.53;
+}
 body { margin: 0; padding: 0; }
+button, input, select, textarea {
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
