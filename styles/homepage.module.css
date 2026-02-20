@@ -59,7 +59,7 @@
 /* Logo – centered, opacity controlled by JS scroll */
 .heroLogo {
   position: absolute;
-  top: 50%;
+  top: 42%;
   left: 50%;
   /* transform set via inline style (includes push-up offset) */
   z-index: 4;

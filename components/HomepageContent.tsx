@@ -63,9 +63,9 @@ export default function HomepageContent({
       // Overlay: starts immediately, max 50%
       setOverlayOpacity(Math.min(1, scrollY / (vh * 1.2)) * 0.5)
 
-      // Logo: appears from 50% to 100% viewport scroll
-      const lStart = vh * 0.5
-      const lEnd = vh * 1.0
+      // Logo: appears almost immediately (10% → 50% viewport scroll)
+      const lStart = vh * 0.1
+      const lEnd = vh * 0.5
       setLogoOpacity(
         Math.min(1, Math.max(0, (scrollY - lStart) / (lEnd - lStart)))
       )
@@ -78,9 +78,9 @@ export default function HomepageContent({
       )
 
       // Logo push: nav section top in viewport = 2*vh - scrollY
-      // When nav rises to meet the logo center (50vh), push logo up with it
+      // When nav rises to meet the logo center (42vh), push logo up with it
       const navTopInVp = vh * 2 - scrollY
-      const logoCenterY = vh * 0.5
+      const logoCenterY = vh * 0.42
       const pushMargin = 60 // px gap between logo bottom and nav top
       const pushPoint = logoCenterY + pushMargin
       if (navTopInVp < pushPoint) {
