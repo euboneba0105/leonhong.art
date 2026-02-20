@@ -246,13 +246,9 @@
   justify-content: center;
 }
 
-.langOption:first-child {
-  border-right: 1px solid rgba(255, 255, 255, 0.6);
-}
-
 .langActive {
   background-color: rgba(255, 255, 255, 0.6);
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(125, 125, 125, 0.9);
 }
 
 /* ── Admin: Edit carousel button ── */
