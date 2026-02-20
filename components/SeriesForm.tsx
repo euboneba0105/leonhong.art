@@ -90,11 +90,13 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
             style={{ flex: 1 }}
           >
             <option value="">{zh ? '-- 選擇封面 --' : '-- Select Cover --'}</option>
-            {artworks.map(artwork => (
-              <option key={artwork.id} value={artwork.id}>
-                {artwork.title} ({artwork.year || 'N/A'})
-              </option>
-            ))}
+            {artworks
+              .filter(a => !series || a.series_id === series.id)
+              .map(artwork => (
+                <option key={artwork.id} value={artwork.id}>
+                  {artwork.title} ({artwork.year || 'N/A'})
+                </option>
+              ))}
           </select>
 
           {selectedArtwork && selectedArtwork.image_url && (
