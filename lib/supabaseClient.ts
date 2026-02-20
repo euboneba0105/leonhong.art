@@ -32,6 +32,7 @@ export type Series = {
   name_en?: string
   description?: string
   description_en?: string
+  cover_image_id?: string
   created_at: string
 }
 
