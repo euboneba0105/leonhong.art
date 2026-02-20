@@ -222,7 +222,7 @@
 /* ── Language toggle (below series grid) ── */
 .langToggle {
   display: inline-flex;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid #ffffff;
   border-radius: 4px;
   overflow: hidden;
   margin-top: 2rem;
@@ -247,7 +247,7 @@
 }
 
 .langOption:first-child {
-  border-right: 1px solid rgba(255, 255, 255, 0.6);
+  border-right: 1px solid #ffffff;
 }
 
 .langActive {
