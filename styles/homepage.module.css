@@ -18,6 +18,13 @@
   background: #000000;
 }
 
+/* Artwork layer — filter:blur controlled by JS for fog effect */
+.heroArtworkLayer {
+  position: absolute;
+  inset: 0;
+  will-change: filter;
+}
+
 .heroSlide {
   position: absolute;
   inset: 0;
@@ -38,13 +45,22 @@
   z-index: 2;
 }
 
+/* White fog tint – adds misty quality before nav */
+.heroFog {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  pointer-events: none;
+  z-index: 3;
+}
+
 /* Logo – centered, opacity controlled by JS scroll */
 .heroLogo {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -66,17 +82,13 @@
   pointer-events: none;
 }
 
-/* ── Content area (sits above fixed hero) ── */
-.contentArea {
+/* ── Navigation section — transparent, overlays hero ── */
+.navSection {
   position: relative;
   z-index: 10;
-  background: #ffffff;
-}
-
-/* ── Navigation section ── */
-.navSection {
   padding: 4rem 2rem 3rem;
   text-align: center;
+  /* No background — hero shows through */
 }
 
 .homeNav {
@@ -87,7 +99,7 @@
 
 .homeNavLink {
   font-size: 1.05rem;
-  color: #555555;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -103,24 +115,25 @@
   right: 0;
   bottom: 0;
   height: 1px;
-  background: #1a1a1a;
+  background: #ffffff;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .homeNavLink:hover {
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .homeNavLink:hover::after {
   transform: scaleX(1);
 }
 
-/* ── Series cards section ── */
+/* ── Series cards section — solid bg, single row, desktop only ── */
 .seriesSection {
-  padding: 0 2rem 5rem;
-  max-width: 1100px;
-  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+  background: #ffffff;
+  padding: 3rem 2rem 5rem;
   opacity: 0;
   transform: translateY(50px);
   transition: opacity 0.8s ease, transform 0.8s ease;
@@ -133,12 +146,22 @@
 
 .seriesGrid {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   gap: 2rem;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.seriesGrid::-webkit-scrollbar {
+  display: none;
 }
 
 .seriesCard {
+  flex: 0 0 auto;
   width: 200px;
   text-decoration: none;
   color: inherit;
@@ -283,17 +306,9 @@
     padding: 3rem 1.5rem 2.5rem;
   }
 
-  /* Series cards */
+  /* Hide series cards on mobile */
   .seriesSection {
-    padding: 0 1.5rem 4rem;
-  }
-
-  .seriesGrid {
-    gap: 1.25rem;
-  }
-
-  .seriesCard {
-    width: calc(50% - 0.75rem);
+    display: none;
   }
 
   /* Logo */
@@ -315,10 +330,6 @@
 @media (max-width: 480px) {
   .homeNav {
     gap: 1.25rem;
-  }
-
-  .seriesCard {
-    width: calc(50% - 0.625rem);
   }
 
   .heroLogoImage {
