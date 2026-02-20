@@ -89,13 +89,11 @@
 .navSection {
   position: relative;
   z-index: 10;
-  padding: 4rem 2rem 3rem;
+  padding: 4rem 2rem 2rem;
   text-align: center;
   /* No background — hero shows through */
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  margin: 0 auto;
-  width: fit-content;
-  padding-bottom: 2rem;
+  margin: 0 4rem;
 }
 
 .homeNav {
@@ -139,7 +137,7 @@
 .seriesSection {
   position: relative;
   z-index: 10;
-  padding: 0 0 5rem;
+  padding: 2.5rem 0 5rem;
   opacity: 0;
   transform: translateY(3.125rem);
   transition: opacity 0.8s ease, transform 0.8s ease;

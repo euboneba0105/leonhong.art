@@ -21,9 +21,6 @@ export default function Header() {
   const { data: session } = useSession()
   const isAdmin = !!(session?.user as any)?.isAdmin
 
-  // Hide header on immersive homepage
-  if (pathname === '/') return null
-
   useEffect(() => {
     fetch('/api/series')
       .then((res) => res.json())
@@ -43,6 +40,9 @@ export default function Header() {
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
   }, [])
+
+  // Hide header on immersive homepage (after all hooks)
+  if (pathname === '/') return null
 
   const isPortfolioActive = pathname === '/gallery' || pathname.startsWith('/series') || pathname.startsWith('/artworks')
 
