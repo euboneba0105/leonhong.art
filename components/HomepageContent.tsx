@@ -49,27 +49,31 @@ export default function HomepageContent({
     return () => clearInterval(interval)
   }, [heroArtworks.length])
 
-  // ── Scroll-driven overlay & logo ──
+  // ── Scroll-driven overlay, logo & fog ──
   const [overlayOpacity, setOverlayOpacity] = useState(0)
   const [logoOpacity, setLogoOpacity] = useState(0)
+  const [fogAmount, setFogAmount] = useState(0)
 
   useEffect(() => {
     function handleScroll() {
       const scrollY = window.scrollY
       const vh = window.innerHeight
 
-      // Overlay: begins at 30% viewport, reaches max ~85% at 120% viewport
-      const oStart = vh * 0.3
-      const oEnd = vh * 1.2
-      setOverlayOpacity(
-        Math.min(1, Math.max(0, (scrollY - oStart) / (oEnd - oStart))) * 0.85
-      )
+      // Overlay: starts immediately, max 50%
+      setOverlayOpacity(Math.min(1, scrollY / (vh * 1.2)) * 0.5)
 
       // Logo: appears from 50% to 100% viewport scroll
       const lStart = vh * 0.5
       const lEnd = vh * 1.0
       setLogoOpacity(
         Math.min(1, Math.max(0, (scrollY - lStart) / (lEnd - lStart)))
+      )
+
+      // Fog: background blurs as nav approaches (1.5vh → 2vh)
+      const fStart = vh * 1.5
+      const fEnd = vh * 2.0
+      setFogAmount(
+        Math.min(1, Math.max(0, (scrollY - fStart) / (fEnd - fStart)))
       )
     }
 
@@ -149,34 +153,46 @@ export default function HomepageContent({
     <div className={styles.homepage}>
       {/* ── Fixed hero background ── */}
       <div className={styles.heroBackground}>
-        {heroArtworks.map((artwork, i) => (
-          <div
-            key={artwork.id}
-            className={`${styles.heroSlide} ${
-              i === activeSlide ? styles.heroSlideActive : ''
-            }`}
-          >
-            {artwork.image_url && (
-              <Image
-                src={artwork.image_url}
-                alt={artwork.title}
-                fill
-                sizes="100vw"
-                style={{ objectFit: 'cover' }}
-                priority={i === 0}
-                quality={80}
-              />
-            )}
-          </div>
-        ))}
-
-        {/* Dark overlay — opacity driven by scroll */}
+        {/* Artwork layer — blur controlled by fog */}
         <div
-          className={styles.heroOverlay}
-          style={{ opacity: overlayOpacity }}
-        />
+          className={styles.heroArtworkLayer}
+          style={fogAmount > 0 ? { filter: `blur(${fogAmount * 12}px)` } : undefined}
+        >
+          {heroArtworks.map((artwork, i) => (
+            <div
+              key={artwork.id}
+              className={`${styles.heroSlide} ${
+                i === activeSlide ? styles.heroSlideActive : ''
+              }`}
+            >
+              {artwork.image_url && (
+                <Image
+                  src={artwork.image_url}
+                  alt={artwork.title}
+                  fill
+                  sizes="100vw"
+                  style={{ objectFit: 'cover' }}
+                  priority={i === 0}
+                  quality={80}
+                />
+              )}
+            </div>
+          ))}
 
-        {/* White logo — opacity driven by scroll */}
+          {/* Dark overlay — opacity driven by scroll */}
+          <div
+            className={styles.heroOverlay}
+            style={{ opacity: overlayOpacity }}
+          />
+
+          {/* White fog tint */}
+          <div
+            className={styles.heroFog}
+            style={{ opacity: fogAmount * 0.25 }}
+          />
+        </div>
+
+        {/* White logo — opacity driven by scroll (outside blur layer) */}
         <div className={styles.heroLogo} style={{ opacity: logoOpacity }}>
           {/* 請上傳白色 logo 為 /public/logo-white.png */}
           <Image
@@ -193,60 +209,57 @@ export default function HomepageContent({
       {/* ── Scroll spacer (hero + logo reveal) ── */}
       <div className={styles.heroSpacer} />
 
-      {/* ── Content area with solid bg ── */}
-      <div className={styles.contentArea}>
-        {/* Navigation section */}
-        <section className={styles.navSection}>
-          <nav className={styles.homeNav}>
-            {navItems.map((item) => (
+      {/* ── Navigation — transparent, overlays hero ── */}
+      <section className={styles.navSection}>
+        <nav className={styles.homeNav}>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={styles.homeNavLink}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </section>
+
+      {/* ── Series cards — desktop only ── */}
+      {seriesCards.length > 0 && (
+        <section
+          ref={seriesSectionRef}
+          className={`${styles.seriesSection} ${
+            seriesVisible ? styles.seriesSectionVisible : ''
+          }`}
+        >
+          <div className={styles.seriesGrid}>
+            {seriesCards.map(({ series: s, coverUrl }) => (
               <Link
-                key={item.href}
-                href={item.href}
-                className={styles.homeNavLink}
+                key={s.id}
+                href={`/series/${s.id}`}
+                className={styles.seriesCard}
               >
-                {item.label}
+                <div className={styles.seriesCardImageWrap}>
+                  {coverUrl ? (
+                    <Image
+                      src={coverUrl}
+                      alt={zh ? s.name : s.name_en || s.name}
+                      fill
+                      sizes="220px"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div className={styles.seriesCardPlaceholder} />
+                  )}
+                </div>
+                <span className={styles.seriesCardName}>
+                  {zh ? s.name : s.name_en || s.name}
+                </span>
               </Link>
             ))}
-          </nav>
+          </div>
         </section>
-
-        {/* Series cards section */}
-        {seriesCards.length > 0 && (
-          <section
-            ref={seriesSectionRef}
-            className={`${styles.seriesSection} ${
-              seriesVisible ? styles.seriesSectionVisible : ''
-            }`}
-          >
-            <div className={styles.seriesGrid}>
-              {seriesCards.map(({ series: s, coverUrl }) => (
-                <Link
-                  key={s.id}
-                  href={`/series/${s.id}`}
-                  className={styles.seriesCard}
-                >
-                  <div className={styles.seriesCardImageWrap}>
-                    {coverUrl ? (
-                      <Image
-                        src={coverUrl}
-                        alt={zh ? s.name : s.name_en || s.name}
-                        fill
-                        sizes="(max-width: 768px) 45vw, 220px"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <div className={styles.seriesCardPlaceholder} />
-                    )}
-                  </div>
-                  <span className={styles.seriesCardName}>
-                    {zh ? s.name : s.name_en || s.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+      )}
 
       {/* ── Admin: Edit carousel button ── */}
       {isAdmin && (
