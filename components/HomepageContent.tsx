@@ -70,16 +70,16 @@ export default function HomepageContent({
         Math.min(1, Math.max(0, (scrollY - lStart) / (lEnd - lStart)))
       )
 
-      // Fog: background blurs as nav approaches (1.5vh → 2vh)
-      const fStart = vh * 1.5
-      const fEnd = vh * 2.0
+      // Fog: background blurs as nav approaches (1.0vh → 1.5vh)
+      const fStart = vh * 1.0
+      const fEnd = vh * 1.5
       setFogAmount(
         Math.min(1, Math.max(0, (scrollY - fStart) / (fEnd - fStart)))
       )
 
-      // Logo push: nav section top in viewport = 2*vh - scrollY
+      // Logo push: nav section top in viewport = 1.5*vh - scrollY
       // When nav rises to meet the logo center (42vh), push logo up with it
-      const navTopInVp = vh * 2 - scrollY
+      const navTopInVp = vh * 1.5 - scrollY
       const logoCenterY = vh * 0.42
       const pushMargin = 60 // px gap between logo bottom and nav top
       const pushPoint = logoCenterY + pushMargin
