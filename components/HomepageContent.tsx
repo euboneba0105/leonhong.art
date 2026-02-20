@@ -146,14 +146,6 @@ export default function HomepageContent({
     setSaving(false)
   }
 
-  // ── Navigation items ──
-  const navItems = [
-    { href: '/gallery', label: zh ? '作品集' : 'Gallery' },
-    { href: '/events', label: zh ? '活動' : 'Events' },
-    { href: '/about', label: zh ? '關於' : 'About' },
-    { href: '/contact', label: zh ? '聯繫' : 'Contact' },
-  ]
-
   return (
     <div className={styles.homepage}>
       {/* ── Fixed hero background ── */}
@@ -219,19 +211,13 @@ export default function HomepageContent({
       {/* ── Scroll spacer (hero + logo reveal) ── */}
       <div className={styles.heroSpacer} />
 
-      {/* ── Navigation — transparent, overlays hero ── */}
+      {/* ── Title + Enter button ── */}
       <section className={styles.navSection}>
-        <nav className={styles.homeNav}>
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={styles.homeNavLink}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <h1 className={styles.heroTitle}>Leon Hong Art</h1>
+        <Link href="/gallery" className={styles.enterBtn}>
+          <span>{zh ? '進入網站' : 'Visit Website'}</span>
+          <span className={styles.enterBtnArrow}>→</span>
+        </Link>
       </section>
 
       {/* ── Series cards — desktop only ── */}
