@@ -245,10 +245,11 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                       return (
                         <div key={award.id} className={styles.entry}>
                           <h3 className={styles.entryTitle}>{name}</h3>
-                          <div className={styles.entryContent}>
-                            {competition && <span className={styles.categoryBadge}>{competition}</span>}
-                            {prize && <p className={styles.entryDescription} style={{ margin: 0 }}>{prize}</p>}
-                          </div>
+                          <p className={styles.entryDescription}>
+                            {competition && prize && `${competition} / ${prize}`}
+                            {competition && !prize && competition}
+                            {!competition && prize && prize}
+                          </p>
                           {isAdmin && (
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                               <button className={admin.editBtn} onClick={() => openAwardEdit(award)}>
@@ -298,10 +299,11 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                       return (
                         <div key={exh.id} className={styles.entry}>
                           <h3 className={styles.entryTitle}>{title}</h3>
-                          <div className={styles.entryContent}>
-                            {venue && <p className={styles.entryDescription} style={{ margin: 0 }}>{venue}</p>}
-                            {region && <span className={styles.categoryBadge}>{region}</span>}
-                          </div>
+                          <p className={styles.entryDescription}>
+                            {venue && region && `${venue} / ${region}`}
+                            {venue && !region && venue}
+                            {!venue && region && region}
+                          </p>
                           {isAdmin && (
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                               <button className={admin.editBtn} onClick={() => openExhEdit(exh)}>
