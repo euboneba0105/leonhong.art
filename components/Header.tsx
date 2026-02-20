@@ -21,6 +21,9 @@ export default function Header() {
   const { data: session } = useSession()
   const isAdmin = !!(session?.user as any)?.isAdmin
 
+  // Hide header on immersive homepage
+  if (pathname === '/') return null
+
   useEffect(() => {
     fetch('/api/series')
       .then((res) => res.json())
@@ -41,7 +44,7 @@ export default function Header() {
     return () => document.removeEventListener('click', handleClick)
   }, [])
 
-  const isPortfolioActive = pathname === '/' || pathname.startsWith('/series') || pathname.startsWith('/artworks')
+  const isPortfolioActive = pathname === '/gallery' || pathname.startsWith('/series') || pathname.startsWith('/artworks')
 
   const navItems = [
     { href: '/events', label: zh ? '活動' : 'Events' },
@@ -86,7 +89,7 @@ export default function Header() {
               onMouseLeave={() => setDropdownOpen(false)}
             >
               <Link
-                href="/"
+                href="/gallery"
                 className={`${styles.navLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
                 onClick={() => setDropdownOpen(false)}
               >
@@ -96,7 +99,7 @@ export default function Header() {
               {dropdownOpen && (
                 <ul className={styles.dropdownMenu}>
                   <li>
-                    <Link href="/" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                    <Link href="/gallery" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                       {zh ? '全部作品' : 'All Works'}
                     </Link>
                   </li>
@@ -160,7 +163,7 @@ export default function Header() {
               {mobilePortfolioOpen && (
                 <ul className={styles.mobileSubMenu}>
                   <li>
-                    <Link href="/" className={styles.mobileSubLink} onClick={() => setMenuOpen(false)}>
+                    <Link href="/gallery" className={styles.mobileSubLink} onClick={() => setMenuOpen(false)}>
                       {zh ? '全部作品' : 'All Works'}
                     </Link>
                   </li>

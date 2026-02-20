@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
-import HomepageContent from '@/components/HomepageContent'
+import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
+import ArtworksContent from '@/components/ArtworksContent'
 
 function attachTags(rows: any[]): Artwork[] {
   return (rows || []).map(({ artwork_tags, ...rest }) => ({
@@ -19,11 +19,15 @@ async function getArtworks(): Promise<Artwork[]> {
       .order('year', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
 
-    if (error) throw new Error('Failed to fetch artworks')
+    if (error) {
+      console.error('Supabase error:', error)
+      throw new Error('Failed to fetch artworks')
+    }
+
     return attachTags(data)
   } catch (error) {
     console.error('Error fetching artworks:', error)
-    return []
+    throw error
   }
 }
 
@@ -41,37 +45,36 @@ async function getSeries(): Promise<Series[]> {
   }
 }
 
-async function getCarouselIds(): Promise<string[]> {
+async function getTags(): Promise<Tag[]> {
   try {
-    const { data, error } = await supabase
-      .from('homepage_carousel')
-      .select('artwork_id')
-      .order('display_order', { ascending: true })
-
-    if (error) return []
-    return (data || []).map((d: any) => d.artwork_id)
+    const { data } = await supabase
+      .from('tags')
+      .select('*')
+      .order('name', { ascending: true })
+    return data || []
   } catch {
     return []
   }
 }
 
 export const metadata = {
-  title: 'Leon Hong — Art Portfolio',
-  description: 'Explore the art of Leon Hong.',
+  title: 'Gallery — Leon Hong',
+  description: 'Browse the collection of original artworks by Leon Hong.',
 }
 
-export default async function HomePage() {
-  const [artworks, seriesList, carouselIds] = await Promise.all([
-    getArtworks(),
-    getSeries(),
-    getCarouselIds(),
-  ])
+export default async function GalleryPage() {
+  let artworks: Artwork[] = []
+  let error: string | null = null
 
-  return (
-    <HomepageContent
-      allArtworks={artworks}
-      carouselArtworkIds={carouselIds}
-      seriesList={seriesList}
-    />
-  )
+  try {
+    artworks = await getArtworks()
+  } catch (err) {
+    error = 'Failed to load artworks. Please try again later.'
+    console.error(err)
+  }
+
+  const seriesList = await getSeries()
+  const allTags = await getTags()
+
+  return <ArtworksContent artworks={artworks} seriesList={seriesList} allTags={allTags} error={error} />
 }
