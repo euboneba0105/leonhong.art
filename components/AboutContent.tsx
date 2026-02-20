@@ -244,11 +244,13 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
 
                       return (
                         <div key={award.id} className={styles.entry}>
-                          {competition && <span className={styles.categoryBadge}>{competition}</span>}
                           <h3 className={styles.entryTitle}>{name}</h3>
-                          <p className={styles.entryDescription}>{prize}</p>
+                          <div className={styles.entryContent}>
+                            {competition && <span className={styles.categoryBadge}>{competition}</span>}
+                            {prize && <p className={styles.entryDescription} style={{ margin: 0 }}>{prize}</p>}
+                          </div>
                           {isAdmin && (
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                               <button className={admin.editBtn} onClick={() => openAwardEdit(award)}>
                                 {zh ? '編輯' : 'Edit'}
                               </button>
@@ -295,11 +297,13 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
 
                       return (
                         <div key={exh.id} className={styles.entry}>
-                          <span className={styles.categoryBadge}>{region}</span>
                           <h3 className={styles.entryTitle}>{title}</h3>
-                          {venue && <p className={styles.entryDescription}>{venue}</p>}
+                          <div className={styles.entryContent}>
+                            {venue && <p className={styles.entryDescription} style={{ margin: 0 }}>{venue}</p>}
+                            {region && <span className={styles.categoryBadge}>{region}</span>}
+                          </div>
                           {isAdmin && (
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                               <button className={admin.editBtn} onClick={() => openExhEdit(exh)}>
                                 {zh ? '編輯' : 'Edit'}
                               </button>
