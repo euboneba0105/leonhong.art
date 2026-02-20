@@ -2,9 +2,18 @@
   font-family: 'Unna', 'Noto Serif TC', serif;
   font-size-adjust: 0.48;
 }
-body { margin: 0; padding: 0; }
-button, input, select, textarea {
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+button,
+input,
+select,
+textarea {
   font-family: inherit;
   font-weight: inherit;
   letter-spacing: inherit;
+  font-size-adjust: inherit;
 }
