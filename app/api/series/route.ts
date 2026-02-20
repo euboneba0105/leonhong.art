@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const update: Record<string, any> = {}
-  const allowed = ['name', 'name_en', 'description', 'description_en']
+  const allowed = ['name', 'name_en', 'description', 'description_en', 'cover_image_id']
   for (const key of allowed) {
     if (key in fields) update[key] = fields[key] || null
   }

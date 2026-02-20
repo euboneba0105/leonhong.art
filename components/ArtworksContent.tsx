@@ -53,7 +53,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
   const [editSeriesForm, setEditSeriesForm] = useState({
-    name: '', name_en: '', description: '', description_en: '',
+    name: '', name_en: '', description: '', description_en: '', cover_image_id: '',
   })
   const [editingTag, setEditingTag] = useState<Tag | null>(null)
   const [editTagForm, setEditTagForm] = useState({ name: '', name_en: '' })
@@ -62,7 +62,12 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
   // Build series cards data
   const seriesCards = useMemo(() => {
     return seriesList.map((s) => {
-      const cover = artworks.find((a) => a.series_id === s.id)
+      let cover = null
+      if (s.cover_image_id) {
+        cover = artworks.find((a) => a.id === s.cover_image_id)
+      } else {
+        cover = artworks.find((a) => a.series_id === s.id)
+      }
       return { series: s, coverUrl: cover?.image_url || null }
     })
   }, [seriesList, artworks])
@@ -199,6 +204,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
     setEditSeriesForm({
       name: s.name || '', name_en: s.name_en || '',
       description: s.description || '', description_en: s.description_en || '',
+      cover_image_id: s.cover_image_id || '',
     })
   }
 
@@ -429,6 +435,18 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
                 <label className={admin.formLabel}>Description (EN)</label>
                 <textarea className={admin.formTextarea} value={editSeriesForm.description_en}
                   onChange={(e) => setEditSeriesForm({ ...editSeriesForm, description_en: e.target.value })} />
+              </div>
+              <div className={admin.formGroup}>
+                <label className={admin.formLabel}>{zh ? '封面照片' : 'Cover Image'}</label>
+                <select className={admin.formInput} value={editSeriesForm.cover_image_id}
+                  onChange={(e) => setEditSeriesForm({ ...editSeriesForm, cover_image_id: e.target.value })}>
+                  <option value="">{zh ? '-- 選擇封面照片 --' : '-- Select Cover Image --'}</option>
+                  {artworks
+                    .filter((a) => a.series_id === editingSeries?.id)
+                    .map((a) => (
+                      <option key={a.id} value={a.id}>{a.title}</option>
+                    ))}
+                </select>
               </div>
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
