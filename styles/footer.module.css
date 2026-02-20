@@ -11,7 +11,7 @@
 /* ── Language toggle ── */
 .langToggle {
   display: inline-flex;
-  border: 1px solid #333333;
+  border: 1px solid #999999;
   border-radius: 4px;
   overflow: hidden;
   min-width: 100px;
@@ -35,11 +35,11 @@
 }
 
 .langOption:first-child {
-  border-right: 1px solid #333333;
+  border-right: 1px solid #999999;
 }
 
 .langActive {
-  background-color: #333333;
+  background-color: #999999;
   color: #ffffff;
 }
 

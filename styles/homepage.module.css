@@ -222,7 +222,7 @@
 /* ── Language toggle (below series grid) ── */
 .langToggle {
   display: inline-flex;
-  border: 1px solid #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 4px;
   overflow: hidden;
   margin-top: 2rem;
@@ -247,12 +247,12 @@
 }
 
 .langOption:first-child {
-  border-right: 1px solid #ffffff;
+  border-right: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .langActive {
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background-color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* ── Admin: Edit carousel button ── */
