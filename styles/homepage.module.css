@@ -111,9 +111,7 @@
 .enterBtn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: 0.7rem 3.2rem;
+  padding: 0.7rem 2.2rem;
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 9999px;
   color: rgba(255, 255, 255, 0.85);
@@ -121,7 +119,7 @@
   font-size: 0.9rem;
   font-weight: 400;
   letter-spacing: 0.1em;
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: border-color 0.3s ease, color 0.3s ease, padding-right 0.35s ease;
   background: transparent;
   cursor: pointer;
 }
@@ -129,17 +127,22 @@
 .enterBtn:hover {
   border-color: #ffffff;
   color: #ffffff;
+  padding-right: 3rem;
 }
 
 .enterBtnArrow {
-  position: absolute;
-  right: 1.2rem;
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: max-width 0.35s ease, opacity 0.3s ease, margin-left 0.35s ease;
+  margin-left: 0;
 }
 
 .enterBtn:hover .enterBtnArrow {
+  max-width: 1.5rem;
   opacity: 1;
+  margin-left: 0.6rem;
 }
 
 /* ── Series cards section — transparent, single row, desktop only ── */
