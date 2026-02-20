@@ -226,6 +226,7 @@
   border-radius: 4px;
   overflow: hidden;
   margin-top: 2rem;
+  min-width: 100px;
 }
 
 .langOption {

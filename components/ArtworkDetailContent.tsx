@@ -56,7 +56,7 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
   }, [])
 
   const MAX_ASPECT_RATIO = 5 / 3 // 5:3 (1.667)
-  const MIN_ASPECT_RATIO = 3 / 5 // 3:5 (0.6)
+  const MIN_ASPECT_RATIO = 1 / 1 // 1:1 (1.0)
 
   // 計算約束後的寬高比
   let displayAspectRatio = imageAspectRatio
