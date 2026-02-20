@@ -49,10 +49,11 @@ export default function HomepageContent({
     return () => clearInterval(interval)
   }, [heroArtworks.length])
 
-  // ── Scroll-driven overlay, logo & fog ──
+  // ── Scroll-driven overlay, logo, fog & logo push ──
   const [overlayOpacity, setOverlayOpacity] = useState(0)
   const [logoOpacity, setLogoOpacity] = useState(0)
   const [fogAmount, setFogAmount] = useState(0)
+  const [logoOffsetY, setLogoOffsetY] = useState(0)
 
   useEffect(() => {
     function handleScroll() {
@@ -75,6 +76,18 @@ export default function HomepageContent({
       setFogAmount(
         Math.min(1, Math.max(0, (scrollY - fStart) / (fEnd - fStart)))
       )
+
+      // Logo push: nav section top in viewport = 2*vh - scrollY
+      // When nav rises to meet the logo center (50vh), push logo up with it
+      const navTopInVp = vh * 2 - scrollY
+      const logoCenterY = vh * 0.5
+      const pushMargin = 60 // px gap between logo bottom and nav top
+      const pushPoint = logoCenterY + pushMargin
+      if (navTopInVp < pushPoint) {
+        setLogoOffsetY(pushPoint - navTopInVp)
+      } else {
+        setLogoOffsetY(0)
+      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -192,8 +205,14 @@ export default function HomepageContent({
           />
         </div>
 
-        {/* White logo — opacity driven by scroll (outside blur layer) */}
-        <div className={styles.heroLogo} style={{ opacity: logoOpacity }}>
+        {/* White logo — opacity driven by scroll, pushed up by nav */}
+        <div
+          className={styles.heroLogo}
+          style={{
+            opacity: logoOpacity,
+            transform: `translate(-50%, calc(-50% - ${logoOffsetY}px))`,
+          }}
+        >
           {/* 請上傳白色 logo 為 /public/logo-white.png */}
           <Image
             src="/logo-white.png"

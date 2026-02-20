@@ -27,7 +27,9 @@
 
 .heroSlide {
   position: absolute;
-  inset: 0;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
   opacity: 0;
   transition: opacity 1.5s ease-in-out;
 }
@@ -59,12 +61,13 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  /* transform set via inline style (includes push-up offset) */
   z-index: 4;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  will-change: transform;
 }
 
 .heroLogoImage {
@@ -128,12 +131,11 @@
   transform: scaleX(1);
 }
 
-/* ── Series cards section — solid bg, single row, desktop only ── */
+/* ── Series cards section — transparent, single row, desktop only ── */
 .seriesSection {
   position: relative;
   z-index: 10;
-  background: #ffffff;
-  padding: 3rem 2rem 5rem;
+  padding: 0 2rem 5rem;
   opacity: 0;
   transform: translateY(50px);
   transition: opacity 0.8s ease, transform 0.8s ease;
@@ -192,7 +194,7 @@
 
 .seriesCardName {
   font-size: 0.9rem;
-  color: #333333;
+  color: rgba(255, 255, 255, 0.85);
   text-align: center;
   line-height: 1.4;
 }
