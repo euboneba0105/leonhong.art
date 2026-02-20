@@ -59,7 +59,7 @@
 /* Logo – centered, opacity controlled by JS scroll */
 .heroLogo {
   position: absolute;
-  top: 50%;
+  top: 42%;
   left: 50%;
   /* transform set via inline style (includes push-up offset) */
   z-index: 4;
@@ -97,7 +97,7 @@
 .homeNav {
   display: flex;
   justify-content: center;
-  gap: 3rem;
+  gap: 5rem;
 }
 
 .homeNavLink {
@@ -135,9 +135,9 @@
 .seriesSection {
   position: relative;
   z-index: 10;
-  padding: 0 2rem 5rem;
+  padding: 0 0 5rem;
   opacity: 0;
-  transform: translateY(50px);
+  transform: translateY(3.125rem);
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -149,13 +149,12 @@
 .seriesGrid {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  max-width: 1100px;
-  margin: 0 auto;
+  padding: 0 1.25rem;
 }
 
 .seriesGrid::-webkit-scrollbar {
@@ -164,7 +163,7 @@
 
 .seriesCard {
   flex: 0 0 auto;
-  width: 200px;
+  width: clamp(7.5rem, 11vw, 10rem);
   text-decoration: none;
   color: inherit;
   display: flex;
@@ -184,6 +183,10 @@
   aspect-ratio: 1;
   overflow: hidden;
   background: #f5f5f5;
+}
+
+.seriesCardImageWrap img {
+  transform: scale(1.05);
 }
 
 .seriesCardPlaceholder {
