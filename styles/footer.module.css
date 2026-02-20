@@ -26,6 +26,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   letter-spacing: 0.03em;
+  flex: 1;
 }
 
 .langOption:first-child {
