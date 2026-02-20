@@ -437,16 +437,64 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
                   onChange={(e) => setEditSeriesForm({ ...editSeriesForm, description_en: e.target.value })} />
               </div>
               <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '封面照片' : 'Cover Image'}</label>
-                <select className={admin.formInput} value={editSeriesForm.cover_image_id}
-                  onChange={(e) => setEditSeriesForm({ ...editSeriesForm, cover_image_id: e.target.value })}>
-                  <option value="">{zh ? '-- 選擇封面照片 --' : '-- Select Cover Image --'}</option>
+                <label className={admin.formLabel}>{zh ? '選擇封面照片' : 'Select Cover Image'}</label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+                  gap: '0.75rem'
+                }}>
+                  {/* Clear button */}
+                  <button
+                    type="button"
+                    onClick={() => setEditSeriesForm({ ...editSeriesForm, cover_image_id: '' })}
+                    style={{
+                      padding: '0.75rem',
+                      border: editSeriesForm.cover_image_id === '' ? '2px solid #333' : '1px solid #ddd',
+                      borderRadius: '4px',
+                      backgroundColor: editSeriesForm.cover_image_id === '' ? '#f0f0f0' : '#fff',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: editSeriesForm.cover_image_id === '' ? 'bold' : 'normal',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {zh ? '無封面' : 'None'}
+                  </button>
+
+                  {/* Artwork thumbnails */}
                   {artworks
                     .filter((a) => a.series_id === editingSeries?.id)
                     .map((a) => (
-                      <option key={a.id} value={a.id}>{a.title}</option>
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setEditSeriesForm({ ...editSeriesForm, cover_image_id: a.id })}
+                        style={{
+                          padding: 0,
+                          border: editSeriesForm.cover_image_id === a.id ? '2px solid #333' : '1px solid #ddd',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          aspectRatio: '1',
+                          backgroundColor: '#f5f5f5',
+                          transition: 'border 0.2s'
+                        }}
+                        title={a.title}
+                      >
+                        {a.image_url && (
+                          <img
+                            src={a.image_url}
+                            alt={a.title}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        )}
+                      </button>
                     ))}
-                </select>
+                </div>
               </div>
               {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
               <div className={admin.modalActions}>
