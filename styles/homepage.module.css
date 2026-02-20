@@ -97,7 +97,7 @@
 .homeNav {
   display: flex;
   justify-content: center;
-  gap: 3rem;
+  gap: 5rem;
 }
 
 .homeNavLink {
@@ -135,7 +135,7 @@
 .seriesSection {
   position: relative;
   z-index: 10;
-  padding: 0 2rem 5rem;
+  padding: 0 0 5rem;
   opacity: 0;
   transform: translateY(50px);
   transition: opacity 0.8s ease, transform 0.8s ease;
@@ -154,8 +154,7 @@
   flex-wrap: nowrap;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  max-width: 1100px;
-  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .seriesGrid::-webkit-scrollbar {
