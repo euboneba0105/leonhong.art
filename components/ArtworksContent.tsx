@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import { uploadFile } from '@/lib/uploadFile'
 import ArtworkGrid from './ArtworkGrid'
+import SeriesForm from './SeriesForm'
 import type { Artwork, Series, Tag } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -52,9 +53,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
   const [editTagIds, setEditTagIds] = useState<Set<string>>(new Set())
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editingSeries, setEditingSeries] = useState<Series | null>(null)
-  const [editSeriesForm, setEditSeriesForm] = useState({
-    name: '', name_en: '', description: '', description_en: '', cover_image_id: '',
-  })
   const [editingTag, setEditingTag] = useState<Tag | null>(null)
   const [editTagForm, setEditTagForm] = useState({ name: '', name_en: '' })
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set())
@@ -199,31 +197,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
     setSaving(false)
   }
 
-  function openSeriesEdit(s: Series) {
-    setEditingSeries(s)
-    setEditSeriesForm({
-      name: s.name || '', name_en: s.name_en || '',
-      description: s.description || '', description_en: s.description_en || '',
-      cover_image_id: s.cover_image_id || '',
-    })
-  }
-
-  async function handleSeriesEdit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!editingSeries) return
-    setSaving(true)
-    setErrMsg('')
-    try {
-      const res = await fetch('/api/series', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingSeries.id, ...editSeriesForm }),
-      })
-      if (res.ok) { setEditingSeries(null); router.refresh() }
-      else { const d = await res.json().catch(() => null); setErrMsg(d?.error || `Error (${res.status})`) }
-    } catch (err: any) { setErrMsg(err.message || '網路錯誤') }
-    setSaving(false)
-  }
 
   async function handleSeriesDelete(id: string) {
     if (!confirm(zh ? '確定要刪除此系列？' : 'Delete this series?')) return
@@ -357,7 +330,7 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
                   </Link>
                   {isAdmin && (
                     <div className={styles.seriesCardAdmin}>
-                      <button className={styles.seriesCardAdminBtn} onClick={() => openSeriesEdit(s)}>✎</button>
+                      <button className={styles.seriesCardAdminBtn} onClick={() => setEditingSeries(s)}>✎</button>
                       <button className={`${styles.seriesCardAdminBtn} ${styles.seriesCardDeleteBtn}`} onClick={() => handleSeriesDelete(s.id)}>×</button>
                     </div>
                   )}
@@ -412,100 +385,28 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
         {/* Edit Series */}
         {editingSeries && (
           <div className={admin.overlay} onClick={() => setEditingSeries(null)}>
-            <form className={admin.modal} onClick={(e) => e.stopPropagation()} onSubmit={handleSeriesEdit}>
-              <h2 className={admin.modalTitle}>{zh ? '編輯系列' : 'Edit Series'}</h2>
-              <div className={admin.formRow}>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>系列名稱 (中文) *</label>
-                  <input className={admin.formInput} required value={editSeriesForm.name}
-                    onChange={(e) => setEditSeriesForm({ ...editSeriesForm, name: e.target.value })} />
-                </div>
-                <div className={admin.formGroup}>
-                  <label className={admin.formLabel}>Series Name (EN)</label>
-                  <input className={admin.formInput} value={editSeriesForm.name_en}
-                    onChange={(e) => setEditSeriesForm({ ...editSeriesForm, name_en: e.target.value })} />
-                </div>
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>敘述 (中文)</label>
-                <textarea className={admin.formTextarea} value={editSeriesForm.description}
-                  onChange={(e) => setEditSeriesForm({ ...editSeriesForm, description: e.target.value })} />
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>Description (EN)</label>
-                <textarea className={admin.formTextarea} value={editSeriesForm.description_en}
-                  onChange={(e) => setEditSeriesForm({ ...editSeriesForm, description_en: e.target.value })} />
-              </div>
-              <div className={admin.formGroup}>
-                <label className={admin.formLabel}>{zh ? '選擇封面照片' : 'Select Cover Image'}</label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                  gap: '0.75rem'
-                }}>
-                  {/* Clear button */}
-                  <button
-                    type="button"
-                    onClick={() => setEditSeriesForm({ ...editSeriesForm, cover_image_id: '' })}
-                    style={{
-                      padding: '0.75rem',
-                      border: editSeriesForm.cover_image_id === '' ? '2px solid #333' : '1px solid #ddd',
-                      borderRadius: '4px',
-                      backgroundColor: editSeriesForm.cover_image_id === '' ? '#f0f0f0' : '#fff',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: editSeriesForm.cover_image_id === '' ? 'bold' : 'normal',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {zh ? '無封面' : 'None'}
-                  </button>
-
-                  {/* Artwork thumbnails */}
-                  {artworks
-                    .filter((a) => a.series_id === editingSeries?.id)
-                    .map((a) => (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={() => setEditSeriesForm({ ...editSeriesForm, cover_image_id: a.id })}
-                        style={{
-                          padding: 0,
-                          border: editSeriesForm.cover_image_id === a.id ? '2px solid #333' : '1px solid #ddd',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                          cursor: 'pointer',
-                          aspectRatio: '1',
-                          backgroundColor: '#f5f5f5',
-                          transition: 'border 0.2s'
-                        }}
-                        title={a.title}
-                      >
-                        {a.image_url && (
-                          <img
-                            src={a.image_url}
-                            alt={a.title}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover'
-                            }}
-                          />
-                        )}
-                      </button>
-                    ))}
-                </div>
-              </div>
-              {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
-              <div className={admin.modalActions}>
-                <button type="button" className={admin.cancelBtn} onClick={() => setEditingSeries(null)}>
-                  {zh ? '取消' : 'Cancel'}
-                </button>
-                <button type="submit" className={admin.submitBtn} disabled={saving}>
-                  {saving ? (zh ? '儲存中...' : 'Saving...') : (zh ? '儲存' : 'Save')}
-                </button>
-              </div>
-            </form>
+            <div onClick={(e) => e.stopPropagation()}>
+              <SeriesForm
+                series={editingSeries}
+                artworks={artworks.filter((a) => a.series_id === editingSeries?.id)}
+                onSubmit={async (data) => {
+                  setErrMsg('')
+                  const res = await fetch('/api/series', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: editingSeries.id, ...data }),
+                  })
+                  if (!res.ok) {
+                    const d = await res.json().catch(() => null)
+                    throw new Error(d?.error || `Error (${res.status})`)
+                  }
+                  setEditingSeries(null)
+                  router.refresh()
+                }}
+                onCancel={() => setEditingSeries(null)}
+                loading={saving}
+              />
+            </div>
           </div>
         )}
 
