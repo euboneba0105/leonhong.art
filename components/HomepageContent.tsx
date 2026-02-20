@@ -21,7 +21,7 @@ export default function HomepageContent({
   carouselArtworkIds,
   seriesList,
 }: HomepageContentProps) {
-  const { lang } = useLanguage()
+  const { lang, toggle } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
   const isAdmin = !!(session?.user as any)?.isAdmin
@@ -253,6 +253,22 @@ export default function HomepageContent({
                 </span>
               </Link>
             ))}
+          </div>
+
+          {/* Language toggle */}
+          <div className={styles.langToggle}>
+            <button
+              className={`${styles.langOption} ${zh ? styles.langActive : ''}`}
+              onClick={() => { if (!zh) toggle() }}
+            >
+              中文
+            </button>
+            <button
+              className={`${styles.langOption} ${!zh ? styles.langActive : ''}`}
+              onClick={() => { if (zh) toggle() }}
+            >
+              EN
+            </button>
           </div>
         </section>
       )}
