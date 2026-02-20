@@ -215,7 +215,7 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                           </p>
                           {isAdmin && (
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                              <button className={admin.editBtn} onClick={() => openAwardEdit(award)}>
+                              <button className={admin.editBtn} onClick={() => setEditingAward(award)}>
                                 {zh ? '編輯' : 'Edit'}
                               </button>
                               <button className={admin.deleteBtn} onClick={() => handleDeleteAward(award.id)}>
@@ -269,7 +269,7 @@ export default function AboutContent({ awards, cvExhibitions }: AboutContentProp
                           </p>
                           {isAdmin && (
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                              <button className={admin.editBtn} onClick={() => openExhEdit(exh)}>
+                              <button className={admin.editBtn} onClick={() => setEditingExh(exh)}>
                                 {zh ? '編輯' : 'Edit'}
                               </button>
                               <button className={admin.deleteBtn} onClick={() => handleDeleteExh(exh.id)}>
