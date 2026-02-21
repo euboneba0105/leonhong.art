@@ -9,6 +9,12 @@ export const metadata = {
   description: 'Artist portfolio powered by Next.js and Supabase',
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover' as const,
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-Hant">
