@@ -7,6 +7,36 @@ import styles from '@/styles/artworks.module.css'
 const MAX_ASPECT_RATIO = 5 / 3
 const MIN_ASPECT_RATIO = 1 / 1
 
+/**
+ * Map container % (0-100) to image % (0-100) for lens background-position.
+ * X and Y handled separately: use 1:1 (container 0-100 → image 0-100) on both axes so
+ * background-position can reach the full image edges; letterbox areas map to image 0/100.
+ */
+function containerToImage(
+  cx: number,
+  cy: number,
+  _Rc: number,
+  _Ri: number
+): { x: number; y: number } {
+  return { x: cx, y: cy }
+}
+
+/** Map image % (0-100) to container % (0-100) - where that image point is rendered in the container */
+function imageToContainer(
+  ix: number,
+  iy: number,
+  Rc: number,
+  Ri: number
+): { x: number; y: number } {
+  if (Ri > Rc) {
+    return { x: ix, y: 50 + (iy - 50) * (Rc / Ri) }
+  }
+  if (Ri < Rc) {
+    return { x: 50 + (ix - 50) * (Ri / Rc), y: iy }
+  }
+  return { x: ix, y: iy }
+}
+
 function getArtworkIdFromImageUrl(imageUrl: string): string | null {
   try {
     return new URL(imageUrl, typeof window !== 'undefined' ? window.location.origin : 'http://x').searchParams.get('id')
@@ -74,11 +104,29 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
     }
   }
 
+  const Rc = displayAspectRatio ?? 1
+  const Ri = imageAspectRatio ?? 1
+  const coverScale = Ri > 0 ? 100 * (Ri > Rc ? Ri / Rc : Rc / Ri) : 100
   let zoomScale = 250
   if (imageAspectRatio && imageAspectRatio > MAX_ASPECT_RATIO) {
     const excessRatio = imageAspectRatio / MAX_ASPECT_RATIO
     zoomScale = Math.round(250 * excessRatio)
   }
+  zoomScale = Math.max(zoomScale, Math.ceil(coverScale))
+
+  const imagePos =
+    imageAspectRatio != null && isImageOutOfRange
+      ? containerToImage(zoomPos.x, zoomPos.y, Rc, Ri)
+      : { x: zoomPos.x, y: zoomPos.y }
+  const originInContainer =
+    imageAspectRatio != null && isImageOutOfRange
+      ? imageToContainer(imagePos.x, imagePos.y, Rc, Ri)
+      : { x: zoomPos.x, y: zoomPos.y }
+
+  const zoomScaleFactor =
+    isImageOutOfRange && Ri > 0
+      ? 2.5 * (Ri > Rc ? Ri / Rc : Rc / Ri)
+      : 2.5
 
   const loadZoomImage = useCallback(() => {
     if (!artworkId || zoomBlobUrl) return
@@ -168,8 +216,12 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
     <div
       ref={imageSectionRef}
       className={`${styles.zoomImageSection} ${zooming ? styles.zooming : ''} ${isImageOutOfRange ? styles.constrainedImage : ''} ${className ?? ''}`}
+      data-zoom-ready={zooming && zoomBlobUrl ? true : undefined}
       style={{
         aspectRatio: displayAspectRatio ? `${displayAspectRatio} / 1` : 'auto',
+        ['--zoom-origin-x' as string]: `${originInContainer.x}%`,
+        ['--zoom-origin-y' as string]: `${originInContainer.y}%`,
+        ['--zoom-scale' as string]: String(zoomScaleFactor),
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -191,10 +243,10 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
         onLoadingComplete={handleLoadingComplete}
       />
       <div
-        className={`${styles.zoomLens} ${zooming ? styles.zoomActive : ''}`}
+        className={`${styles.zoomLens} ${zooming && zoomBlobUrl ? styles.zoomActive : ''}`}
         style={{
           backgroundImage: zoomBlobUrl ? `url(${zoomBlobUrl})` : 'none',
-          backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+          backgroundPosition: `${imagePos.x}% ${imagePos.y}%`,
           backgroundSize: `${zoomScale}%`,
         }}
       />
