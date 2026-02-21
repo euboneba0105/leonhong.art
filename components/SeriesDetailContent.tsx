@@ -152,17 +152,29 @@ export default function SeriesDetailContent({
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
-        <div style={{ marginBottom: "2rem" }}>
+        <div className={styles.seriesHeaderRow}>
           <Link
             href="/gallery"
-            style={{
-              color: "#555",
-              textDecoration: "none",
-              fontSize: "0.95rem",
-            }}
+            className={styles.seriesBackLink}
           >
             ← {zh ? "返回全部作品" : "Back to All Works"}
           </Link>
+          {isAdmin && !isStandalone && series && (
+            <div className={styles.seriesHeaderActions}>
+              <button
+                className={admin.editBtn}
+                onClick={() => setShowEdit(true)}
+              >
+                {zh ? "編輯系列" : "Edit Series"}
+              </button>
+              <button
+                className={admin.deleteBtn}
+                onClick={handleDeleteSeries}
+              >
+                {zh ? "刪除系列" : "Delete Series"}
+              </button>
+            </div>
+          )}
         </div>
 
         <h1>{title}</h1>
@@ -184,22 +196,6 @@ export default function SeriesDetailContent({
             >
               + {zh ? "新增作品" : "Add Artwork"}
             </button>
-            {!isStandalone && series && (
-              <>
-                <button
-                  className={admin.editBtn}
-                  onClick={() => setShowEdit(true)}
-                >
-                  {zh ? "編輯系列" : "Edit Series"}
-                </button>
-                <button
-                  className={admin.deleteBtn}
-                  onClick={handleDeleteSeries}
-                >
-                  {zh ? "刪除系列" : "Delete Series"}
-                </button>
-              </>
-            )}
           </div>
         )}
 
