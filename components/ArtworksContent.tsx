@@ -124,8 +124,7 @@ export default function ArtworksContent({
         {/* Series cards */}
         {seriesCards.length > 0 && (
           <div className={styles.seriesCardsCenterWrap}>
-            <div className={styles.seriesCardsSection}>
-              <div className={styles.seriesCardsGrid}>
+            <div className={styles.seriesCardsGrid}>
               {seriesCards.map(({ series: s, coverUrl }) => (
                 <div key={s.id} className={styles.seriesCardWrap}>
                   <Link href={`/series/${s.id}`} className={styles.seriesCard}>
@@ -142,9 +141,16 @@ export default function ArtworksContent({
                         <div className={styles.seriesCardPlaceholder} />
                       )}
                     </div>
-                    <span className={styles.seriesCardName}>
-                      {zh ? s.name : s.name_en || s.name}
-                    </span>
+                    <div className={styles.seriesCardNameBlock}>
+                      {(s.name_en || s.name) && (
+                        <span className={styles.seriesCardNameEn}>
+                          {s.name_en || s.name}
+                        </span>
+                      )}
+                      {s.name && (
+                        <span className={styles.seriesCardNameZh}>{s.name}</span>
+                      )}
+                    </div>
                   </Link>
                   {isAdmin && (
                     <div className={styles.seriesCardAdmin}>
@@ -164,7 +170,6 @@ export default function ArtworksContent({
                   )}
                 </div>
               ))}
-              </div>
             </div>
           </div>
         )}

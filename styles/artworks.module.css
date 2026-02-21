@@ -3,15 +3,27 @@
   background-color: #ffffff;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .mainContent {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 3rem 2rem;
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* 避免 flex 子元素用預設 min-width 把版面撐開 */
+.mainContent>* {
+  min-width: 0;
 }
 
 .gridContainer {
@@ -44,19 +56,26 @@
   justify-content: center;
   align-items: center;
   min-height: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .seriesCardsGrid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 2rem;
+  gap: 3rem;
+  margin-top: 1rem;
 }
 
 .seriesCardWrap {
   flex: 0 0 auto;
-  width: 12rem;
+  width: 11rem;
   position: relative;
+}
+
+.seriesCardWrap:nth-child(2n) {
+  margin-top: 10%;
 }
 
 .seriesCard {
@@ -121,11 +140,29 @@
   background: #e5e5e5;
 }
 
-.seriesCardName {
+.seriesCardNameBlock {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.5rem;
+}
+
+.seriesCardNameEn {
+  font-size: 1rem;
+  color: #666666;
+  line-height: 1.3;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.seriesCardNameZh {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
   font-size: 1.5rem;
   color: #333333;
-  text-align: center;
-  line-height: 1.3;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
 }
 
 /* ── Medium Filter ── */
@@ -368,10 +405,6 @@
   .artworkCard {
     margin-bottom: 1.25rem;
   }
-
-  .mainContent {
-    padding: 2rem 1.5rem;
-  }
 }
 
 @media (max-width: 768px) {
@@ -385,15 +418,15 @@
   }
 
   .mainContent {
-    padding: 1.5rem 1rem;
+    padding: 2rem 1.5rem;
   }
 
   .seriesCardWrap {
-    width: 120px;
+    width: 38vw;
   }
 
   .seriesCardsGrid {
-    gap: 1rem;
+    gap: 8vw;
   }
 }
 
@@ -553,18 +586,12 @@
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
-
-  .seriesGalleryThumbsWrap {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    overflow-x: hidden;
-  }
-
 }
 
-/* 手機版縮圖外層：全寬、裁切溢出，避免整頁橫向捲動 */
+/* 縮圖外層：用 100% 避免 100vw 造成手機版橫向爆版 */
 .seriesGalleryThumbsWrap {
   width: 100%;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -602,7 +629,7 @@
   }
 
   .mainContent {
-    padding: 1rem;
+    padding: 1.5rem 1rem;
   }
 }
 
