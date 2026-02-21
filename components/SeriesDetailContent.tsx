@@ -427,6 +427,7 @@ export default function SeriesDetailContent({
                     sizes="100px"
                     className={styles.seriesGalleryThumbImg}
                     style={{ objectFit: "cover" }}
+                    unoptimized={(a.image_url || "").startsWith("/api/image")}
                   />
                 </button>
               ))}
