@@ -158,7 +158,7 @@ export default function HomepageContent({
         {/* Artwork layer — blur controlled by fog */}
         <div
           className={styles.heroArtworkLayer}
-          style={fogAmount > 0 ? { filter: `blur(${fogAmount * 12}px)` } : undefined}
+          style={fogAmount > 0 ? { filter: `blur(${fogAmount * 10}px)` } : undefined}
         >
           {heroArtworks.map((artwork, i) => (
             <div
@@ -191,7 +191,7 @@ export default function HomepageContent({
           {/* White fog tint */}
           <div
             className={styles.heroFog}
-            style={{ opacity: fogAmount * 0.25 }}
+            style={{ opacity: 0.25 }}
           />
         </div>
 

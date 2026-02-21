@@ -51,7 +51,7 @@
 .heroFog {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: #555;
   pointer-events: none;
   z-index: 3;
 }
@@ -71,7 +71,7 @@
 }
 
 .heroLogoImage {
-  width: 280px;
+  width: clamp(240px, 30vw, 320px);
   height: auto;
   object-fit: contain;
 }
@@ -166,7 +166,7 @@
 .seriesGrid {
   display: flex;
   justify-content: center;
-  gap: clamp(1rem, 2vw, 1.5rem);
+  gap: clamp(1rem, 2vw, 2rem);
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
@@ -180,7 +180,7 @@
 
 .seriesCard {
   flex: 0 0 auto;
-  width: clamp(7.5rem, 11vw, 10rem);
+  width: clamp(7.5rem, 10vw, 8.5rem);
   text-decoration: none;
   color: inherit;
   display: flex;
@@ -214,7 +214,7 @@
 
 .seriesCardName {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.7);
   text-align: center;
   line-height: 1.4;
 }
@@ -254,7 +254,7 @@
 
 .langActive {
   background-color: rgba(255, 255, 255, 0.6);
-  color: rgba(125, 125, 125, 0.9);
+  color: rgba(82, 82, 82, 0.9);
 }
 
 /* ── Admin: Edit carousel button ── */
@@ -367,11 +367,6 @@
     display: none;
   }
 
-  /* Logo */
-  .heroLogoImage {
-    width: 200px;
-  }
-
   /* Carousel editor */
   .carouselEditor {
     padding: 1.5rem;
@@ -386,9 +381,5 @@
 @media (max-width: 480px) {
   .heroTitle {
     font-size: 1rem;
-  }
-
-  .heroLogoImage {
-    width: 160px;
   }
 }
