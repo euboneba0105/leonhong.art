@@ -32,6 +32,7 @@ async function getSeries(): Promise<Series[]> {
     const { data, error } = await supabase
       .from('series')
       .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false })
 
     if (error) return []
