@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
-import styles from '@/styles/artworkDetail.module.css'
+import styles from '@/styles/artworks.module.css'
 
 const MAX_ASPECT_RATIO = 5 / 3
 const MIN_ASPECT_RATIO = 1 / 1
@@ -121,7 +121,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
   return (
     <div
       ref={imageSectionRef}
-      className={`${styles.imageSection} ${zooming ? styles.zooming : ''} ${isImageOutOfRange ? styles.constrainedImage : ''} ${className ?? ''}`}
+      className={`${styles.zoomImageSection} ${zooming ? styles.zooming : ''} ${isImageOutOfRange ? styles.constrainedImage : ''} ${className ?? ''}`}
       style={{
         aspectRatio: displayAspectRatio ? `${displayAspectRatio} / 1` : 'auto',
       }}
@@ -138,7 +138,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
         width={1600}
         height={1200}
         sizes="(max-width: 768px) 100vw, 900px"
-        className={styles.image}
+        className={styles.zoomImg}
         priority={priority}
         draggable={false}
         onLoad={handleImageLoad}

@@ -19,10 +19,11 @@ export default function ArtworkCard({ artwork, isAdmin, onEdit, onDelete }: Artw
   const zh = lang === 'zh'
   const imageUrl = artwork.image_url || '/placeholder.png'
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
+  const seriesHref = `/series/${artwork.series_id ?? 'standalone'}?artwork=${artwork.id}`
 
   return (
     <article className={styles.artworkCard}>
-      <Link href={`/artworks/${artwork.id}`} className={styles.artworkLink}>
+      <Link href={seriesHref} className={styles.artworkLink}>
         <Image
           src={imageUrl}
           alt={title}
@@ -35,9 +36,9 @@ export default function ArtworkCard({ artwork, isAdmin, onEdit, onDelete }: Artw
         />
       </Link>
 
-      {isAdmin && onDelete && (
+      {isAdmin && onEdit && onDelete && (
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-          <button className={admin.editBtn} onClick={() => onEdit?.(artwork)}>
+          <button className={admin.editBtn} onClick={() => onEdit(artwork)}>
             {zh ? '編輯' : 'Edit'}
           </button>
           <button className={admin.deleteBtn} onClick={() => onDelete(artwork.id)}>
