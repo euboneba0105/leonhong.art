@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, DISPLAY_LONG_EDGE)
-    return new NextResponse(output, {
+    return new NextResponse(new Uint8Array(output), {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=86400, s-maxage=86400',
