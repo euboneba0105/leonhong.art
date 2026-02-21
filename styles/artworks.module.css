@@ -733,7 +733,9 @@
   width: 100%;
   height: auto;
   display: block;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+  transform-origin: 50% 50%;
+  /* 僅在進入 zoom 時有 transition，移開時主圖不縮小動畫 */
 }
 
 .zoomImageSection.constrainedImage .zoomImg {
@@ -741,8 +743,10 @@
   object-fit: contain;
 }
 
-.zoomImageSection.zooming .zoomImg {
-  opacity: 0;
+.zoomImageSection.zooming[data-zoom-ready] .zoomImg {
+  transform-origin: var(--zoom-origin-x, 50%) var(--zoom-origin-y, 50%);
+  transform: scale(var(--zoom-scale, 2.5));
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .zoomLens {
@@ -755,7 +759,7 @@
   background-repeat: no-repeat;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.25s ease-out 0.4s;
 }
 
 .zoomLens.zoomActive {

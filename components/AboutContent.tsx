@@ -164,6 +164,7 @@ export default function AboutContent({
               alt="洪德忠 Leon Hong"
               width={320}
               height={320}
+              sizes="(max-width: 768px) 80vw, 320px"
               className={styles.portrait}
               priority
             />
