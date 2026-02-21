@@ -23,13 +23,19 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
     description: series?.description || '',
     description_en: series?.description_en || '',
     cover_image_id: series?.cover_image_id || '',
+    sort_order: series?.sort_order != null ? String(series.sort_order) : '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrMsg('')
+    const sortOrder =
+      form.sort_order === '' || form.sort_order === undefined
+        ? null
+        : parseInt(String(form.sort_order), 10)
+    const payload = { ...form, sort_order: Number.isNaN(sortOrder as number) ? null : sortOrder }
     try {
-      await onSubmit(form)
+      await onSubmit(payload)
     } catch (err: any) {
       setErrMsg(err.message || (zh ? '網路錯誤' : 'Network error'))
     }
@@ -38,6 +44,17 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
   return (
     <form className={admin.modal} onSubmit={handleSubmit}>
       <h2 className={admin.modalTitle}>{zh ? (series ? '編輯系列' : '創建系列') : (series ? 'Edit Series' : 'Create Series')}</h2>
+
+      <div className={admin.formGroup}>
+        <label className={admin.formLabel}>{zh ? '排列順序（數字越小越前面）' : 'Display order (smaller = first)'}</label>
+        <input
+          type="number"
+          className={admin.formInput}
+          placeholder={zh ? '留空則排在最後' : 'Leave empty to appear last'}
+          value={form.sort_order}
+          onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
+        />
+      </div>
 
       <div className={admin.formRow}>
         <div className={admin.formGroup}>

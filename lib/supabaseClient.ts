@@ -33,6 +33,8 @@ export type Series = {
   description?: string
   description_en?: string
   cover_image_id?: string
+  /** 排列順序，數字越小越前面 */
+  sort_order?: number | null
   created_at: string
 }
 

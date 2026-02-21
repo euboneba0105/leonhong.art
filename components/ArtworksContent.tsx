@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
-import ArtworkGrid from "./ArtworkGrid";
 import SeriesForm from "./SeriesForm";
 import TagForm from "./TagForm";
 import type { Artwork, Series, Tag } from "@/lib/supabaseClient";
@@ -38,7 +37,6 @@ export default function ArtworksContent({
   const [errMsg, setErrMsg] = useState("");
   const [editingSeries, setEditingSeries] = useState<Series | null>(null);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
-  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
 
   // Build series cards data
   const seriesCards = useMemo(() => {
@@ -52,23 +50,6 @@ export default function ArtworksContent({
       return { series: s, coverUrl: cover?.image_url || null };
     });
   }, [seriesList, artworks]);
-
-  // Filter artworks by selected tags
-  const filteredArtworks = useMemo(() => {
-    if (selectedTagIds.size === 0) return artworks;
-    return artworks.filter((a) =>
-      a.tags?.some((t) => selectedTagIds.has(t.id)),
-    );
-  }, [artworks, selectedTagIds]);
-
-  function toggleFilterTag(id: string) {
-    setSelectedTagIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   // ── Series CRUD ──
   async function handleSeriesDelete(id: string) {
@@ -142,8 +123,9 @@ export default function ArtworksContent({
 
         {/* Series cards */}
         {seriesCards.length > 0 && (
-          <div className={styles.seriesCardsSection}>
-            <div className={styles.seriesCardsGrid}>
+          <div className={styles.seriesCardsCenterWrap}>
+            <div className={styles.seriesCardsSection}>
+              <div className={styles.seriesCardsGrid}>
               {seriesCards.map(({ series: s, coverUrl }) => (
                 <div key={s.id} className={styles.seriesCardWrap}>
                   <Link href={`/series/${s.id}`} className={styles.seriesCard}>
@@ -182,58 +164,20 @@ export default function ArtworksContent({
                   )}
                 </div>
               ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tag filter */}
-        {allTags.length > 1 && (
-          <div className={styles.filterSection}>
-            <div className={styles.filterChips}>
-              {allTags.map((t) => (
-                <button
-                  key={t.id}
-                  className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ""}`}
-                  onClick={() => toggleFilterTag(t.id)}
-                >
-                  {zh ? t.name : t.name_en || t.name}
-                </button>
-              ))}
-              {selectedTagIds.size > 0 && (
-                <button
-                  className={styles.filterClear}
-                  onClick={() => setSelectedTagIds(new Set())}
-                >
-                  {zh ? "清除" : "Clear"}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {error ? (
+        {error && (
           <div className={styles.errorMessage}>
-            <p>{zh ? "載入作品失敗，請稍後再試。" : error}</p>
+            <p>{zh ? "載入失敗，請稍後再試。" : error}</p>
             <p className={styles.errorSubtext}>
               {zh
                 ? "請檢查網路連線後重新整理頁面。"
                 : "Please check your connection and try refreshing the page."}
             </p>
           </div>
-        ) : filteredArtworks.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>
-              {zh
-                ? selectedTagIds.size > 0
-                  ? "沒有符合條件的作品。"
-                  : "尚無作品，請稍後再來！"
-                : selectedTagIds.size > 0
-                  ? "No artworks match the selected filters."
-                  : "No artworks found yet. Check back soon!"}
-            </p>
-          </div>
-        ) : (
-          <ArtworkGrid artworks={filteredArtworks} isAdmin={isAdmin} />
         )}
 
         {/* ── Modals ── */}

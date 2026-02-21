@@ -8,6 +8,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from('series')
     .select('*')
+    .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
       description: body.description || null,
       description_en: body.description_en || null,
       cover_image_id: body.cover_image_id || null,
+      sort_order: body.sort_order != null ? body.sort_order : null,
     })
     .select()
     .single()
@@ -46,9 +48,15 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const update: Record<string, any> = {}
-  const allowed = ['name', 'name_en', 'description', 'description_en', 'cover_image_id']
+  const allowed = ['name', 'name_en', 'description', 'description_en', 'cover_image_id', 'sort_order']
   for (const key of allowed) {
-    if (key in fields) update[key] = fields[key] || null
+    if (key in fields) {
+      if (key === 'sort_order') {
+        update[key] = fields[key] == null || fields[key] === '' ? null : Number(fields[key])
+      } else {
+        update[key] = fields[key] || null
+      }
+    }
   }
 
   const { data, error: dbError } = await supabaseAdmin
