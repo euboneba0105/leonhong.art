@@ -153,11 +153,8 @@ export default function SeriesDetailContent({
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
         <div className={styles.seriesHeaderRow}>
-          <Link
-            href="/gallery"
-            className={styles.seriesBackLink}
-          >
-            ← {zh ? "返回全部作品" : "Back to All Works"}
+          <Link href="/gallery" className={styles.seriesBackLink}>
+            ← {zh ? "返回" : "Back"}
           </Link>
           {isAdmin && !isStandalone && series && (
             <div className={styles.seriesHeaderActions}>
@@ -167,81 +164,190 @@ export default function SeriesDetailContent({
               >
                 {zh ? "編輯系列" : "Edit Series"}
               </button>
-              <button
-                className={admin.deleteBtn}
-                onClick={handleDeleteSeries}
-              >
+              <button className={admin.deleteBtn} onClick={handleDeleteSeries}>
                 {zh ? "刪除系列" : "Delete Series"}
               </button>
             </div>
           )}
         </div>
 
-        <h1>{title}</h1>
+        <div className={styles.seriesPageContentRow}>
+          <div className={styles.seriesPageContentLeft}>
+            <div className={styles.seriesIntro}>
+              <h1 className={styles.seriesTitle}>{title}</h1>
 
-        {description && (
-          <p style={{ color: "#555", marginBottom: "2rem", lineHeight: 1.6 }}>
-            {description}
-          </p>
-        )}
-
-        {isAdmin && (
-          <div
-            className={admin.adminBar}
-            style={{ justifyContent: "flex-start", marginBottom: "2rem" }}
-          >
-            <button
-              className={admin.addBtn}
-              onClick={() => setShowArtworkForm(true)}
-            >
-              + {zh ? "新增作品" : "Add Artwork"}
-            </button>
-          </div>
-        )}
-
-        {/* 媒材過濾器（只顯示此系列有使用的媒材） */}
-        {tagsInSeries.length > 1 && (
-          <div className={styles.filterSection}>
-            <div className={styles.filterChips}>
-              {tagsInSeries.map((t) => (
-                <button
-                  key={t.id}
-                  className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ""}`}
-                  onClick={() => toggleFilterTag(t.id)}
-                >
-                  {zh ? t.name : t.name_en || t.name}
-                </button>
-              ))}
-              {selectedTagIds.size > 0 && (
-                <button
-                  className={styles.filterClear}
-                  onClick={() => setSelectedTagIds(new Set())}
-                >
-                  {zh ? "清除" : "Clear"}
-                </button>
+              {description && (
+                <p className={styles.seriesDescription}>{description}</p>
               )}
             </div>
-          </div>
-        )}
 
-        {artworks.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>{zh ? "此系列尚無作品。" : "No artworks in this series yet."}</p>
+            {isAdmin && (
+              <div
+                className={admin.adminBar}
+                style={{ justifyContent: "flex-start", marginBottom: "2rem" }}
+              >
+                <button
+                  className={admin.addBtn}
+                  onClick={() => setShowArtworkForm(true)}
+                >
+                  + {zh ? "新增作品" : "Add Artwork"}
+                </button>
+              </div>
+            )}
+
+            {/* 媒材過濾器（只顯示此系列有使用的媒材） */}
+            {tagsInSeries.length > 1 && (
+              <div className={styles.filterSection}>
+                <div className={styles.filterChips}>
+                  {tagsInSeries.map((t) => (
+                    <button
+                      key={t.id}
+                      className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ""}`}
+                      onClick={() => toggleFilterTag(t.id)}
+                    >
+                      {zh ? t.name : t.name_en || t.name}
+                    </button>
+                  ))}
+                  {selectedTagIds.size > 0 && (
+                    <button
+                      className={styles.filterClear}
+                      onClick={() => setSelectedTagIds(new Set())}
+                    >
+                      {zh ? "清除" : "Clear"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {artworks.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>
+                  {zh ? "此系列尚無作品。" : "No artworks in this series yet."}
+                </p>
+              </div>
+            ) : filteredArtworks.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>
+                  {zh
+                    ? selectedTagIds.size > 0
+                      ? "沒有符合條件的作品。"
+                      : "此系列尚無作品。"
+                    : selectedTagIds.size > 0
+                      ? "No artworks match the selected filters."
+                      : "No artworks in this series yet."}
+                </p>
+              </div>
+            ) : (
+              <>
+                {selectedArtwork && (
+                  <>
+                    <div className={styles.seriesGalleryImageBlock}>
+                      <ArtworkZoomImage
+                        imageUrl={
+                          selectedArtwork.image_url || "/placeholder.png"
+                        }
+                        alt={
+                          zh
+                            ? selectedArtwork.title
+                            : selectedArtwork.title_en || selectedArtwork.title
+                        }
+                      />
+                    </div>
+                    <div className={styles.seriesGalleryInfoRow}>
+                      <div
+                        className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
+                      >
+                        <h3 className={styles.detailTitle}>
+                          {zh
+                            ? selectedArtwork.title
+                            : selectedArtwork.title_en || selectedArtwork.title}
+                        </h3>
+                        <div className={styles.metaList}>
+                          {selectedArtwork.year != null && (
+                            <div className={styles.metaRow}>
+                              <span className={styles.metaLabel}>
+                                {zh ? "年份" : "Year"}
+                              </span>
+                              <span className={styles.metaValue}>
+                                {selectedArtwork.year}
+                              </span>
+                            </div>
+                          )}
+                          {(selectedArtwork.tags?.length ?? 0) > 0 && (
+                            <div className={styles.metaRow}>
+                              <span className={styles.metaLabel}>
+                                {zh ? "媒材" : "Medium"}
+                              </span>
+                              <span className={styles.metaValue}>
+                                {(selectedArtwork.tags ?? [])
+                                  .map((t) =>
+                                    zh ? t.name : t.name_en || t.name,
+                                  )
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          )}
+                          {selectedArtwork.size && (
+                            <div className={styles.metaRow}>
+                              <span className={styles.metaLabel}>
+                                {zh ? "尺寸" : "Size"}
+                              </span>
+                              <span className={styles.metaValue}>
+                                {selectedArtwork.size}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {(selectedArtwork.description ||
+                          selectedArtwork.description_en) && (
+                          <p className={styles.detailDescription}>
+                            {zh
+                              ? selectedArtwork.description
+                              : selectedArtwork.description_en ||
+                                selectedArtwork.description}
+                          </p>
+                        )}
+                        {isAdmin && (
+                          <div className={styles.detailAdminActions}>
+                            <button
+                              className={admin.editBtn}
+                              onClick={() => setEditingArtwork(selectedArtwork)}
+                            >
+                              {zh ? "編輯" : "Edit"}
+                            </button>
+                            <button
+                              className={admin.deleteBtn}
+                              onClick={() =>
+                                handleDeleteArtwork(selectedArtwork.id)
+                              }
+                            >
+                              {zh ? "刪除" : "Delete"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.seriesGalleryNextLink}
+                        onClick={() =>
+                          setSelectedIndex(
+                            (i) => (i + 1) % filteredArtworks.length,
+                          )
+                        }
+                        aria-label={zh ? "下一張" : "Next"}
+                      >
+                        {zh ? "下一張" : "Next"} →
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
-        ) : filteredArtworks.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>
-              {zh
-                ? selectedTagIds.size > 0
-                  ? "沒有符合條件的作品。"
-                  : "此系列尚無作品。"
-                : selectedTagIds.size > 0
-                  ? "No artworks match the selected filters."
-                  : "No artworks in this series yet."}
-            </p>
-          </div>
-        ) : (
-          <div className={styles.seriesGallery}>
+
+          {filteredArtworks.length > 0 && (
             <div className={styles.seriesGalleryThumbs}>
               {filteredArtworks.map((a, i) => (
                 <button
@@ -262,93 +368,8 @@ export default function SeriesDetailContent({
                 </button>
               ))}
             </div>
-            <div className={styles.seriesGalleryMain}>
-              {selectedArtwork && (
-                <>
-                  <ArtworkZoomImage
-                    imageUrl={selectedArtwork.image_url || "/placeholder.png"}
-                    alt={
-                      zh
-                        ? selectedArtwork.title
-                        : selectedArtwork.title_en || selectedArtwork.title
-                    }
-                  />
-                  <div
-                    className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
-                  >
-                    <h3 className={styles.detailTitle}>
-                      {zh
-                        ? selectedArtwork.title
-                        : selectedArtwork.title_en || selectedArtwork.title}
-                    </h3>
-                    <div className={styles.metaList}>
-                      {selectedArtwork.year != null && (
-                        <div className={styles.metaRow}>
-                          <span className={styles.metaLabel}>
-                            {zh ? "年份" : "Year"}
-                          </span>
-                          <span className={styles.metaValue}>
-                            {selectedArtwork.year}
-                          </span>
-                        </div>
-                      )}
-                      {(selectedArtwork.tags?.length ?? 0) > 0 && (
-                        <div className={styles.metaRow}>
-                          <span className={styles.metaLabel}>
-                            {zh ? "媒材" : "Medium"}
-                          </span>
-                          <span className={styles.metaValue}>
-                            {(selectedArtwork.tags ?? [])
-                              .map((t) => (zh ? t.name : t.name_en || t.name))
-                              .filter(Boolean)
-                              .join(", ")}
-                          </span>
-                        </div>
-                      )}
-                      {selectedArtwork.size && (
-                        <div className={styles.metaRow}>
-                          <span className={styles.metaLabel}>
-                            {zh ? "尺寸" : "Size"}
-                          </span>
-                          <span className={styles.metaValue}>
-                            {selectedArtwork.size}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    {(selectedArtwork.description ||
-                      selectedArtwork.description_en) && (
-                      <p className={styles.detailDescription}>
-                        {zh
-                          ? selectedArtwork.description
-                          : selectedArtwork.description_en ||
-                            selectedArtwork.description}
-                      </p>
-                    )}
-                    {isAdmin && (
-                      <div className={styles.detailAdminActions}>
-                        <button
-                          className={admin.editBtn}
-                          onClick={() => setEditingArtwork(selectedArtwork)}
-                        >
-                          {zh ? "編輯" : "Edit"}
-                        </button>
-                        <button
-                          className={admin.deleteBtn}
-                          onClick={() =>
-                            handleDeleteArtwork(selectedArtwork.id)
-                          }
-                        >
-                          {zh ? "刪除" : "Delete"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {showEdit && series && (
           <div className={admin.overlay} onClick={() => setShowEdit(false)}>
