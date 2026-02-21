@@ -85,6 +85,15 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
     }
   }, [zoomBlobUrl])
 
+  // 一點選作品就開始預載 zoom 大圖，避免要 zoom 時等太久
+  useEffect(() => {
+    if (!artworkId || zoomBlobUrl) return
+    fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}`)
+      .then((r) => r.blob())
+      .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
+      .catch(() => {})
+  }, [artworkId, zoomBlobUrl])
+
   const handleLoadingComplete = useCallback(
     (img: { naturalWidth: number; naturalHeight: number }) => {
       setImageAspectRatio(img.naturalWidth / img.naturalHeight)
