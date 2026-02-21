@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+export const runtime = 'nodejs'
+
 const ZOOM_LONG_EDGE = 3000
 
 async function getImageBuffer(imageUrl: string): Promise<Buffer> {
   const res = await fetch(imageUrl, {
     headers: { Accept: 'image/*' },
     cache: 'force-cache',
-    next: { revalidate: 86400 },
   })
   if (!res.ok) throw new Error('Upstream failed')
   const arrayBuffer = await res.arrayBuffer()
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, ZOOM_LONG_EDGE)
-    return new NextResponse(new Uint8Array(output), {
+    return new NextResponse(output as unknown as BodyInit, {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'private, max-age=3600',
