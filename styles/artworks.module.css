@@ -130,6 +130,45 @@
   margin-bottom: 2rem;
 }
 
+.filterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.filterRow .filterSection {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.seriesNavButtons {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.seriesNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: #aaaaaa;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  border-radius: 4px;
+}
+
+.seriesNavBtn:hover {
+  color: #1a1a1a;
+}
+
 .filterChips {
   display: flex;
   flex-wrap: wrap;
@@ -418,6 +457,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-height: 140vh;
+  overflow-y: auto;
+  padding-right: 1rem;
 }
 
 .seriesGalleryThumb {
@@ -452,35 +494,11 @@
   position: relative;
 }
 
-.seriesGalleryInfoRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.seriesGalleryNextLink {
-  flex-shrink: 0;
-  color: #555555;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-family: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.seriesGalleryNextLink:hover {
-  color: #1a1a1a;
-}
-
 /* 系列頁右側 info 靠左，作品名稱不大於系列名稱 (1.75rem) */
 .seriesGalleryInfoSection {
   margin-left: 0;
   margin-right: auto;
+  margin-top: 2rem;
 }
 
 .seriesGalleryImageWrap {
@@ -532,6 +550,17 @@
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  .seriesGalleryThumbsWrap {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    overflow-x: hidden;
+  }
+
+}
+
+/* 手機版縮圖外層：全寬、裁切溢出，避免整頁橫向捲動 */
+.seriesGalleryThumbsWrap {
+  width: 100%;
 }
 
 @media (max-width: 768px) {

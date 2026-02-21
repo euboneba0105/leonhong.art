@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -44,6 +44,8 @@ export default function SeriesDetailContent({
 
   const fixedSeriesId = series?.id ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const thumbsContainerRef = useRef<HTMLDivElement>(null);
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器 */
   const tagsInSeries = useMemo(() => {
@@ -74,6 +76,37 @@ export default function SeriesDetailContent({
     const idx = filteredArtworks.findIndex((a) => a.id === highlightArtworkId);
     if (idx >= 0) setSelectedIndex(idx);
   }, [highlightArtworkId, filteredArtworks]);
+
+  /** 將當前選中的縮圖捲動到可見區域：桌面版垂直中間偏上，手機版水平中間 */
+  useEffect(() => {
+    const container = thumbsContainerRef.current;
+    const thumb = thumbRefs.current[selectedIndex];
+    if (!container || !thumb) return;
+
+    const isHorizontal = container.scrollWidth > container.clientWidth;
+    if (isHorizontal) {
+      const scrollLeft =
+        thumb.offsetLeft -
+        container.clientWidth / 2 +
+        thumb.offsetWidth / 2;
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      container.scrollTo({
+        left: Math.max(0, Math.min(scrollLeft, maxScrollLeft)),
+        behavior: "smooth",
+      });
+    } else {
+      const containerHeight = container.clientHeight;
+      const thumbTop = thumb.offsetTop;
+      const thumbHeight = thumb.offsetHeight;
+      const targetOffset = containerHeight * 0.35;
+      const scrollTop = thumbTop - targetOffset + thumbHeight / 2;
+      const maxScroll = container.scrollHeight - containerHeight;
+      container.scrollTo({
+        top: Math.max(0, Math.min(scrollTop, maxScroll)),
+        behavior: "smooth",
+      });
+    }
+  }, [selectedIndex]);
 
   const selectedArtwork = filteredArtworks[selectedIndex] ?? null;
 
@@ -195,28 +228,66 @@ export default function SeriesDetailContent({
               </div>
             )}
 
-            {/* 媒材過濾器（只顯示此系列有使用的媒材） */}
-            {tagsInSeries.length > 1 && (
-              <div className={styles.filterSection}>
-                <div className={styles.filterChips}>
-                  {tagsInSeries.map((t) => (
-                    <button
-                      key={t.id}
-                      className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ""}`}
-                      onClick={() => toggleFilterTag(t.id)}
-                    >
-                      {zh ? t.name : t.name_en || t.name}
-                    </button>
-                  ))}
-                  {selectedTagIds.size > 0 && (
-                    <button
-                      className={styles.filterClear}
-                      onClick={() => setSelectedTagIds(new Set())}
-                    >
-                      {zh ? "清除" : "Clear"}
-                    </button>
+            {/* 媒材過濾器 + 上一張/下一張（有作品時同一列） */}
+            {(tagsInSeries.length > 1 || filteredArtworks.length > 0) && (
+              <div className={styles.filterRow}>
+                <div className={styles.filterSection}>
+                  {tagsInSeries.length > 1 && (
+                    <div className={styles.filterChips}>
+                      {tagsInSeries.map((t) => (
+                        <button
+                          key={t.id}
+                          className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ""}`}
+                          onClick={() => toggleFilterTag(t.id)}
+                        >
+                          {zh ? t.name : t.name_en || t.name}
+                        </button>
+                      ))}
+                      {selectedTagIds.size > 0 && (
+                        <button
+                          className={styles.filterClear}
+                          onClick={() => setSelectedTagIds(new Set())}
+                        >
+                          {zh ? "清除" : "Clear"}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
+                {filteredArtworks.length > 0 && (
+                  <div className={styles.seriesNavButtons}>
+                    <button
+                      type="button"
+                      className={styles.seriesNavBtn}
+                      onClick={() =>
+                        setSelectedIndex(
+                          (i) =>
+                            (i - 1 + filteredArtworks.length) %
+                            filteredArtworks.length,
+                        )
+                      }
+                      aria-label={zh ? "上一張" : "Previous"}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M15 18l-6-6 6-6" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.seriesNavBtn}
+                      onClick={() =>
+                        setSelectedIndex(
+                          (i) => (i + 1) % filteredArtworks.length,
+                        )
+                      }
+                      aria-label={zh ? "下一張" : "Next"}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -254,11 +325,10 @@ export default function SeriesDetailContent({
                         }
                       />
                     </div>
-                    <div className={styles.seriesGalleryInfoRow}>
-                      <div
-                        className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
-                      >
-                        <h3 className={styles.detailTitle}>
+                    <div
+                      className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
+                    >
+                      <h3 className={styles.detailTitle}>
                           {zh
                             ? selectedArtwork.title
                             : selectedArtwork.title_en || selectedArtwork.title}
@@ -327,19 +397,6 @@ export default function SeriesDetailContent({
                             </button>
                           </div>
                         )}
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.seriesGalleryNextLink}
-                        onClick={() =>
-                          setSelectedIndex(
-                            (i) => (i + 1) % filteredArtworks.length,
-                          )
-                        }
-                        aria-label={zh ? "下一張" : "Next"}
-                      >
-                        {zh ? "下一張" : "Next"} →
-                      </button>
                     </div>
                   </>
                 )}
@@ -348,10 +405,16 @@ export default function SeriesDetailContent({
           </div>
 
           {filteredArtworks.length > 0 && (
-            <div className={styles.seriesGalleryThumbs}>
+            <div
+              ref={thumbsContainerRef}
+              className={styles.seriesGalleryThumbs}
+            >
               {filteredArtworks.map((a, i) => (
                 <button
                   key={a.id}
+                  ref={(el) => {
+                    thumbRefs.current[i] = el;
+                  }}
                   type="button"
                   className={`${styles.seriesGalleryThumb} ${i === selectedIndex ? styles.seriesGalleryThumbActive : ""}`}
                   onClick={() => setSelectedIndex(i)}
