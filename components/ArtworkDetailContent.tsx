@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
-import Image from 'next/image'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import { uploadFile } from '@/lib/uploadFile'
+import ArtworkZoomImage from './ArtworkZoomImage'
 import type { Artwork, Series, Tag } from '@/lib/supabaseClient'
 import styles from '@/styles/artworkDetail.module.css'
 import filterStyles from '@/styles/artworks.module.css'
@@ -41,112 +41,6 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
   )
 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
-  const [zooming, setZooming] = useState(false)
-  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
-  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null)
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isTouchZooming = useRef(false)
-  const isTouchDevice = useRef(false)
-  const imageSectionRef = useRef<HTMLDivElement>(null)
-
-  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget
-    const ratio = img.naturalWidth / img.naturalHeight
-    setImageAspectRatio(ratio)
-  }, [])
-
-  const MAX_ASPECT_RATIO = 5 / 3 // 5:3 (1.667)
-  const MIN_ASPECT_RATIO = 1 / 1 // 1:1 (1.0)
-
-  // 計算約束後的寬高比
-  let displayAspectRatio = imageAspectRatio
-  let isImageOutOfRange = false
-
-  if (imageAspectRatio) {
-    if (imageAspectRatio > MAX_ASPECT_RATIO) {
-      displayAspectRatio = MAX_ASPECT_RATIO
-      isImageOutOfRange = true
-    } else if (imageAspectRatio < MIN_ASPECT_RATIO) {
-      displayAspectRatio = MIN_ASPECT_RATIO
-      isImageOutOfRange = true
-    }
-  }
-
-  // 計算縮放倍數：超寬圖片要放大更多
-  let zoomScale = 250 // 預設 2.5 倍 (250%)
-  if (imageAspectRatio && imageAspectRatio > MAX_ASPECT_RATIO) {
-    // 超出範圍的倍數
-    const excessRatio = imageAspectRatio / MAX_ASPECT_RATIO
-    zoomScale = Math.round(250 * excessRatio)
-  }
-
-  const handleMouseEnter = useCallback(() => {
-    if (isTouchDevice.current) return
-    setZooming(true)
-  }, [])
-
-  const handleMouseLeave = useCallback(() => {
-    if (isTouchDevice.current) return
-    setZooming(false)
-  }, [])
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (isTouchDevice.current) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    setZoomPos({ x, y })
-  }, [])
-
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    isTouchDevice.current = true
-    const touch = e.touches[0]
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = ((touch.clientX - rect.left) / rect.width) * 100
-    const y = ((touch.clientY - rect.top) / rect.height) * 100
-    setZoomPos({ x, y })
-
-    longPressTimer.current = setTimeout(() => {
-      isTouchZooming.current = true
-      setZooming(true)
-    }, 400)
-  }, [])
-
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
-    isTouchZooming.current = false
-    setZooming(false)
-  }, [])
-
-  // Native touchmove listener with { passive: false } to allow preventDefault for scroll blocking
-  // Also prevent context menu on long press
-  useEffect(() => {
-    const el = imageSectionRef.current
-    if (!el) return
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isTouchZooming.current) {
-        // User is scrolling, cancel long-press
-        if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
-        return
-      }
-      e.preventDefault()
-      const touch = e.touches[0]
-      const rect = el.getBoundingClientRect()
-      const x = Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width) * 100))
-      const y = Math.max(0, Math.min(100, ((touch.clientY - rect.top) / rect.height) * 100))
-      setZoomPos({ x, y })
-    }
-
-    const onContextMenu = (e: Event) => { if (isTouchZooming.current) e.preventDefault() }
-
-    el.addEventListener('touchmove', onTouchMove, { passive: false })
-    el.addEventListener('contextmenu', onContextMenu)
-    return () => {
-      el.removeEventListener('touchmove', onTouchMove)
-      el.removeEventListener('contextmenu', onContextMenu)
-    }
-  }, [])
 
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
   const tagNames = (artwork.tags || []).map((t) => zh ? t.name : (t.name_en || t.name)).filter(Boolean)
@@ -200,40 +94,7 @@ export default function ArtworkDetailContent({ artwork, seriesList, allTags }: A
           ← {zh ? '返回' : 'Back'}
         </button>
 
-        {/* Large image on top — hover / long-press to zoom */}
-        <div
-          ref={imageSectionRef}
-          className={`${styles.imageSection} ${zooming ? styles.zooming : ''} ${isImageOutOfRange ? styles.constrainedImage : ''}`}
-          style={{
-            aspectRatio: displayAspectRatio ? `${displayAspectRatio} / 1` : 'auto',
-          }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-        >
-          <Image
-            src={imageUrl}
-            alt={title}
-            width={1600}
-            height={1200}
-            sizes="(max-width: 768px) 100vw, 900px"
-            className={styles.image}
-            priority
-            draggable={false}
-            onLoad={handleImageLoad}
-          />
-          <div
-            className={`${styles.zoomLens} ${zooming ? styles.zoomActive : ''}`}
-            style={{
-              backgroundImage: `url(${imageUrl})`,
-              backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-              backgroundSize: `${zoomScale}%`,
-            }}
-          />
-        </div>
+        <ArtworkZoomImage imageUrl={imageUrl} alt={title} priority />
 
         {/* Info below */}
         <div className={styles.infoSection}>

@@ -11,6 +11,8 @@ interface ArtworkFormProps {
   artwork?: Artwork | null
   seriesList: Series[]
   allTags: Tag[]
+  /** 從系列頁開啟時傳入，鎖定所屬系列不顯示選擇器 */
+  fixedSeriesId?: string | null
   onSubmit: (data: any) => Promise<void>
   onCancel: () => void
   loading?: boolean
@@ -20,6 +22,7 @@ export default function ArtworkForm({
   artwork,
   seriesList,
   allTags,
+  fixedSeriesId,
   onSubmit,
   onCancel,
   loading = false,
@@ -36,7 +39,7 @@ export default function ArtworkForm({
   const [form, setForm] = useState({
     title: artwork?.title || '',
     title_en: artwork?.title_en || '',
-    series_id: artwork?.series_id || '',
+    series_id: fixedSeriesId !== undefined ? (fixedSeriesId ?? '') : (artwork?.series_id || ''),
     year: artwork?.year ? String(artwork.year) : '',
     size: artwork?.size || '',
     description: artwork?.description || '',
@@ -70,7 +73,7 @@ export default function ArtworkForm({
       await onSubmit({
         ...form,
         year: form.year ? Number(form.year) : null,
-        series_id: form.series_id || null,
+        series_id: fixedSeriesId !== undefined ? (fixedSeriesId ?? null) : (form.series_id || null),
         image_url,
         tag_ids: Array.from(tagIds),
       })
@@ -126,21 +129,23 @@ export default function ArtworkForm({
       </div>
 
       <div className={admin.formRow}>
-        <div className={admin.formGroup}>
-          <label className={admin.formLabel}>{zh ? '系列' : 'Series'}</label>
-          <select
-            className={admin.formInput}
-            value={form.series_id}
-            onChange={(e) => setForm({ ...form, series_id: e.target.value })}
-          >
-            <option value="">{zh ? '-- 選擇系列 --' : '-- Select Series --'}</option>
-            {seriesList.map((s) => (
-              <option key={s.id} value={s.id}>
-                {zh ? s.name : s.name_en || s.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {fixedSeriesId === undefined && (
+          <div className={admin.formGroup}>
+            <label className={admin.formLabel}>{zh ? '系列' : 'Series'}</label>
+            <select
+              className={admin.formInput}
+              value={form.series_id}
+              onChange={(e) => setForm({ ...form, series_id: e.target.value })}
+            >
+              <option value="">{zh ? '-- 選擇系列 --' : '-- Select Series --'}</option>
+              {seriesList.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {zh ? s.name : s.name_en || s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className={admin.formGroup}>
           <label className={admin.formLabel}>{zh ? '年份' : 'Year'}</label>
           <input

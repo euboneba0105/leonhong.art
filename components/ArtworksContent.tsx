@@ -29,7 +29,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
   const router = useRouter()
   const isAdmin = !!(session?.user as any)?.isAdmin
 
-  const [showForm, setShowForm] = useState(false)
   const [showSeriesForm, setShowSeriesForm] = useState(false)
   const [showTagForm, setShowTagForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -112,9 +111,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
             </button>
             <button className={admin.addBtn} onClick={() => setShowTagForm(true)}>
               + {zh ? '新增媒材' : 'Add Medium'}
-            </button>
-            <button className={admin.addBtn} onClick={() => setShowForm(true)}>
-              + {zh ? '新增作品' : 'Add Artwork'}
             </button>
           </div>
         )}
@@ -380,41 +376,6 @@ export default function ArtworksContent({ artworks, seriesList, allTags, error }
           </div>
         )}
 
-        {/* Add Artwork */}
-        {showForm && (
-          <div className={admin.overlay} onClick={() => setShowForm(false)}>
-            <div onClick={(e) => e.stopPropagation()}>
-              <ArtworkForm
-                artwork={null}
-                seriesList={seriesList}
-                allTags={allTags}
-                onSubmit={async (data) => {
-                  setSaving(true)
-                  setErrMsg('')
-                  try {
-                    const res = await fetch('/api/artworks', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(data),
-                    })
-                    if (res.ok) {
-                      setShowForm(false)
-                      router.refresh()
-                    } else {
-                      const d = await res.json().catch(() => null)
-                      throw new Error(d?.error || `Error (${res.status})`)
-                    }
-                  } catch (err: any) {
-                    setErrMsg(err.message || '網路錯誤')
-                  }
-                  setSaving(false)
-                }}
-                onCancel={() => setShowForm(false)}
-                loading={saving}
-              />
-            </div>
-          </div>
-        )}
       </main>
     </div>
   )

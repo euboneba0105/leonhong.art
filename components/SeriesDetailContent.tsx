@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
-import ArtworkGrid from './ArtworkGrid'
+import ArtworkForm from './ArtworkForm'
+import ArtworkZoomImage from './ArtworkZoomImage'
 import SeriesForm from './SeriesForm'
 import type { Artwork, Series, Tag } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
+import detailStyles from '@/styles/artworkDetail.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface SeriesDetailContentProps {
@@ -27,8 +30,14 @@ export default function SeriesDetailContent({ series, artworks, seriesList, allT
   const isAdmin = !!(session?.user as any)?.isAdmin
 
   const [showEdit, setShowEdit] = useState(false)
+  const [showArtworkForm, setShowArtworkForm] = useState(false)
+  const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null)
   const [saving, setSaving] = useState(false)
+  const [errMsg, setErrMsg] = useState('')
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set())
+
+  const fixedSeriesId = series?.id ?? null
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
   /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器 */
   const tagsInSeries = useMemo(() => {
@@ -43,6 +52,12 @@ export default function SeriesDetailContent({ series, artworks, seriesList, allT
       a.tags?.some((t) => selectedTagIds.has(t.id))
     )
   }, [artworks, selectedTagIds])
+
+  useEffect(() => {
+    setSelectedIndex((i) => (i >= filteredArtworks.length ? Math.max(0, filteredArtworks.length - 1) : i))
+  }, [filteredArtworks.length])
+
+  const selectedArtwork = filteredArtworks[selectedIndex] ?? null
 
   function toggleFilterTag(id: string) {
     setSelectedTagIds((prev) => {
@@ -119,10 +134,17 @@ export default function SeriesDetailContent({ series, artworks, seriesList, allT
           <p style={{ color: '#555', marginBottom: '2rem', lineHeight: 1.6 }}>{description}</p>
         )}
 
-        {isAdmin && !isStandalone && series && (
+        {isAdmin && (
           <div className={admin.adminBar} style={{ justifyContent: 'flex-start', marginBottom: '2rem' }}>
-            <button className={admin.editBtn} onClick={() => setShowEdit(true)}>{zh ? '編輯系列' : 'Edit Series'}</button>
-            <button className={admin.deleteBtn} onClick={handleDeleteSeries}>{zh ? '刪除系列' : 'Delete Series'}</button>
+            <button className={admin.addBtn} onClick={() => setShowArtworkForm(true)}>
+              + {zh ? '新增作品' : 'Add Artwork'}
+            </button>
+            {!isStandalone && series && (
+              <>
+                <button className={admin.editBtn} onClick={() => setShowEdit(true)}>{zh ? '編輯系列' : 'Edit Series'}</button>
+                <button className={admin.deleteBtn} onClick={handleDeleteSeries}>{zh ? '刪除系列' : 'Delete Series'}</button>
+              </>
+            )}
           </div>
         )}
 
@@ -160,7 +182,80 @@ export default function SeriesDetailContent({ series, artworks, seriesList, allT
             <p>{zh ? (selectedTagIds.size > 0 ? '沒有符合條件的作品。' : '此系列尚無作品。') : (selectedTagIds.size > 0 ? 'No artworks match the selected filters.' : 'No artworks in this series yet.')}</p>
           </div>
         ) : (
-          <ArtworkGrid artworks={filteredArtworks} isAdmin={isAdmin} onDelete={handleDeleteArtwork} />
+          <div className={styles.seriesGallery}>
+            <div className={styles.seriesGalleryThumbs}>
+              {filteredArtworks.map((a, i) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  className={`${styles.seriesGalleryThumb} ${i === selectedIndex ? styles.seriesGalleryThumbActive : ''}`}
+                  onClick={() => setSelectedIndex(i)}
+                  aria-label={zh ? a.title : (a.title_en || a.title)}
+                >
+                  <Image
+                    src={a.image_url || '/placeholder.png'}
+                    alt={zh ? a.title : (a.title_en || a.title)}
+                    fill
+                    sizes="100px"
+                    className={styles.seriesGalleryThumbImg}
+                    style={{ objectFit: 'cover' }}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className={styles.seriesGalleryMain}>
+              {selectedArtwork && (
+                <>
+                  <ArtworkZoomImage
+                    imageUrl={selectedArtwork.image_url || '/placeholder.png'}
+                    alt={zh ? selectedArtwork.title : (selectedArtwork.title_en || selectedArtwork.title)}
+                  />
+                  <div className={detailStyles.infoSection}>
+                    <h1 className={detailStyles.title}>
+                      {zh ? selectedArtwork.title : (selectedArtwork.title_en || selectedArtwork.title)}
+                    </h1>
+                    <div className={detailStyles.metaList}>
+                      {selectedArtwork.year != null && (
+                        <div className={detailStyles.metaRow}>
+                          <span className={detailStyles.metaLabel}>{zh ? '年份' : 'Year'}</span>
+                          <span className={detailStyles.metaValue}>{selectedArtwork.year}</span>
+                        </div>
+                      )}
+                      {(selectedArtwork.tags?.length ?? 0) > 0 && (
+                        <div className={detailStyles.metaRow}>
+                          <span className={detailStyles.metaLabel}>{zh ? '媒材' : 'Medium'}</span>
+                          <span className={detailStyles.metaValue}>
+                            {(selectedArtwork.tags ?? []).map((t) => zh ? t.name : (t.name_en || t.name)).filter(Boolean).join(', ')}
+                          </span>
+                        </div>
+                      )}
+                      {selectedArtwork.size && (
+                        <div className={detailStyles.metaRow}>
+                          <span className={detailStyles.metaLabel}>{zh ? '尺寸' : 'Size'}</span>
+                          <span className={detailStyles.metaValue}>{selectedArtwork.size}</span>
+                        </div>
+                      )}
+                    </div>
+                    {(selectedArtwork.description || selectedArtwork.description_en) && (
+                      <p className={detailStyles.description}>
+                        {zh ? selectedArtwork.description : (selectedArtwork.description_en || selectedArtwork.description)}
+                      </p>
+                    )}
+                    {isAdmin && (
+                      <div className={detailStyles.adminActions}>
+                        <button className={admin.editBtn} onClick={() => setEditingArtwork(selectedArtwork)}>
+                          {zh ? '編輯' : 'Edit'}
+                        </button>
+                        <button className={admin.deleteBtn} onClick={() => handleDeleteArtwork(selectedArtwork.id)}>
+                          {zh ? '刪除' : 'Delete'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         )}
 
         {showEdit && series && (
@@ -171,6 +266,80 @@ export default function SeriesDetailContent({ series, artworks, seriesList, allT
                 artworks={artworks}
                 onSubmit={handleEditSeries}
                 onCancel={() => setShowEdit(false)}
+                loading={saving}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 新增作品（所屬系列已鎖定為當前系列 / 獨立作品） */}
+        {showArtworkForm && (
+          <div className={admin.overlay} onClick={() => setShowArtworkForm(false)}>
+            <div onClick={(e) => e.stopPropagation()}>
+              <ArtworkForm
+                artwork={null}
+                seriesList={seriesList}
+                allTags={allTags}
+                fixedSeriesId={fixedSeriesId}
+                onSubmit={async (data) => {
+                  setSaving(true)
+                  setErrMsg('')
+                  try {
+                    const res = await fetch('/api/artworks', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(data),
+                    })
+                    if (res.ok) {
+                      setShowArtworkForm(false)
+                      router.refresh()
+                    } else {
+                      const d = await res.json().catch(() => null)
+                      throw new Error(d?.error || `Error (${res.status})`)
+                    }
+                  } catch (err: any) {
+                    setErrMsg(err.message || (zh ? '網路錯誤' : 'Network error'))
+                  }
+                  setSaving(false)
+                }}
+                onCancel={() => setShowArtworkForm(false)}
+                loading={saving}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 編輯作品（從系列頁編輯時系列鎖定） */}
+        {editingArtwork && (
+          <div className={admin.overlay} onClick={() => setEditingArtwork(null)}>
+            <div onClick={(e) => e.stopPropagation()}>
+              <ArtworkForm
+                artwork={editingArtwork}
+                seriesList={seriesList}
+                allTags={allTags}
+                fixedSeriesId={fixedSeriesId}
+                onSubmit={async (data) => {
+                  setSaving(true)
+                  setErrMsg('')
+                  try {
+                    const res = await fetch('/api/artworks', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id: editingArtwork.id, ...data }),
+                    })
+                    if (res.ok) {
+                      setEditingArtwork(null)
+                      router.refresh()
+                    } else {
+                      const d = await res.json().catch(() => null)
+                      throw new Error(d?.error || `Error (${res.status})`)
+                    }
+                  } catch (err: any) {
+                    setErrMsg(err.message || (zh ? '網路錯誤' : 'Network error'))
+                  }
+                  setSaving(false)
+                }}
+                onCancel={() => setEditingArtwork(null)}
                 loading={saving}
               />
             </div>
