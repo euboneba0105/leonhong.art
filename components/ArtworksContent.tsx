@@ -136,6 +136,7 @@ export default function ArtworksContent({
                           fill
                           sizes="(max-width: 768px) 40vw, 200px"
                           className={styles.seriesCardImage}
+                          unoptimized={coverUrl.startsWith('/api/image')}
                         />
                       ) : (
                         <div className={styles.seriesCardPlaceholder} />

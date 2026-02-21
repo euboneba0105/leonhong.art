@@ -249,6 +249,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
         priority={priority}
         quality={85}
         draggable={false}
+        unoptimized={imageUrl.startsWith('/api/image')}
         onLoadingComplete={handleLoadingComplete}
       />
       <div

@@ -176,6 +176,7 @@ export default function HomepageContent({
                   style={{ objectFit: 'cover' }}
                   priority={i === 0}
                   quality={80}
+                  unoptimized={(artwork.image_url ?? '').startsWith('/api/image')}
                 />
               )}
             </div>
@@ -248,6 +249,7 @@ export default function HomepageContent({
                       fill
                       sizes="220px"
                       style={{ objectFit: 'cover' }}
+                      unoptimized={coverUrl.startsWith('/api/image')}
                     />
                   ) : (
                     <div className={styles.seriesCardPlaceholder} />
@@ -328,6 +330,7 @@ export default function HomepageContent({
                         fill
                         sizes="120px"
                         style={{ objectFit: 'cover' }}
+                        unoptimized={(artwork.image_url ?? '').startsWith('/api/image')}
                       />
                       {selectedIds.has(artwork.id) && (
                         <div className={styles.carouselEditorCheck}>✓</div>

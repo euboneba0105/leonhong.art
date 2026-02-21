@@ -33,6 +33,7 @@ export default function ArtworkCard({ artwork, isAdmin, onEdit, onDelete }: Artw
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           className={styles.image}
           priority={false}
+          unoptimized={imageUrl.startsWith('/api/image')}
         />
       </Link>
 

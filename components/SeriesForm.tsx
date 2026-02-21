@@ -149,6 +149,7 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
                       fill
                       sizes="80px"
                       style={{ objectFit: 'cover' }}
+                      unoptimized={artwork.image_url.startsWith('/api/image')}
                     />
                   </span>
                 )}
