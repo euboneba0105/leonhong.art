@@ -20,7 +20,10 @@ async function resizeAndReturn(
   maxLongEdge: number
 ): Promise<{ output: Buffer; contentType: string }> {
   const meta = await sharp(input).metadata().catch(() => ({}))
-  const format = meta.format === 'png' || meta.format === 'webp' ? meta.format : 'jpeg'
+  const format =
+    'format' in meta && (meta.format === 'png' || meta.format === 'webp')
+      ? meta.format
+      : 'jpeg'
   const output = await sharp(input)
     .resize(maxLongEdge, maxLongEdge, { fit: 'inside', withoutEnlargement: true })
     .toFormat(format, format === 'jpeg' ? { quality: 90 } : undefined)
@@ -56,7 +59,7 @@ export async function GET(req: NextRequest) {
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, ZOOM_LONG_EDGE)
-    return new NextResponse(output, {
+    return new NextResponse(new Uint8Array(output), {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'private, max-age=3600',
