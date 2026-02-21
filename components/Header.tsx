@@ -89,10 +89,14 @@ export default function Header() {
         <div className={styles.spacer} />
       </div>
 
-      {/* Mobile dropdown menu */}
-      {menuOpen && (
-        <nav className={styles.mobileNav}>
-          <ul className={styles.mobileNavList}>
+      {/* Mobile slide-in panel from left + backdrop */}
+      <div
+        className={`${styles.mobileNavBackdrop} ${menuOpen ? styles.mobileNavBackdropOpen : ''}`}
+        onClick={() => setMenuOpen(false)}
+        aria-hidden="true"
+      />
+      <nav className={`${styles.mobileNav} ${menuOpen ? styles.mobileNavOpen : ''}`} aria-hidden={!menuOpen}>
+        <ul className={styles.mobileNavList}>
             <li>
               <Link
                 href="/gallery"
@@ -126,7 +130,6 @@ export default function Header() {
             )}
           </ul>
         </nav>
-      )}
     </header>
   )
 }
