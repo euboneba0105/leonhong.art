@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import ArtworkGrid from './ArtworkGrid'
 import SeriesForm from './SeriesForm'
-import type { Artwork, Series } from '@/lib/supabaseClient'
+import type { Artwork, Series, Tag } from '@/lib/supabaseClient'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
 
@@ -15,10 +15,11 @@ interface SeriesDetailContentProps {
   series: Series | null
   artworks: Artwork[]
   seriesList: Series[]
+  allTags: Tag[]
   isStandalone: boolean
 }
 
-export default function SeriesDetailContent({ series, artworks, seriesList, isStandalone }: SeriesDetailContentProps) {
+export default function SeriesDetailContent({ series, artworks, seriesList, allTags, isStandalone }: SeriesDetailContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const { data: session } = useSession()
@@ -27,6 +28,30 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
 
   const [showEdit, setShowEdit] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set())
+
+  /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器 */
+  const tagsInSeries = useMemo(() => {
+    const ids = new Set<string>()
+    artworks.forEach((a) => a.tags?.forEach((t) => ids.add(t.id)))
+    return allTags.filter((t) => ids.has(t.id))
+  }, [artworks, allTags])
+
+  const filteredArtworks = useMemo(() => {
+    if (selectedTagIds.size === 0) return artworks
+    return artworks.filter((a) =>
+      a.tags?.some((t) => selectedTagIds.has(t.id))
+    )
+  }, [artworks, selectedTagIds])
+
+  function toggleFilterTag(id: string) {
+    setSelectedTagIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const title = isStandalone
     ? (zh ? '獨立作品' : 'Standalone')
@@ -101,12 +126,41 @@ export default function SeriesDetailContent({ series, artworks, seriesList, isSt
           </div>
         )}
 
+        {/* 媒材過濾器（只顯示此系列有使用的媒材） */}
+        {tagsInSeries.length > 1 && (
+          <div className={styles.filterSection}>
+            <div className={styles.filterChips}>
+              {tagsInSeries.map((t) => (
+                <button
+                  key={t.id}
+                  className={`${styles.filterChip} ${selectedTagIds.has(t.id) ? styles.filterChipActive : ''}`}
+                  onClick={() => toggleFilterTag(t.id)}
+                >
+                  {zh ? t.name : (t.name_en || t.name)}
+                </button>
+              ))}
+              {selectedTagIds.size > 0 && (
+                <button
+                  className={styles.filterClear}
+                  onClick={() => setSelectedTagIds(new Set())}
+                >
+                  {zh ? '清除' : 'Clear'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {artworks.length === 0 ? (
           <div className={styles.emptyState}>
             <p>{zh ? '此系列尚無作品。' : 'No artworks in this series yet.'}</p>
           </div>
+        ) : filteredArtworks.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>{zh ? (selectedTagIds.size > 0 ? '沒有符合條件的作品。' : '此系列尚無作品。') : (selectedTagIds.size > 0 ? 'No artworks match the selected filters.' : 'No artworks in this series yet.')}</p>
+          </div>
         ) : (
-          <ArtworkGrid artworks={artworks} isAdmin={isAdmin} onDelete={handleDeleteArtwork} />
+          <ArtworkGrid artworks={filteredArtworks} isAdmin={isAdmin} onDelete={handleDeleteArtwork} />
         )}
 
         {showEdit && series && (

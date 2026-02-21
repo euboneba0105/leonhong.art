@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
+import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
 import { notFound } from 'next/navigation'
 import SeriesDetailContent from '@/components/SeriesDetailContent'
 
@@ -47,6 +47,18 @@ async function getAllSeries(): Promise<Series[]> {
   return data || []
 }
 
+async function getTags(): Promise<Tag[]> {
+  try {
+    const { data } = await supabase
+      .from('tags')
+      .select('*')
+      .order('name', { ascending: true })
+    return data || []
+  } catch {
+    return []
+  }
+}
+
 export default async function SeriesDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const isStandalone = id === 'standalone'
@@ -59,12 +71,14 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ i
   const series = isStandalone ? null : await getSeriesById(id)
   const artworks = await getArtworksBySeries(isStandalone ? null : id)
   const allSeries = await getAllSeries()
+  const allTags = await getTags()
 
   return (
     <SeriesDetailContent
       series={series}
       artworks={artworks}
       seriesList={allSeries}
+      allTags={allTags}
       isStandalone={isStandalone}
     />
   )
