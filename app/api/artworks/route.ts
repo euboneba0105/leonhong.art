@@ -3,6 +3,7 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { requireAdmin } from '@/lib/adminCheck'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { r2Client, R2_BUCKET, R2_PUBLIC_URL } from '@/lib/r2Client'
+import { artworkWithProxyUrl } from '@/lib/imageProxy'
 
 async function syncTags(artworkId: string, tagIds: string[]) {
   if (!supabaseAdmin) return
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       await syncTags(data.id, tag_ids)
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(artworkWithProxyUrl(data))
   } catch (err: any) {
     console.error('POST /api/artworks error:', err)
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })
@@ -106,7 +107,7 @@ export async function PATCH(req: NextRequest) {
       await syncTags(id, tag_ids)
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(artworkWithProxyUrl(data))
   } catch (err: any) {
     console.error('PATCH /api/artworks error:', err)
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
+import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import HomepageContent from '@/components/HomepageContent'
 
 function attachTags(rows: any[]): Artwork[] {
@@ -20,7 +21,7 @@ async function getArtworks(): Promise<Artwork[]> {
       .order('created_at', { ascending: false })
 
     if (error) throw new Error('Failed to fetch artworks')
-    return attachTags(data)
+    return attachTags(data).map(artworkWithProxyUrl)
   } catch (error) {
     console.error('Error fetching artworks:', error)
     return []

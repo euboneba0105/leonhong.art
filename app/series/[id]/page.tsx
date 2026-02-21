@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
+import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import { notFound } from 'next/navigation'
 import SeriesDetailContent from '@/components/SeriesDetailContent'
 
@@ -36,7 +37,7 @@ async function getArtworksBySeries(seriesId: string | null): Promise<Artwork[]> 
     .order('year', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
-  return attachTags(data)
+  return attachTags(data).map(artworkWithProxyUrl)
 }
 
 async function getAllSeries(): Promise<Series[]> {
