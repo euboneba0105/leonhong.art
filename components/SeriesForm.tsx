@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import type { Artwork, Series } from '@/lib/supabaseClient'
 import { useLanguage } from './LanguageProvider'
 import admin from '@/styles/adminUI.module.css'
@@ -128,6 +129,7 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
                 type="button"
                 onClick={() => setForm({ ...form, cover_image_id: artwork.id })}
                 style={{
+                  position: 'relative',
                   padding: 0,
                   border: form.cover_image_id === artwork.id ? '2px solid #333' : '1px solid #ddd',
                   borderRadius: '4px',
@@ -140,15 +142,15 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
                 title={artwork.title}
               >
                 {artwork.image_url && (
-                  <img
-                    src={artwork.image_url}
-                    alt={artwork.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
+                  <span style={{ position: 'absolute', inset: 0 }}>
+                    <Image
+                      src={artwork.image_url}
+                      alt={artwork.title}
+                      fill
+                      sizes="80px"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </span>
                 )}
               </button>
             ))}

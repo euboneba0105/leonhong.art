@@ -48,6 +48,7 @@ export default function Header() {
             alt={zh ? '洪德忠' : 'Leon Hong'}
             width={200}
             height={60}
+            sizes="(max-width: 768px) 50vw, 200px"
             className={styles.logo}
             priority
           />

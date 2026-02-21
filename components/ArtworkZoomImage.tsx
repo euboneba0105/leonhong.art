@@ -25,11 +25,12 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
   const isTouchDevice = useRef(false)
   const imageSectionRef = useRef<HTMLDivElement>(null)
 
-  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget
-    const ratio = img.naturalWidth / img.naturalHeight
-    setImageAspectRatio(ratio)
-  }, [])
+  const handleLoadingComplete = useCallback(
+    (img: { naturalWidth: number; naturalHeight: number }) => {
+      setImageAspectRatio(img.naturalWidth / img.naturalHeight)
+    },
+    []
+  )
 
   let displayAspectRatio = imageAspectRatio
   let isImageOutOfRange = false
@@ -140,8 +141,9 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
         sizes="(max-width: 768px) 100vw, 900px"
         className={styles.zoomImg}
         priority={priority}
+        quality={85}
         draggable={false}
-        onLoad={handleImageLoad}
+        onLoadingComplete={handleLoadingComplete}
       />
       <div
         className={`${styles.zoomLens} ${zooming ? styles.zoomActive : ''}`}
