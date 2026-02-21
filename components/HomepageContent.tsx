@@ -259,24 +259,26 @@ export default function HomepageContent({
               </Link>
             ))}
           </div>
-
-          {/* Language toggle */}
-          <div className={styles.langToggle}>
-            <button
-              className={`${styles.langOption} ${zh ? styles.langActive : ''}`}
-              onClick={() => { if (!zh) toggle() }}
-            >
-              中文
-            </button>
-            <button
-              className={`${styles.langOption} ${!zh ? styles.langActive : ''}`}
-              onClick={() => { if (zh) toggle() }}
-            >
-              EN
-            </button>
-          </div>
         </section>
       )}
+
+      {/* Language toggle — outside series section so visible on mobile too */}
+      <section className={styles.langSection}>
+        <div className={styles.langToggle}>
+          <button
+            className={`${styles.langOption} ${zh ? styles.langActive : ''}`}
+            onClick={() => { if (!zh) toggle() }}
+          >
+            中文
+          </button>
+          <button
+            className={`${styles.langOption} ${!zh ? styles.langActive : ''}`}
+            onClick={() => { if (zh) toggle() }}
+          >
+            EN
+          </button>
+        </div>
+      </section>
 
       {/* ── Admin: Edit carousel button ── */}
       {isAdmin && (

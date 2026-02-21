@@ -149,7 +149,7 @@
 .seriesSection {
   position: relative;
   z-index: 10;
-  padding: 2.5rem 0 5rem;
+  padding-top: 2.5rem;
   opacity: 0;
   transform: translateY(3.125rem);
   transition: opacity 0.8s ease, transform 0.8s ease;
@@ -219,13 +219,19 @@
   line-height: 1.4;
 }
 
-/* ── Language toggle (below series grid) ── */
+/* ── Language toggle (outside series section, same position as before) ── */
+.langSection {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding-top: 2.5rem;
+}
+
 .langToggle {
   display: inline-flex;
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 4px;
   overflow: hidden;
-  margin-top: 2rem;
   min-width: 100px;
 }
 
@@ -349,6 +355,7 @@
     padding: 3rem 1.5rem 2rem;
     margin: 0 1.5rem;
   }
+
 
   .heroTitle {
     font-size: 1.1rem;
