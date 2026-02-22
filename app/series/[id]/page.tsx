@@ -30,7 +30,7 @@ async function getSeriesBySlug(slug: string): Promise<Series | null> {
     .select('*')
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
-  const found = (list || []).find((s) => seriesSlug(s) === slug)
+  const found = (list || []).find((s: Series) => seriesSlug(s) === slug)
   return found ?? null
 }
 
