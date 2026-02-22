@@ -24,6 +24,7 @@ export default function ArtworkCard({ artwork, seriesSlug: seriesSlugProp, isAdm
     ? artworkImageProxyUrl(artwork.id, 520)
     : '/placeholder.png'
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
+  const imageAlt = zh ? `洪德忠 - ${title}` : `Leon Hong - ${title}`
   const seriesSlug = seriesSlugProp ?? artwork.series_id ?? 'standalone'
   const seriesHref = `/series/${seriesSlug}?artwork=${artwork.id}`
 
@@ -32,7 +33,7 @@ export default function ArtworkCard({ artwork, seriesSlug: seriesSlugProp, isAdm
       <Link href={seriesHref} className={styles.artworkLink}>
         <Image
           src={imageUrl}
-          alt={title}
+          alt={imageAlt}
           width={520}
           height={520}
           quality={65}

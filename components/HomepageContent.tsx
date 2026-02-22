@@ -194,7 +194,7 @@ export default function HomepageContent({
                 {artwork.image_url && (
                   <Image
                     src={heroSrc}
-                    alt={artwork.title}
+                    alt={zh ? `洪德忠 - ${artwork.title}` : `Leon Hong - ${artwork.title}`}
                     fill
                     sizes="100vw"
                     style={{ objectFit: 'cover' }}
@@ -354,7 +354,7 @@ export default function HomepageContent({
                     <div className={styles.carouselEditorImageWrap}>
                       <Image
                         src={artwork.image_url!}
-                        alt={artwork.title}
+                        alt={zh ? `洪德忠 - ${artwork.title}` : `Leon Hong - ${artwork.title}`}
                         fill
                         sizes="120px"
                         style={{ objectFit: 'cover' }}

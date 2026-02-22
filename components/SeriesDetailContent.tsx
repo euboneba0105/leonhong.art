@@ -341,8 +341,8 @@ export default function SeriesDetailContent({
                         }
                         alt={
                           zh
-                            ? selectedArtwork.title
-                            : selectedArtwork.title_en || selectedArtwork.title
+                            ? `洪德忠 - ${selectedArtwork.title}`
+                            : `Leon Hong - ${selectedArtwork.title_en || selectedArtwork.title}`
                         }
                       />
                     </div>
@@ -443,7 +443,7 @@ export default function SeriesDetailContent({
                 >
                   <Image
                     src={a.image_url ? artworkImageProxyUrl(a.id, 220) : "/placeholder.png"}
-                    alt={zh ? a.title : a.title_en || a.title}
+                    alt={zh ? `洪德忠 - ${a.title}` : `Leon Hong - ${a.title_en || a.title}`}
                     fill
                     sizes="100px"
                     className={styles.seriesGalleryThumbImg}
