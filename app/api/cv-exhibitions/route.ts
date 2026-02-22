@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
   if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 500 })
 
   const body = await req.json()
+  const exhibitionType = body.exhibition_type === 'solo' ? 'solo' : 'group'
   const { data, error: dbError } = await supabaseAdmin
     .from('cv_exhibitions')
     .insert({
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
       venue_en: body.venue_en || null,
       region: body.region,
       region_en: body.region_en || null,
+      exhibition_type: exhibitionType,
     })
     .select()
     .single()
@@ -36,9 +38,15 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const update: Record<string, any> = {}
-  const allowed = ['year', 'title', 'title_en', 'venue', 'venue_en', 'region', 'region_en']
+  const allowed = ['year', 'title', 'title_en', 'venue', 'venue_en', 'region', 'region_en', 'exhibition_type']
   for (const key of allowed) {
-    if (key in fields) update[key] = fields[key] || null
+    if (key in fields) {
+      if (key === 'exhibition_type') {
+        update[key] = fields[key] === 'solo' ? 'solo' : 'group'
+      } else {
+        update[key] = fields[key] || null
+      }
+    }
   }
 
   const { data, error: dbError } = await supabaseAdmin

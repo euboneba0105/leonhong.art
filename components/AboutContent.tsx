@@ -31,6 +31,8 @@ export default function AboutContent({
   const [savingAward, setSavingAward] = useState(false);
 
   const [showExhForm, setShowExhForm] = useState(false);
+  /** 新增時要建立的展覽性質：聯展或個展 */
+  const [newExhType, setNewExhType] = useState<'solo' | 'group'>('group');
   const [editingExh, setEditingExh] = useState<CvExhibition | null>(null);
   const [savingExh, setSavingExh] = useState(false);
 
@@ -120,17 +122,64 @@ export default function AboutContent({
     .map(Number)
     .sort((a, b) => b - a);
 
-  const exhByYear = cvExhibitions.reduce<Record<number, CvExhibition[]>>(
-    (acc, e) => {
+  const exhSoloByYear = cvExhibitions
+    .filter((e) => (e.exhibition_type ?? "group") === "solo")
+    .reduce<Record<number, CvExhibition[]>>((acc, e) => {
       if (!acc[e.year]) acc[e.year] = [];
       acc[e.year].push(e);
       return acc;
-    },
-    {},
-  );
-  const exhYears = Object.keys(exhByYear)
+    }, {});
+  const exhGroupByYear = cvExhibitions
+    .filter((e) => (e.exhibition_type ?? "group") !== "solo")
+    .reduce<Record<number, CvExhibition[]>>((acc, e) => {
+      if (!acc[e.year]) acc[e.year] = [];
+      acc[e.year].push(e);
+      return acc;
+    }, {});
+  const soloYears = Object.keys(exhSoloByYear)
     .map(Number)
     .sort((a, b) => b - a);
+  const groupYears = Object.keys(exhGroupByYear)
+    .map(Number)
+    .sort((a, b) => b - a);
+
+  function renderExhEntry(exh: CvExhibition) {
+    const title = zh ? exh.title : exh.title_en || exh.title;
+    const venue = zh ? exh.venue : exh.venue_en || exh.venue;
+    const region = zh ? exh.region : exh.region_en || exh.region;
+    return (
+      <div key={exh.id} className={styles.entry}>
+        <h3 className={styles.entryTitle}>{title}</h3>
+        <p className={styles.entryDescription}>
+          {venue && region && `${venue} · ${region}`}
+          {venue && !region && venue}
+          {!venue && region && region}
+        </p>
+        {isAdmin && (
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              marginTop: "0.75rem",
+            }}
+          >
+            <button
+              className={admin.editBtn}
+              onClick={() => setEditingExh(exh)}
+            >
+              {zh ? "編輯" : "Edit"}
+            </button>
+            <button
+              className={admin.deleteBtn}
+              onClick={() => handleDeleteExh(exh.id)}
+            >
+              刪除
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   async function handleDeleteAward(id: string) {
     if (!confirm(zh ? "確定要刪除此獲獎紀錄？" : "Delete this award?")) return;
@@ -273,72 +322,65 @@ export default function AboutContent({
           )}
         </section>
 
-        {/* ---- 展覽 CV Exhibitions Section ---- */}
+        {/* ---- 個展 Section ---- */}
         <section className={styles.timelineSection}>
           <div className={styles.timelineHeader}>
             <h2 className={styles.sectionTitle}>
-              {zh ? "展覽經歷" : "Exhibitions"}
+              {zh ? "個展" : "Solo Exhibitions"}
             </h2>
             {isAdmin && (
               <button
                 className={admin.addBtn}
-                onClick={() => setShowExhForm(true)}
+                onClick={() => { setNewExhType("solo"); setShowExhForm(true); }}
               >
-                + {zh ? "新增展覽" : "Add Exhibition"}
+                + {zh ? "新增個展" : "Add Solo Exhibition"}
               </button>
             )}
           </div>
-
-          {exhYears.length === 0 ? (
+          {soloYears.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>{zh ? "尚無展覽資料。" : "No exhibitions listed yet."}</p>
+              <p>{zh ? "尚無個展資料。" : "No solo exhibitions yet."}</p>
             </div>
           ) : (
             <div className={styles.timeline}>
-              {exhYears.map((year) => (
+              {soloYears.map((year) => (
                 <div key={year} className={styles.yearGroup}>
                   <div className={styles.yearLabel}>{year}</div>
                   <div className={styles.yearEntries}>
-                    {exhByYear[year].map((exh) => {
-                      const title = zh ? exh.title : exh.title_en || exh.title;
-                      const venue = zh ? exh.venue : exh.venue_en || exh.venue;
-                      const region = zh
-                        ? exh.region
-                        : exh.region_en || exh.region;
+                    {exhSoloByYear[year].map((exh) => renderExhEntry(exh))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
-                      return (
-                        <div key={exh.id} className={styles.entry}>
-                          <h3 className={styles.entryTitle}>{title}</h3>
-                          <p className={styles.entryDescription}>
-                            {venue && region && `${venue} · ${region}`}
-                            {venue && !region && venue}
-                            {!venue && region && region}
-                          </p>
-                          {isAdmin && (
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "0.5rem",
-                                marginTop: "0.75rem",
-                              }}
-                            >
-                              <button
-                                className={admin.editBtn}
-                                onClick={() => setEditingExh(exh)}
-                              >
-                                {zh ? "編輯" : "Edit"}
-                              </button>
-                              <button
-                                className={admin.deleteBtn}
-                                onClick={() => handleDeleteExh(exh.id)}
-                              >
-                                刪除
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+        {/* ---- 聯展 Section ---- */}
+        <section className={styles.timelineSection}>
+          <div className={styles.timelineHeader}>
+            <h2 className={styles.sectionTitle}>
+              {zh ? "聯展" : "Group Exhibitions"}
+            </h2>
+            {isAdmin && (
+              <button
+                className={admin.addBtn}
+                onClick={() => { setNewExhType("group"); setShowExhForm(true); }}
+              >
+                + {zh ? "新增聯展" : "Add Group Exhibition"}
+              </button>
+            )}
+          </div>
+          {groupYears.length === 0 ? (
+            <div className={styles.emptyState}>
+              <p>{zh ? "尚無聯展資料。" : "No group exhibitions yet."}</p>
+            </div>
+          ) : (
+            <div className={styles.timeline}>
+              {groupYears.map((year) => (
+                <div key={year} className={styles.yearGroup}>
+                  <div className={styles.yearLabel}>{year}</div>
+                  <div className={styles.yearEntries}>
+                    {exhGroupByYear[year].map((exh) => renderExhEntry(exh))}
                   </div>
                 </div>
               ))}
@@ -395,6 +437,7 @@ export default function AboutContent({
           <div className={admin.overlay} onClick={() => setShowExhForm(false)}>
             <div onClick={(e) => e.stopPropagation()}>
               <CvExhibitionForm
+                initialExhibitionType={newExhType}
                 onSubmit={handleExhSubmit}
                 onCancel={() => setShowExhForm(false)}
                 loading={savingExh}

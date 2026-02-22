@@ -60,6 +60,12 @@
 /* ── Timeline Section ── */
 .timelineSection {
   margin-bottom: 3rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.timelineSection:last-child {
+  border-bottom: none;
 }
 
 .timelineHeader {
