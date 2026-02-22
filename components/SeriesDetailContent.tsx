@@ -66,6 +66,15 @@ export default function SeriesDetailContent({
 
   const highlightArtworkId = searchParams.get("artwork");
 
+  /** 切換作品並即時更新 URL 以利分享（用 replaceState 避免 router 延遲） */
+  function goToArtwork(index: number) {
+    const artwork = filteredArtworks[index];
+    if (!artwork || !currentSlug) return;
+    setSelectedIndex(index);
+    const url = `${window.location.pathname}?artwork=${artwork.id}`;
+    window.history.replaceState(null, "", url);
+  }
+
   useEffect(() => {
     setSelectedIndex((i) =>
       i >= filteredArtworks.length
@@ -274,9 +283,8 @@ export default function SeriesDetailContent({
                       type="button"
                       className={styles.seriesNavBtn}
                       onClick={() =>
-                        setSelectedIndex(
-                          (i) =>
-                            (i - 1 + filteredArtworks.length) %
+                        goToArtwork(
+                          (selectedIndex - 1 + filteredArtworks.length) %
                             filteredArtworks.length,
                         )
                       }
@@ -290,9 +298,7 @@ export default function SeriesDetailContent({
                       type="button"
                       className={styles.seriesNavBtn}
                       onClick={() =>
-                        setSelectedIndex(
-                          (i) => (i + 1) % filteredArtworks.length,
-                        )
+                        goToArtwork((selectedIndex + 1) % filteredArtworks.length)
                       }
                       aria-label={zh ? "下一張" : "Next"}
                     >
@@ -431,7 +437,7 @@ export default function SeriesDetailContent({
                   }}
                   type="button"
                   className={`${styles.seriesGalleryThumb} ${i === selectedIndex ? styles.seriesGalleryThumbActive : ""}`}
-                  onClick={() => setSelectedIndex(i)}
+                  onClick={() => goToArtwork(i)}
                   aria-label={zh ? a.title : a.title_en || a.title}
                 >
                   <Image
