@@ -1,6 +1,5 @@
 .pageContainer {
-  min-height: 100vh;
-  background-color: #ffffff;
+  min-height: 90vh;
 }
 
 .mainContent {
@@ -10,20 +9,135 @@
 }
 
 .title {
-  font-size: 2rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0 0 2.5rem 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 3px solid #1a1a1a;
-  display: inline-block;
+  display: block;
+  text-align: start;
 }
 
 .form {
   margin-bottom: 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.75rem;
+}
+
+/* Email compose — no outer box, separators only */
+.composePanel {
+  margin-bottom: 0;
+}
+
+.composeRow {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 1rem 0;
+  gap: 1rem;
+}
+
+.composeRow:last-of-type {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.composeLabel {
+  flex-shrink: 0;
+  width: 4.5rem;
+  font-weight: 600;
+  color: #666666;
+}
+
+.composeInput {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  border: none;
+  background: transparent;
+  color: #1a1a1a;
+}
+
+.composeInput:focus {
+  outline: none;
+}
+
+.composeInput::placeholder {
+  color: #999;
+}
+
+.composeInput[readonly] {
+  color: #666666;
+  cursor: default;
+}
+
+.fromFields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.inputInline {
+  font: inherit;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #1a1a1a;
+  min-width: 8rem;
+  flex: 1;
+  max-width: 100%;
+  transition: opacity 0.2s ease;
+}
+
+.inputInline:focus {
+  outline: none;
+}
+
+.inputInline::placeholder {
+  color: #999;
+}
+
+.inputInline:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.fromSeparator {
+  color: #999;
+  flex-shrink: 0;
+}
+
+.bodyRow {
+  padding: 1.25rem 0 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.bodyTextarea {
+  display: block;
+  width: 100%;
+  font: inherit;
+  padding: 1.25rem 0;
+  border: none;
+  background: transparent;
+  color: #1a1a1a;
+  line-height: 1.6;
+  resize: vertical;
+  transition: box-shadow 0.2s ease;
+}
+
+.bodyTextarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.bodyTextarea::placeholder {
+  color: #999;
+}
+
+.bodyTextarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .field {
@@ -33,7 +147,6 @@
 }
 
 .label {
-  font-size: 0.95rem;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -68,13 +181,11 @@
 
 .error {
   color: #b91c1c;
-  font-size: 0.95rem;
   margin: 0;
 }
 
 .success {
   color: #15803d;
-  font-size: 0.95rem;
   margin: 0;
 }
 
@@ -82,11 +193,11 @@
   align-self: flex-start;
   font: inherit;
   font-weight: 600;
-  padding: 0.65rem 1.5rem;
-  background: #1a1a1a;
+  padding: 0.65rem 3rem;
+  background: #9c9c9c;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 40px;
   cursor: pointer;
   transition: opacity 0.2s ease, background 0.2s ease;
 }
@@ -113,7 +224,6 @@
   gap: 0.75rem;
   color: #1a1a1a;
   text-decoration: none;
-  font-size: 1.1rem;
   font-weight: 500;
   transition: color 0.2s ease;
 }
@@ -128,6 +238,22 @@
   }
 
   .title {
-    font-size: 1.5rem;
+
+  }
+
+  .composeRow {
+    padding: 0.75rem 0;
+  }
+
+  .fromSeparator {
+    display: none;
+  }
+
+  .bodyRow {
+    padding-top: 1rem;
+  }
+
+  .bodyTextarea {
+    padding: 1rem 0;
   }
 }
