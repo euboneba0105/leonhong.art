@@ -77,6 +77,8 @@ export type Award = {
 }
 
 // ---- 展覽 CV Exhibitions (About page) ----
+export type CvExhibitionType = 'solo' | 'group' // 個展 | 聯展
+
 export type CvExhibition = {
   id: string
   year: number
@@ -86,6 +88,8 @@ export type CvExhibition = {
   venue_en?: string | null
   region: string
   region_en?: string
+  /** solo=個展, group=聯展；若 DB 尚未 migration 可能為 undefined，前端預設為 group */
+  exhibition_type?: CvExhibitionType
   created_at: string
 }
 

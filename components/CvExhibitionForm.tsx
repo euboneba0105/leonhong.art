@@ -1,18 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import type { CvExhibition } from '@/lib/supabaseClient'
+import type { CvExhibition, CvExhibitionType } from '@/lib/supabaseClient'
 import { useLanguage } from './LanguageProvider'
 import admin from '@/styles/adminUI.module.css'
 
 interface CvExhibitionFormProps {
   exhibition?: CvExhibition | null
+  /** 新增時由按鈕帶入：聯展或個展 */
+  initialExhibitionType?: CvExhibitionType
   onSubmit: (data: any) => Promise<void>
   onCancel: () => void
   loading?: boolean
 }
 
-export default function CvExhibitionForm({ exhibition, onSubmit, onCancel, loading = false }: CvExhibitionFormProps) {
+export default function CvExhibitionForm({ exhibition, initialExhibitionType = 'group', onSubmit, onCancel, loading = false }: CvExhibitionFormProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const [errMsg, setErrMsg] = useState('')
@@ -24,21 +26,40 @@ export default function CvExhibitionForm({ exhibition, onSubmit, onCancel, loadi
     venue_en: exhibition?.venue_en || '',
     region: exhibition?.region || '',
     region_en: exhibition?.region_en || '',
+    exhibition_type: (exhibition?.exhibition_type ?? initialExhibitionType ?? 'group') as CvExhibitionType,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrMsg('')
     try {
-      await onSubmit({ ...form, year: Number(form.year) })
+      await onSubmit({ ...form, year: Number(form.year), exhibition_type: form.exhibition_type })
     } catch (err: any) {
       setErrMsg(err.message || (zh ? '網路錯誤' : 'Network error'))
     }
   }
 
+  const titleLabel = exhibition
+    ? (zh ? '編輯展覽' : 'Edit Exhibition')
+    : form.exhibition_type === 'solo'
+      ? (zh ? '新增個展' : 'Add Solo Exhibition')
+      : (zh ? '新增聯展' : 'Add Group Exhibition')
+
   return (
     <form className={admin.modal} onSubmit={handleSubmit}>
-      <h2 className={admin.modalTitle}>{zh ? (exhibition ? '編輯展覽' : '新增展覽') : (exhibition ? 'Edit Exhibition' : 'Add Exhibition')}</h2>
+      <h2 className={admin.modalTitle}>{titleLabel}</h2>
+
+      <div className={admin.formGroup}>
+        <label className={admin.formLabel}>{zh ? '展覽性質' : 'Type'} *</label>
+        <select
+          className={admin.formInput}
+          value={form.exhibition_type}
+          onChange={(e) => setForm({ ...form, exhibition_type: e.target.value as CvExhibitionType })}
+        >
+          <option value="group">{zh ? '聯展' : 'Group Exhibition'}</option>
+          <option value="solo">{zh ? '個展' : 'Solo Exhibition'}</option>
+        </select>
+      </div>
 
       <div className={admin.formGroup}>
         <label className={admin.formLabel}>{zh ? '年份' : 'Year'} *</label>
