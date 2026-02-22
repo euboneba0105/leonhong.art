@@ -64,7 +64,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 3rem;
+  gap: 6rem;
   margin-top: 1rem;
 }
 
@@ -74,9 +74,9 @@
   position: relative;
 }
 
-.seriesCardWrap:nth-child(2n) {
+/* .seriesCardWrap:nth-child(2n) {
   margin-top: 10%;
-}
+} */
 
 .seriesCard {
   text-decoration: none;
