@@ -99,9 +99,7 @@ export default function SeriesDetailContent({
     const isHorizontal = container.scrollWidth > container.clientWidth;
     if (isHorizontal) {
       const scrollLeft =
-        thumb.offsetLeft -
-        container.clientWidth / 2 +
-        thumb.offsetWidth / 2;
+        thumb.offsetLeft - container.clientWidth / 2 + thumb.offsetWidth / 2;
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
       container.scrollTo({
         left: Math.max(0, Math.min(scrollLeft, maxScrollLeft)),
@@ -121,14 +119,42 @@ export default function SeriesDetailContent({
     }
   }, [selectedIndex]);
 
+  /** 預載相鄰作品主圖（前後各 2 張），切換時不需等載入 */
+  useEffect(() => {
+    const n = filteredArtworks.length;
+    if (n === 0) return;
+    const indices = new Set<number>();
+    for (const delta of [-2, -1, 1, 2]) {
+      const i = (selectedIndex + delta + n) % n;
+      indices.add(i);
+    }
+    const links: HTMLLinkElement[] = [];
+    indices.forEach((i) => {
+      const art = filteredArtworks[i];
+      const url = art?.image_url;
+      if (!url || url === "/placeholder.png") return;
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = url;
+      document.head.appendChild(link);
+      links.push(link);
+    });
+    return () => links.forEach((l) => l.remove());
+  }, [filteredArtworks, selectedIndex]);
+
   /** 依語言同步頁籤標題（系列名稱） */
   useEffect(() => {
-    const suffix = "｜Leon Hong Art";
+    const suffix = " — Leon Hong Art";
     if (isStandalone) {
       document.title = (zh ? "獨立作品" : "Standalone") + suffix;
       return;
     }
-    const name = series ? (zh ? series.name : series.name_en || series.name) : "";
+    const name = series
+      ? zh
+        ? series.name
+        : series.name_en || series.name
+      : "";
     if (name) document.title = name + suffix;
   }, [zh, isStandalone, series]);
 
@@ -291,7 +317,17 @@ export default function SeriesDetailContent({
                       }
                       aria-label={zh ? "上一張" : "Previous"}
                     >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
                         <path d="M15 18l-6-6 6-6" />
                       </svg>
                     </button>
@@ -299,11 +335,23 @@ export default function SeriesDetailContent({
                       type="button"
                       className={styles.seriesNavBtn}
                       onClick={() =>
-                        goToArtwork((selectedIndex + 1) % filteredArtworks.length)
+                        goToArtwork(
+                          (selectedIndex + 1) % filteredArtworks.length,
+                        )
                       }
                       aria-label={zh ? "下一張" : "Next"}
                     >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
                         <path d="M9 18l6-6-6-6" />
                       </svg>
                     </button>
@@ -339,6 +387,11 @@ export default function SeriesDetailContent({
                         imageUrl={
                           selectedArtwork.image_url || "/placeholder.png"
                         }
+                        placeholderUrl={
+                          selectedArtwork.image_url
+                            ? artworkImageProxyUrl(selectedArtwork.id, 220)
+                            : undefined
+                        }
                         alt={
                           zh
                             ? `洪德忠 - ${selectedArtwork.title}`
@@ -350,74 +403,72 @@ export default function SeriesDetailContent({
                       className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
                     >
                       <h3 className={styles.detailTitle}>
-                          {zh
-                            ? selectedArtwork.title
-                            : selectedArtwork.title_en || selectedArtwork.title}
-                        </h3>
-                        <div className={styles.metaList}>
-                          {selectedArtwork.year != null && (
-                            <div className={styles.metaRow}>
-                              <span className={styles.metaLabel}>
-                                {zh ? "年份" : "Year"}
-                              </span>
-                              <span className={styles.metaValue}>
-                                {selectedArtwork.year}
-                              </span>
-                            </div>
-                          )}
-                          {(selectedArtwork.tags?.length ?? 0) > 0 && (
-                            <div className={styles.metaRow}>
-                              <span className={styles.metaLabel}>
-                                {zh ? "媒材" : "Medium"}
-                              </span>
-                              <span className={styles.metaValue}>
-                                {(selectedArtwork.tags ?? [])
-                                  .map((t) =>
-                                    zh ? t.name : t.name_en || t.name,
-                                  )
-                                  .filter(Boolean)
-                                  .join(", ")}
-                              </span>
-                            </div>
-                          )}
-                          {selectedArtwork.size && (
-                            <div className={styles.metaRow}>
-                              <span className={styles.metaLabel}>
-                                {zh ? "尺寸" : "Size"}
-                              </span>
-                              <span className={styles.metaValue}>
-                                {selectedArtwork.size}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        {(selectedArtwork.description ||
-                          selectedArtwork.description_en) && (
-                          <p className={styles.detailDescription}>
-                            {zh
-                              ? selectedArtwork.description
-                              : selectedArtwork.description_en ||
-                                selectedArtwork.description}
-                          </p>
-                        )}
-                        {isAdmin && (
-                          <div className={styles.detailAdminActions}>
-                            <button
-                              className={admin.editBtn}
-                              onClick={() => setEditingArtwork(selectedArtwork)}
-                            >
-                              {zh ? "編輯" : "Edit"}
-                            </button>
-                            <button
-                              className={admin.deleteBtn}
-                              onClick={() =>
-                                handleDeleteArtwork(selectedArtwork.id)
-                              }
-                            >
-                              {zh ? "刪除" : "Delete"}
-                            </button>
+                        {zh
+                          ? selectedArtwork.title
+                          : selectedArtwork.title_en || selectedArtwork.title}
+                      </h3>
+                      <div className={styles.metaList}>
+                        {selectedArtwork.year != null && (
+                          <div className={styles.metaRow}>
+                            <span className={styles.metaLabel}>
+                              {zh ? "年份" : "Year"}
+                            </span>
+                            <span className={styles.metaValue}>
+                              {selectedArtwork.year}
+                            </span>
                           </div>
                         )}
+                        {(selectedArtwork.tags?.length ?? 0) > 0 && (
+                          <div className={styles.metaRow}>
+                            <span className={styles.metaLabel}>
+                              {zh ? "媒材" : "Medium"}
+                            </span>
+                            <span className={styles.metaValue}>
+                              {(selectedArtwork.tags ?? [])
+                                .map((t) => (zh ? t.name : t.name_en || t.name))
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                          </div>
+                        )}
+                        {selectedArtwork.size && (
+                          <div className={styles.metaRow}>
+                            <span className={styles.metaLabel}>
+                              {zh ? "尺寸" : "Size"}
+                            </span>
+                            <span className={styles.metaValue}>
+                              {selectedArtwork.size}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {(selectedArtwork.description ||
+                        selectedArtwork.description_en) && (
+                        <p className={styles.detailDescription}>
+                          {zh
+                            ? selectedArtwork.description
+                            : selectedArtwork.description_en ||
+                              selectedArtwork.description}
+                        </p>
+                      )}
+                      {isAdmin && (
+                        <div className={styles.detailAdminActions}>
+                          <button
+                            className={admin.editBtn}
+                            onClick={() => setEditingArtwork(selectedArtwork)}
+                          >
+                            {zh ? "編輯" : "Edit"}
+                          </button>
+                          <button
+                            className={admin.deleteBtn}
+                            onClick={() =>
+                              handleDeleteArtwork(selectedArtwork.id)
+                            }
+                          >
+                            {zh ? "刪除" : "Delete"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -442,8 +493,16 @@ export default function SeriesDetailContent({
                   aria-label={zh ? a.title : a.title_en || a.title}
                 >
                   <Image
-                    src={a.image_url ? artworkImageProxyUrl(a.id, 220) : "/placeholder.png"}
-                    alt={zh ? `洪德忠 - ${a.title}` : `Leon Hong - ${a.title_en || a.title}`}
+                    src={
+                      a.image_url
+                        ? artworkImageProxyUrl(a.id, 220)
+                        : "/placeholder.png"
+                    }
+                    alt={
+                      zh
+                        ? `洪德忠 - ${a.title}`
+                        : `Leon Hong - ${a.title_en || a.title}`
+                    }
                     fill
                     sizes="100px"
                     className={styles.seriesGalleryThumbImg}
