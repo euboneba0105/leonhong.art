@@ -3,6 +3,7 @@ import { LanguageProvider } from '@/components/LanguageProvider'
 import SessionProvider from '@/components/SessionProvider'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import DisableImageContextMenu from '@/components/DisableImageContextMenu'
 
 export const metadata = {
   title: 'Leon Hong — Art Portfolio',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <DisableImageContextMenu />
         <SessionProvider>
           <LanguageProvider>
             <Header />
