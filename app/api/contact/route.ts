@@ -82,10 +82,8 @@ export async function POST(req: NextRequest) {
       <p>Email: ${escapeHtml(email)}</p>
     `
 
-    const fromSender = `${name} <${email}>`
-
     const { data, error } = await resend.emails.send({
-      from: fromSender,
+      from: FROM_EMAIL,
       to,
       replyTo: email,
       subject,
