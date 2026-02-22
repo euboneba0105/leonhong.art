@@ -19,6 +19,8 @@ interface SeriesDetailContentProps {
   seriesList: Series[];
   allTags: Tag[];
   isStandalone: boolean;
+  /** 目前頁面 URL slug（用於連結） */
+  currentSlug?: string;
 }
 
 export default function SeriesDetailContent({
@@ -27,6 +29,7 @@ export default function SeriesDetailContent({
   seriesList,
   allTags,
   isStandalone,
+  currentSlug,
 }: SeriesDetailContentProps) {
   const { lang } = useLanguage();
   const zh = lang === "zh";
@@ -186,7 +189,7 @@ export default function SeriesDetailContent({
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
         <div className={styles.seriesHeaderRow}>
-          <Link href="/gallery" className={styles.seriesBackLink}>
+          <Link href="/series" className={styles.seriesBackLink}>
             ← {zh ? "返回" : "Back"}
           </Link>
           {isAdmin && !isStandalone && series && (

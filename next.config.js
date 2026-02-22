@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [{ source: '/gallery', destination: '/series', permanent: true }]
+  },
   images: {
     remotePatterns: [
       {
