@@ -6,7 +6,10 @@ import Footer from '@/components/Footer'
 import DisableImageContextMenu from '@/components/DisableImageContextMenu'
 
 export const metadata = {
-  title: 'Leon Hong — Art Portfolio',
+  title: {
+    default: 'Leon Hong Art',
+    template: '%s｜Leon Hong Art',
+  },
   description: 'Artist portfolio powered by Next.js and Supabase',
 }
 

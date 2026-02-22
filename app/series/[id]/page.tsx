@@ -71,6 +71,25 @@ async function getTags(): Promise<Tag[]> {
   }
 }
 
+async function getSeriesForSegment(segment: string): Promise<Series | null> {
+  if (segment === 'standalone') return null
+  const byId = await getSeriesById(segment)
+  if (byId) return byId
+  return getSeriesBySlug(segment)
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolved = await params
+  const segment = resolved?.id?.trim()
+  if (!segment) return { title: 'Series' }
+  if (segment === 'standalone') {
+    return { title: 'Standalone' }
+  }
+  const series = await getSeriesForSegment(segment)
+  const name = series ? (series.name_en || series.name) : 'Series'
+  return { title: name }
+}
+
 export default async function SeriesDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolved = await params
   const segment = resolved?.id?.trim()
