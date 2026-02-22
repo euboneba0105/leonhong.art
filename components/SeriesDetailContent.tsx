@@ -10,6 +10,7 @@ import ArtworkForm from "./ArtworkForm";
 import ArtworkZoomImage from "./ArtworkZoomImage";
 import SeriesForm from "./SeriesForm";
 import type { Artwork, Series, Tag } from "@/lib/supabaseClient";
+import { artworkImageProxyUrl } from "@/lib/imageProxy";
 import styles from "@/styles/artworks.module.css";
 import admin from "@/styles/adminUI.module.css";
 
@@ -340,8 +341,8 @@ export default function SeriesDetailContent({
                         }
                         alt={
                           zh
-                            ? selectedArtwork.title
-                            : selectedArtwork.title_en || selectedArtwork.title
+                            ? `洪德忠 - ${selectedArtwork.title}`
+                            : `Leon Hong - ${selectedArtwork.title_en || selectedArtwork.title}`
                         }
                       />
                     </div>
@@ -441,12 +442,14 @@ export default function SeriesDetailContent({
                   aria-label={zh ? a.title : a.title_en || a.title}
                 >
                   <Image
-                    src={a.image_url || "/placeholder.png"}
-                    alt={zh ? a.title : a.title_en || a.title}
+                    src={a.image_url ? artworkImageProxyUrl(a.id, 220) : "/placeholder.png"}
+                    alt={zh ? `洪德忠 - ${a.title}` : `Leon Hong - ${a.title_en || a.title}`}
                     fill
                     sizes="100px"
                     className={styles.seriesGalleryThumbImg}
                     style={{ objectFit: "cover" }}
+                    loading="lazy"
+                    quality={60}
                     unoptimized={(a.image_url || "").startsWith("/api/image")}
                   />
                 </button>

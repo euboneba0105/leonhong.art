@@ -69,11 +69,15 @@ export default async function HomePage() {
     getCarouselIds(),
   ])
 
+  const firstCarouselId =
+    carouselIds.length > 0 ? carouselIds[0] : artworks.find((a) => a.image_url)?.id ?? null
+
   return (
     <HomepageContent
       allArtworks={artworks}
       carouselArtworkIds={carouselIds}
       seriesList={seriesList}
+      firstHeroImageId={firstCarouselId}
     />
   )
 }
