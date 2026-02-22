@@ -74,16 +74,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const subject = `[leonhong.art] 聯絡表單：${name}`
+    const subject = `【 Leon Hong Art 】 Message from ${name}`
     const html = `
-      <p><strong>姓名 Name：</strong> ${escapeHtml(name)}</p>
-      <p><strong>信箱 Email：</strong> ${escapeHtml(email)}</p>
-      <p><strong>訊息 Message：</strong></p>
       <pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(message)}</pre>
+      <hr>
+      <p>From: ${escapeHtml(name)}</p>
+      <p>Email: ${escapeHtml(email)}</p>
     `
 
+    const fromSender = `${name} <${email}>`
+
     const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromSender,
       to,
       replyTo: email,
       subject,
