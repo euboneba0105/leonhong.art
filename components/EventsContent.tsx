@@ -31,6 +31,15 @@ function formatDateRange(start?: string, end?: string, zh?: boolean): string {
   return `${s} — ${e}`
 }
 
+function isOngoing(start?: string, end?: string): boolean {
+  if (!start) return false
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const startTime = new Date(start).setHours(0, 0, 0, 0)
+  const endTime = end ? new Date(end).setHours(23, 59, 59, 999) : startTime
+  return today >= startTime && today <= endTime
+}
+
 export default function EventsContent({ events }: EventsContentProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
@@ -119,17 +128,24 @@ export default function EventsContent({ events }: EventsContentProps) {
                     <div className={styles.cardBody}>
                       <h2 className={styles.eventTitle}>{title}</h2>
 
-                      {dateRange && (
-                        <p className={styles.date}>{dateRange}</p>
-                      )}
+                      <div className={styles.infoRow}>
+                        <div className={styles.infoBlock}>
+                          {dateRange && (
+                            <p className={styles.date}>{dateRange}</p>
+                          )}
 
-                      {location && (
-                        <p className={styles.location}>{location}</p>
-                      )}
+                          {location && (
+                            <p className={styles.location}>{location}</p>
+                          )}
 
-                      {description && (
-                        <p className={styles.description}>{description}</p>
-                      )}
+                          {description && (
+                            <p className={styles.description}>{description}</p>
+                          )}
+                        </div>
+                        {isOngoing(event.start_date, event.end_date) && (
+                          <span className={styles.ongoingTag}>{zh ? '進行中' : 'On View'}</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
 
