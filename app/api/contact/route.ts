@@ -7,6 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = process.env.RESEND_FROM ?? 'Leon Hong Art <onboarding@resend.dev>'
 const MAX_MESSAGE_LENGTH = 5000
 const MAX_NAME_LENGTH = 100
+const MAX_SUBJECT_LENGTH = 200
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const name = typeof body.name === 'string' ? body.name.trim() : ''
     const email = typeof body.email === 'string' ? body.email.trim() : ''
+    const subjectInput = typeof body.subject === 'string' ? body.subject.trim() : ''
     const message = typeof body.message === 'string' ? body.message.trim() : ''
 
     if (!name) {
@@ -62,6 +64,12 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+    if (subjectInput.length > MAX_SUBJECT_LENGTH) {
+      return NextResponse.json(
+        { error: `Subject must be at most ${MAX_SUBJECT_LENGTH} characters` },
+        { status: 400 }
+      )
+    }
 
     const to = process.env.CONTACT_EMAIL
       ? [process.env.CONTACT_EMAIL]
@@ -74,7 +82,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const subject = `【 Leon Hong Art 】 Message from ${name}`
+    const subject = subjectInput
+      ? `【 Leon Hong Art 】 ${subjectInput}`
+      : `【 Leon Hong Art 】 Message from ${name}`
     const html = `
       <pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(message)}</pre>
       <hr>
