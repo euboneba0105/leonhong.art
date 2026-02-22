@@ -9,6 +9,7 @@ import { useLanguage } from "./LanguageProvider";
 import SeriesForm from "./SeriesForm";
 import TagForm from "./TagForm";
 import type { Artwork, Series, Tag } from "@/lib/supabaseClient";
+import { artworkImageProxyUrl } from "@/lib/imageProxy";
 import { seriesSlug } from "@/lib/slug";
 import styles from "@/styles/artworks.module.css";
 import admin from "@/styles/adminUI.module.css";
@@ -39,18 +40,19 @@ export default function ArtworksContent({
   const [editingSeries, setEditingSeries] = useState<Series | null>(null);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
 
-  // Build series cards data
+  // Build series cards data (thumbnail URL with w=400 for faster load)
   const seriesCards = useMemo(() => {
     return seriesList.map((s) => {
-      let cover = null;
+      let cover = null
       if (s.cover_image_id) {
-        cover = artworks.find((a) => a.id === s.cover_image_id);
+        cover = artworks.find((a) => a.id === s.cover_image_id)
       } else {
-        cover = artworks.find((a) => a.series_id === s.id);
+        cover = artworks.find((a) => a.series_id === s.id)
       }
-      return { series: s, coverUrl: cover?.image_url || null };
-    });
-  }, [seriesList, artworks]);
+      const coverUrl = cover ? artworkImageProxyUrl(cover.id, 400) : null
+      return { series: s, coverUrl }
+    })
+  }, [seriesList, artworks])
 
   // ── Series CRUD ──
   async function handleSeriesDelete(id: string) {
@@ -137,6 +139,8 @@ export default function ArtworksContent({
                           fill
                           sizes="(max-width: 768px) 40vw, 200px"
                           className={styles.seriesCardImage}
+                          loading="lazy"
+                          quality={70}
                           unoptimized={coverUrl.startsWith('/api/image')}
                         />
                       ) : (

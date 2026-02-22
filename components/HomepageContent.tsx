@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import type { Artwork, Series } from '@/lib/supabaseClient'
+import { artworkImageProxyUrl } from '@/lib/imageProxy'
 import { seriesSlug } from '@/lib/slug'
 import styles from '@/styles/homepage.module.css'
 import admin from '@/styles/adminUI.module.css'
@@ -15,12 +16,15 @@ interface HomepageContentProps {
   allArtworks: Artwork[]
   carouselArtworkIds: string[]
   seriesList: Series[]
+  /** First hero image ID — used for preload + smaller hero URL (w=1920) */
+  firstHeroImageId?: string | null
 }
 
 export default function HomepageContent({
   allArtworks,
   carouselArtworkIds,
   seriesList,
+  firstHeroImageId = null,
 }: HomepageContentProps) {
   const { lang, toggle } = useLanguage()
   const zh = lang === 'zh'
@@ -41,6 +45,19 @@ export default function HomepageContent({
 
   // ── Slide state ──
   const [activeSlide, setActiveSlide] = useState(0)
+
+  // Preload first hero image as early as possible (LCP)
+  useEffect(() => {
+    const first = heroArtworks[0]
+    if (!first?.image_url || !firstHeroImageId || first.id !== firstHeroImageId) return
+    const href = artworkImageProxyUrl(first.id, 1920)
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = href
+    document.head.appendChild(link)
+    return () => link.remove()
+  }, [heroArtworks, firstHeroImageId])
 
   useEffect(() => {
     if (heroArtworks.length <= 1) return
@@ -97,7 +114,10 @@ export default function HomepageContent({
       } else {
         cover = allArtworks.find((a) => a.series_id === s.id)
       }
-      return { series: s, coverUrl: cover?.image_url || null }
+      const coverUrl = cover
+        ? artworkImageProxyUrl(cover.id, 440)
+        : null
+      return { series: s, coverUrl }
     })
   }, [seriesList, allArtworks])
 
@@ -161,27 +181,32 @@ export default function HomepageContent({
           className={styles.heroArtworkLayer}
           style={fogAmount > 0 ? { filter: `blur(${fogAmount * 10}px)` } : undefined}
         >
-          {heroArtworks.map((artwork, i) => (
-            <div
-              key={artwork.id}
-              className={`${styles.heroSlide} ${
-                i === activeSlide ? styles.heroSlideActive : ''
-              }`}
-            >
-              {artwork.image_url && (
-                <Image
-                  src={artwork.image_url}
-                  alt={artwork.title}
-                  fill
-                  sizes="100vw"
-                  style={{ objectFit: 'cover' }}
-                  priority={i === 0}
-                  quality={80}
-                  unoptimized={(artwork.image_url ?? '').startsWith('/api/image')}
-                />
-              )}
-            </div>
-          ))}
+          {heroArtworks.map((artwork, i) => {
+            const isFirst = i === 0
+            const heroSrc = artworkImageProxyUrl(artwork.id, 1500)
+            return (
+              <div
+                key={artwork.id}
+                className={`${styles.heroSlide} ${
+                  i === activeSlide ? styles.heroSlideActive : ''
+                }`}
+              >
+                {artwork.image_url && (
+                  <Image
+                    src={heroSrc}
+                    alt={artwork.title}
+                    fill
+                    sizes="100vw"
+                    style={{ objectFit: 'cover' }}
+                    priority={isFirst}
+                    fetchPriority={isFirst ? 'high' : undefined}
+                    quality={isFirst ? 75 : 80}
+                    unoptimized={heroSrc.startsWith('/api/image')}
+                  />
+                )}
+              </div>
+            )
+          })}
 
           {/* Dark overlay — opacity driven by scroll */}
           <div
@@ -250,6 +275,8 @@ export default function HomepageContent({
                       fill
                       sizes="220px"
                       style={{ objectFit: 'cover' }}
+                      loading="lazy"
+                      quality={70}
                       unoptimized={coverUrl.startsWith('/api/image')}
                     />
                   ) : (

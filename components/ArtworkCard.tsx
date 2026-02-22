@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useLanguage } from './LanguageProvider'
 import type { Artwork } from '@/lib/supabaseClient'
+import { artworkImageProxyUrl } from '@/lib/imageProxy'
 import styles from '@/styles/artworks.module.css'
 import admin from '@/styles/adminUI.module.css'
 
@@ -19,7 +20,9 @@ interface ArtworkCardProps {
 export default function ArtworkCard({ artwork, seriesSlug: seriesSlugProp, isAdmin, onEdit, onDelete }: ArtworkCardProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
-  const imageUrl = artwork.image_url || '/placeholder.png'
+  const imageUrl = artwork.image_url
+    ? artworkImageProxyUrl(artwork.id, 520)
+    : '/placeholder.png'
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
   const seriesSlug = seriesSlugProp ?? artwork.series_id ?? 'standalone'
   const seriesHref = `/series/${seriesSlug}?artwork=${artwork.id}`
@@ -30,12 +33,12 @@ export default function ArtworkCard({ artwork, seriesSlug: seriesSlugProp, isAdm
         <Image
           src={imageUrl}
           alt={title}
-          width={800}
-          height={800}
-          quality={40}
+          width={520}
+          height={520}
+          quality={65}
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           className={styles.image}
-          priority={false}
+          loading="lazy"
           unoptimized={imageUrl.startsWith('/api/image')}
         />
       </Link>
