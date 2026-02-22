@@ -3,6 +3,16 @@
   font-size-adjust: 0.48;
 }
 
+/* 全站反白（選取）顏色：灰藍色 */
+::selection {
+  background-color: #91a1b0;
+  color: #fff;
+}
+::-moz-selection {
+  background-color: #91a1b0;
+  color: #fff;
+}
+
 html,
 body {
   margin: 0;

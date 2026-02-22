@@ -9,6 +9,7 @@ import { useLanguage } from "./LanguageProvider";
 import SeriesForm from "./SeriesForm";
 import TagForm from "./TagForm";
 import type { Artwork, Series, Tag } from "@/lib/supabaseClient";
+import { seriesSlug } from "@/lib/slug";
 import styles from "@/styles/artworks.module.css";
 import admin from "@/styles/adminUI.module.css";
 
@@ -127,7 +128,7 @@ export default function ArtworksContent({
             <div className={styles.seriesCardsGrid}>
               {seriesCards.map(({ series: s, coverUrl }) => (
                 <div key={s.id} className={styles.seriesCardWrap}>
-                  <Link href={`/series/${s.id}`} className={styles.seriesCard}>
+                  <Link href={`/series/${seriesSlug(s)}`} className={styles.seriesCard}>
                     <div className={styles.seriesCardImageWrap}>
                       {coverUrl ? (
                         <Image

@@ -19,6 +19,8 @@ interface SeriesDetailContentProps {
   seriesList: Series[];
   allTags: Tag[];
   isStandalone: boolean;
+  /** 目前頁面 URL slug（用於連結） */
+  currentSlug?: string;
 }
 
 export default function SeriesDetailContent({
@@ -27,6 +29,7 @@ export default function SeriesDetailContent({
   seriesList,
   allTags,
   isStandalone,
+  currentSlug,
 }: SeriesDetailContentProps) {
   const { lang } = useLanguage();
   const zh = lang === "zh";
@@ -62,6 +65,15 @@ export default function SeriesDetailContent({
   }, [artworks, selectedTagIds]);
 
   const highlightArtworkId = searchParams.get("artwork");
+
+  /** 切換作品並即時更新 URL 以利分享（用 replaceState 避免 router 延遲） */
+  function goToArtwork(index: number) {
+    const artwork = filteredArtworks[index];
+    if (!artwork || !currentSlug) return;
+    setSelectedIndex(index);
+    const url = `${window.location.pathname}?artwork=${artwork.id}`;
+    window.history.replaceState(null, "", url);
+  }
 
   useEffect(() => {
     setSelectedIndex((i) =>
@@ -107,6 +119,17 @@ export default function SeriesDetailContent({
       });
     }
   }, [selectedIndex]);
+
+  /** 依語言同步頁籤標題（系列名稱） */
+  useEffect(() => {
+    const suffix = "｜Leon Hong Art";
+    if (isStandalone) {
+      document.title = (zh ? "獨立作品" : "Standalone") + suffix;
+      return;
+    }
+    const name = series ? (zh ? series.name : series.name_en || series.name) : "";
+    if (name) document.title = name + suffix;
+  }, [zh, isStandalone, series]);
 
   const selectedArtwork = filteredArtworks[selectedIndex] ?? null;
 
@@ -186,7 +209,7 @@ export default function SeriesDetailContent({
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
         <div className={styles.seriesHeaderRow}>
-          <Link href="/gallery" className={styles.seriesBackLink}>
+          <Link href="/series" className={styles.seriesBackLink}>
             ← {zh ? "返回" : "Back"}
           </Link>
           {isAdmin && !isStandalone && series && (
@@ -260,9 +283,8 @@ export default function SeriesDetailContent({
                       type="button"
                       className={styles.seriesNavBtn}
                       onClick={() =>
-                        setSelectedIndex(
-                          (i) =>
-                            (i - 1 + filteredArtworks.length) %
+                        goToArtwork(
+                          (selectedIndex - 1 + filteredArtworks.length) %
                             filteredArtworks.length,
                         )
                       }
@@ -276,9 +298,7 @@ export default function SeriesDetailContent({
                       type="button"
                       className={styles.seriesNavBtn}
                       onClick={() =>
-                        setSelectedIndex(
-                          (i) => (i + 1) % filteredArtworks.length,
-                        )
+                        goToArtwork((selectedIndex + 1) % filteredArtworks.length)
                       }
                       aria-label={zh ? "下一張" : "Next"}
                     >
@@ -417,7 +437,7 @@ export default function SeriesDetailContent({
                   }}
                   type="button"
                   className={`${styles.seriesGalleryThumb} ${i === selectedIndex ? styles.seriesGalleryThumbActive : ""}`}
-                  onClick={() => setSelectedIndex(i)}
+                  onClick={() => goToArtwork(i)}
                   aria-label={zh ? a.title : a.title_en || a.title}
                 >
                   <Image

@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import type { Artwork, Series } from '@/lib/supabaseClient'
+import { seriesSlug } from '@/lib/slug'
 import styles from '@/styles/homepage.module.css'
 import admin from '@/styles/adminUI.module.css'
 
@@ -220,7 +221,7 @@ export default function HomepageContent({
       {/* ── Title + Enter button ── */}
       <section className={styles.navSection}>
         <h1 className={styles.heroTitle}>Leon Hong Art</h1>
-        <Link href="/gallery" className={styles.enterBtn}>
+        <Link href="/series" className={styles.enterBtn}>
           <span>{zh ? '進入網站' : 'Visit Website'}</span>
           <span className={styles.enterBtnArrow}>→</span>
         </Link>
@@ -238,7 +239,7 @@ export default function HomepageContent({
             {seriesCards.map(({ series: s, coverUrl }) => (
               <Link
                 key={s.id}
-                href={`/series/${s.id}`}
+                href={`/series/${seriesSlug(s)}`}
                 className={styles.seriesCard}
               >
                 <div className={styles.seriesCardImageWrap}>

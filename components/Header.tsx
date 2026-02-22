@@ -19,7 +19,7 @@ export default function Header() {
   // Hide header on immersive homepage (after all hooks)
   if (pathname === '/') return null
 
-  const isPortfolioActive = pathname === '/gallery' || pathname.startsWith('/series') || pathname.startsWith('/artworks')
+  const isPortfolioActive = pathname === '/series' || pathname.startsWith('/series/') || pathname.startsWith('/artworks')
 
   const navItems = [
     { href: '/events', label: zh ? '活動' : 'Events' },
@@ -59,10 +59,10 @@ export default function Header() {
           <ul className={styles.navList}>
             <li>
               <Link
-                href="/gallery"
+                href="/series"
                 className={`${styles.navLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
               >
-                {zh ? '作品集' : 'Gallery'}
+                {zh ? '作品集' : 'Artworks'}
               </Link>
             </li>
 
@@ -100,11 +100,11 @@ export default function Header() {
         <ul className={styles.mobileNavList}>
             <li>
               <Link
-                href="/gallery"
+                href="/series"
                 className={`${styles.mobileNavLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                {zh ? '作品集' : 'Gallery'}
+                {zh ? '作品集' : 'Artworks'}
               </Link>
             </li>
 

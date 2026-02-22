@@ -60,11 +60,11 @@ async function getTags(): Promise<Tag[]> {
 }
 
 export const metadata = {
-  title: 'Gallery — Leon Hong',
+  title: 'Series — Leon Hong',
   description: 'Browse the collection of original artworks by Leon Hong.',
 }
 
-export default async function GalleryPage() {
+export default async function SeriesPage() {
   let artworks: Artwork[] = []
   let error: string | null = null
 

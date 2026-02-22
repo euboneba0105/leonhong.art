@@ -3,9 +3,14 @@ import { LanguageProvider } from '@/components/LanguageProvider'
 import SessionProvider from '@/components/SessionProvider'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import DisableImageContextMenu from '@/components/DisableImageContextMenu'
+import PageTitleSync from '@/components/PageTitleSync'
 
 export const metadata = {
-  title: 'Leon Hong — Art Portfolio',
+  title: {
+    default: 'Leon Hong Art',
+    template: '%s｜Leon Hong Art',
+  },
   description: 'Artist portfolio powered by Next.js and Supabase',
 }
 
@@ -21,8 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <DisableImageContextMenu />
         <SessionProvider>
           <LanguageProvider>
+            <PageTitleSync />
             <Header />
             {children}
             <Footer />

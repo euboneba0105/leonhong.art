@@ -9,17 +9,20 @@ import admin from '@/styles/adminUI.module.css'
 
 interface ArtworkCardProps {
   artwork: Artwork
+  /** 系列的 URL slug（英文名），未提供時會用 series_id（相容舊連結） */
+  seriesSlug?: string | null
   isAdmin?: boolean
   onEdit?: (artwork: Artwork) => void
   onDelete?: (id: string) => void
 }
 
-export default function ArtworkCard({ artwork, isAdmin, onEdit, onDelete }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, seriesSlug: seriesSlugProp, isAdmin, onEdit, onDelete }: ArtworkCardProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
   const imageUrl = artwork.image_url || '/placeholder.png'
   const title = zh ? artwork.title : (artwork.title_en || artwork.title)
-  const seriesHref = `/series/${artwork.series_id ?? 'standalone'}?artwork=${artwork.id}`
+  const seriesSlug = seriesSlugProp ?? artwork.series_id ?? 'standalone'
+  const seriesHref = `/series/${seriesSlug}?artwork=${artwork.id}`
 
   return (
     <article className={styles.artworkCard}>
