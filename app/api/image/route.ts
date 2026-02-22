@@ -58,19 +58,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  let maxLongEdge = w ? Math.min(2400, Math.max(200, parseInt(w, 10)) || DISPLAY_LONG_EDGE) : DISPLAY_LONG_EDGE
-  // Cap at 1000px so all image URLs can be indexed by Google (images >1000px are not discoverable in search)
-  maxLongEdge = Math.min(maxLongEdge, 1000)
+  const maxLongEdge = w ? Math.min(2400, Math.max(200, parseInt(w, 10)) || DISPLAY_LONG_EDGE) : DISPLAY_LONG_EDGE
 
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, maxLongEdge)
-    return new NextResponse(output as unknown as BodyInit, {
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
-      },
-    })
+    const headers: Record<string, string> = {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+    }
+    if (maxLongEdge > 1000) {
+      headers['X-Robots-Tag'] = 'noindex'
+    }
+    return new NextResponse(output as unknown as BodyInit, { headers })
   } catch (err) {
     console.error('Image proxy error:', err)
     return NextResponse.json({ error: 'Failed to fetch image' }, { status: 502 })
