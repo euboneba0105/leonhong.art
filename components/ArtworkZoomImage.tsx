@@ -52,14 +52,17 @@ interface ArtworkZoomImageProps {
   className?: string
   /** Set true on standalone artwork page for LCP */
   priority?: boolean
+  /** Optional: small image URL for blur placeholder while main image loads */
+  placeholderUrl?: string
 }
 
-export default function ArtworkZoomImage({ imageUrl, alt, className, priority = false }: ArtworkZoomImageProps) {
+export default function ArtworkZoomImage({ imageUrl, alt, className, priority = false, placeholderUrl }: ArtworkZoomImageProps) {
   const artworkId = getArtworkIdFromImageUrl(imageUrl)
   const [zooming, setZooming] = useState(false)
   const [zoomBlobUrl, setZoomBlobUrl] = useState<string | null>(null)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null)
+  const [isMainImageLoaded, setIsMainImageLoaded] = useState(false)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTouchZooming = useRef(false)
   const isTouchDevice = useRef(false)
@@ -73,6 +76,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
 
   useEffect(() => {
     if (!imageUrl) return
+    setIsMainImageLoaded(false)
     setZoomBlobUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev)
       return null
@@ -85,18 +89,19 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
     }
   }, [zoomBlobUrl])
 
-  // 一點選作品就開始預載 zoom 大圖，避免要 zoom 時等太久
+  // 主圖載完後才預載 zoom 大圖，避免與 1000px 主圖搶頻寬
   useEffect(() => {
-    if (!artworkId || zoomBlobUrl) return
+    if (!artworkId || zoomBlobUrl || !isMainImageLoaded) return
     fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}`)
       .then((r) => r.blob())
       .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
       .catch(() => {})
-  }, [artworkId, zoomBlobUrl])
+  }, [artworkId, zoomBlobUrl, isMainImageLoaded])
 
   const handleLoadingComplete = useCallback(
     (img: { naturalWidth: number; naturalHeight: number }) => {
       setImageAspectRatio(img.naturalWidth / img.naturalHeight)
+      setIsMainImageLoaded(true)
     },
     []
   )
@@ -239,13 +244,26 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
+      {/* 未載完時顯示模糊占位，載完後淡出 */}
+      {(placeholderUrl || !isMainImageLoaded) && (
+        <div
+          className={styles.zoomPlaceholder}
+          style={{
+            opacity: isMainImageLoaded ? 0 : 1,
+            backgroundImage: placeholderUrl ? `url(${placeholderUrl})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+          aria-hidden
+        />
+      )}
       <Image
         src={imageUrl}
         alt={alt}
         width={1600}
         height={1200}
         sizes="(max-width: 768px) 100vw, 900px"
-        className={styles.zoomImg}
+        className={`${styles.zoomImg} ${!isMainImageLoaded ? styles.zoomImgLoading : ''}`}
         priority={priority}
         quality={85}
         draggable={false}

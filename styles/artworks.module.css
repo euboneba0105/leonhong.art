@@ -735,7 +735,23 @@
   display: block;
   transform: scale(1);
   transform-origin: 50% 50%;
+  transition: opacity 0.25s ease-out;
   /* 僅在進入 zoom 時有 transition，移開時主圖不縮小動畫 */
+}
+
+.zoomImageSection .zoomImg.zoomImgLoading {
+  opacity: 0;
+}
+
+.zoomImageSection .zoomPlaceholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  filter: blur(14px);
+  transform: scale(1.05);
+  transition: opacity 0.25s ease-out;
+  background-color: #e5e5e5;
+  pointer-events: none;
 }
 
 .zoomImageSection.constrainedImage .zoomImg {

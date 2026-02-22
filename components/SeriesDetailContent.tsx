@@ -121,6 +121,30 @@ export default function SeriesDetailContent({
     }
   }, [selectedIndex]);
 
+  /** 預載相鄰作品主圖（前後各 2 張），切換時不需等載入 */
+  useEffect(() => {
+    const n = filteredArtworks.length;
+    if (n === 0) return;
+    const indices = new Set<number>();
+    for (const delta of [-2, -1, 1, 2]) {
+      const i = (selectedIndex + delta + n) % n;
+      indices.add(i);
+    }
+    const links: HTMLLinkElement[] = [];
+    indices.forEach((i) => {
+      const art = filteredArtworks[i];
+      const url = art?.image_url;
+      if (!url || url === "/placeholder.png") return;
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = url;
+      document.head.appendChild(link);
+      links.push(link);
+    });
+    return () => links.forEach((l) => l.remove());
+  }, [filteredArtworks, selectedIndex]);
+
   /** 依語言同步頁籤標題（系列名稱） */
   useEffect(() => {
     const suffix = "｜Leon Hong Art";
@@ -338,6 +362,11 @@ export default function SeriesDetailContent({
                       <ArtworkZoomImage
                         imageUrl={
                           selectedArtwork.image_url || "/placeholder.png"
+                        }
+                        placeholderUrl={
+                          selectedArtwork.image_url
+                            ? artworkImageProxyUrl(selectedArtwork.id, 220)
+                            : undefined
                         }
                         alt={
                           zh
