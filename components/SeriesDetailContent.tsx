@@ -111,6 +111,17 @@ export default function SeriesDetailContent({
     }
   }, [selectedIndex]);
 
+  /** 依語言同步頁籤標題（系列名稱） */
+  useEffect(() => {
+    const suffix = "｜Leon Hong Art";
+    if (isStandalone) {
+      document.title = (zh ? "獨立作品" : "Standalone") + suffix;
+      return;
+    }
+    const name = series ? (zh ? series.name : series.name_en || series.name) : "";
+    if (name) document.title = name + suffix;
+  }, [zh, isStandalone, series]);
+
   const selectedArtwork = filteredArtworks[selectedIndex] ?? null;
 
   function toggleFilterTag(id: string) {

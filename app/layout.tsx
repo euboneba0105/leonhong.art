@@ -4,6 +4,7 @@ import SessionProvider from '@/components/SessionProvider'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import DisableImageContextMenu from '@/components/DisableImageContextMenu'
+import PageTitleSync from '@/components/PageTitleSync'
 
 export const metadata = {
   title: {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <DisableImageContextMenu />
         <SessionProvider>
           <LanguageProvider>
+            <PageTitleSync />
             <Header />
             {children}
             <Footer />
