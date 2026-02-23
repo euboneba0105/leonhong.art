@@ -169,6 +169,8 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     isTouchDevice.current = true
+    // 觸控介面：主圖未載入完成前不啟動長按放大，避免一進頁面就出現放大狀態、主圖才載入的錯覺
+    if (!isMainImageLoaded) return
     const touch = e.touches[0]
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((touch.clientX - rect.left) / rect.width) * 100
@@ -184,7 +186,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
           .catch(() => {})
       }
     }, 400)
-  }, [artworkId, zoomBlobUrl])
+  }, [artworkId, zoomBlobUrl, isMainImageLoaded])
 
   const handleTouchEnd = useCallback(() => {
     if (longPressTimer.current) {
