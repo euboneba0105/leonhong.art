@@ -52,11 +52,9 @@ interface ArtworkZoomImageProps {
   className?: string
   /** Set true on standalone artwork page for LCP */
   priority?: boolean
-  /** Optional: small image URL for blur placeholder while main image loads */
-  placeholderUrl?: string
 }
 
-export default function ArtworkZoomImage({ imageUrl, alt, className, priority = false, placeholderUrl }: ArtworkZoomImageProps) {
+export default function ArtworkZoomImage({ imageUrl, alt, className, priority = false }: ArtworkZoomImageProps) {
   const artworkId = getArtworkIdFromImageUrl(imageUrl)
   const [zooming, setZooming] = useState(false)
   const [zoomBlobUrl, setZoomBlobUrl] = useState<string | null>(null)
@@ -244,26 +242,13 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      {/* 未載完時顯示模糊占位，載完後淡出 */}
-      {(placeholderUrl || !isMainImageLoaded) && (
-        <div
-          className={styles.zoomPlaceholder}
-          style={{
-            opacity: isMainImageLoaded ? 0 : 1,
-            backgroundImage: placeholderUrl ? `url(${placeholderUrl})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-          aria-hidden
-        />
-      )}
       <Image
         src={imageUrl}
         alt={alt}
         width={1600}
         height={1200}
         sizes="(max-width: 768px) 100vw, 900px"
-        className={`${styles.zoomImg} ${!isMainImageLoaded ? styles.zoomImgLoading : ''}`}
+        className={styles.zoomImg}
         priority={priority}
         quality={85}
         draggable={false}

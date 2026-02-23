@@ -526,6 +526,105 @@
   display: block;
 }
 
+/* 作品切換：原圖淡出，新圖自左/右滑入 */
+.seriesGallerySlideWrap {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.seriesGallerySlidePanel {
+  width: 100%;
+}
+
+.seriesGallerySlideWrap:not(:has(.slideOutActive)) .seriesGallerySlidePanel,
+.seriesGallerySlideWrap:not(:has(.slideInActive)) .seriesGallerySlidePanel {
+  transition: none;
+}
+
+/* 離開：淡出（不位移） */
+.slideOutLeft,
+.slideOutRight {
+  transition: opacity 0.56s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 1;
+}
+
+.slideOutLeft.slideOutActive,
+.slideOutRight.slideOutActive {
+  opacity: 0;
+}
+
+/* 進入：自右或自左滑入 */
+.slideInFromRight {
+  transform: translateX(100%);
+  transition: transform 0.56s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.slideInFromRight.slideInActive {
+  transform: translateX(0);
+}
+
+.slideInFromLeft {
+  transform: translateX(-100%);
+  transition: transform 0.56s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.slideInFromLeft.slideInActive {
+  transform: translateX(0);
+}
+
+/* 原圖淡出在新圖後面 */
+.seriesGallerySlideWrap:has(.slideOutLeft) .slideOutLeft,
+.seriesGallerySlideWrap:has(.slideOutRight) .slideOutRight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+}
+
+.seriesGallerySlideWrap:has(.slideInFromRight) .slideInFromRight,
+.seriesGallerySlideWrap:has(.slideInFromLeft) .slideInFromLeft {
+  position: relative;
+  z-index: 1;
+}
+
+/* 資訊區：淡出淡入，不跟圖滑動 */
+.seriesGalleryInfoFadeWrap {
+  position: relative;
+}
+
+.seriesGalleryInfoFadeOut,
+.seriesGalleryInfoFadeIn {
+  transition: opacity 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.seriesGalleryInfoFadeOut {
+  opacity: 1;
+}
+
+.seriesGalleryInfoFadeOut.infoFadeActive {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.seriesGalleryInfoFadeIn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  opacity: 0;
+}
+
+.seriesGalleryInfoFadeIn.infoFadeActive {
+  position: relative;
+  opacity: 1;
+}
+
 .seriesGalleryImageBlock {
   position: relative;
 }
@@ -735,23 +834,7 @@
   display: block;
   transform: scale(1);
   transform-origin: 50% 50%;
-  transition: opacity 0.25s ease-out;
   /* 僅在進入 zoom 時有 transition，移開時主圖不縮小動畫 */
-}
-
-.zoomImageSection .zoomImg.zoomImgLoading {
-  opacity: 0;
-}
-
-.zoomImageSection .zoomPlaceholder {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  filter: blur(14px);
-  transform: scale(1.05);
-  transition: opacity 0.25s ease-out;
-  background-color: #e5e5e5;
-  pointer-events: none;
 }
 
 .zoomImageSection.constrainedImage .zoomImg {
