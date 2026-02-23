@@ -19,7 +19,9 @@ export default function PageTitleSync() {
   const { lang } = useLanguage();
 
   useEffect(() => {
-    const entry = TITLE_MAP[pathname];
+    let entry = TITLE_MAP[pathname];
+    // 活動列表與活動內頁共用同一組頁籤標題
+    if (!entry && pathname.startsWith("/events")) entry = TITLE_MAP["/events"];
     if (!entry) return;
     const title = lang === "zh" ? entry.zh : entry.en;
     document.title = `${title}${SUFFIX}`;

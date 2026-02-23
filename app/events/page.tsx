@@ -25,8 +25,8 @@ async function getEvents(): Promise<Exhibition[]> {
 }
 
 export const metadata = {
-  title: 'Events',
-  description: 'Events, exhibitions, talks and more.',
+  title: '活動',
+  description: '活動、展覽、講座等。Events, exhibitions, talks and more.',
 }
 
 export default async function EventsPage() {
