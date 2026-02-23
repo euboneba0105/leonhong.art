@@ -72,12 +72,14 @@ export default function ArtworkForm({
       }
     }
 
+    let uploadedUrl: string | null = null
     try {
       let image_url = artwork?.image_url || null
 
       if (imageFile) {
         try {
           image_url = await uploadFile(imageFile, 'artworks', (p) => setUploadProgress(p))
+          uploadedUrl = image_url
         } catch (uploadErr: any) {
           setErrMsg(uploadErr.message)
           setUploadProgress(null)
@@ -94,6 +96,17 @@ export default function ArtworkForm({
         tag_ids: Array.from(tagIds),
       })
     } catch (err: any) {
+      if (uploadedUrl) {
+        try {
+          await fetch('/api/delete-r2', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: uploadedUrl }),
+          })
+        } catch (_) {
+          // 清理失敗不阻擋錯誤顯示
+        }
+      }
       setErrMsg(err.message || (zh ? '網路錯誤' : 'Network error'))
     }
   }
