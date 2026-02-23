@@ -552,6 +552,7 @@ export default function SeriesDetailContent({
                 seriesList={seriesList}
                 allTags={allTags}
                 fixedSeriesId={fixedSeriesId}
+                externalErrMsg={errMsg}
                 onSubmit={async (data) => {
                   setSaving(true);
                   setErrMsg("");
@@ -561,11 +562,11 @@ export default function SeriesDetailContent({
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(data),
                     });
+                    const d = await res.json().catch(() => ({}));
                     if (res.ok) {
                       setShowArtworkForm(false);
                       router.refresh();
                     } else {
-                      const d = await res.json().catch(() => null);
                       throw new Error(d?.error || `Error (${res.status})`);
                     }
                   } catch (err: any) {
@@ -594,6 +595,7 @@ export default function SeriesDetailContent({
                 seriesList={seriesList}
                 allTags={allTags}
                 fixedSeriesId={fixedSeriesId}
+                externalErrMsg={errMsg}
                 onSubmit={async (data) => {
                   setSaving(true);
                   setErrMsg("");
@@ -603,11 +605,11 @@ export default function SeriesDetailContent({
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ id: editingArtwork.id, ...data }),
                     });
+                    const d = await res.json().catch(() => ({}));
                     if (res.ok) {
                       setEditingArtwork(null);
                       router.refresh();
                     } else {
-                      const d = await res.json().catch(() => null);
                       throw new Error(d?.error || `Error (${res.status})`);
                     }
                   } catch (err: any) {

@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
     const { data, error: dbError } = await supabaseAdmin
       .from('artworks')
       .insert({
-        image_url: fields.image_url,
-        title: fields.title,
+        image_url: fields.image_url ?? null,
+        title: fields.title ?? '',
         title_en: fields.title_en || null,
         series_id: fields.series_id || null,
         year: fields.year || null,
@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
-    if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+    if (dbError) {
+      console.error('POST /api/artworks Supabase insert error:', dbError)
+      return NextResponse.json({ error: dbError.message }, { status: 500 })
+    }
 
     if (tag_ids && Array.isArray(tag_ids)) {
       await syncTags(data.id, tag_ids)

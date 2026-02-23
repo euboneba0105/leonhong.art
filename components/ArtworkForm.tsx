@@ -16,6 +16,8 @@ interface ArtworkFormProps {
   onSubmit: (data: any) => Promise<void>
   onCancel: () => void
   loading?: boolean
+  /** 由父層傳入的 API 錯誤訊息（儲存失敗時） */
+  externalErrMsg?: string
 }
 
 export default function ArtworkForm({
@@ -26,6 +28,7 @@ export default function ArtworkForm({
   onSubmit,
   onCancel,
   loading = false,
+  externalErrMsg = '',
 }: ArtworkFormProps) {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
@@ -56,6 +59,19 @@ export default function ArtworkForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrMsg('')
+
+    // 手動驗證，避免瀏覽器預設驗證無反應或訊息不明
+    if (!artwork) {
+      if (!imageFile) {
+        setErrMsg(zh ? '請選擇作品圖檔' : 'Please select an image file')
+        return
+      }
+      if (!form.title.trim()) {
+        setErrMsg(zh ? '請填寫作品名稱' : 'Please enter the artwork title')
+        return
+      }
+    }
+
     try {
       let image_url = artwork?.image_url || null
 
@@ -83,7 +99,7 @@ export default function ArtworkForm({
   }
 
   return (
-    <form className={admin.modal} onSubmit={handleSubmit}>
+    <form className={admin.modal} onSubmit={handleSubmit} noValidate>
       <h2 className={admin.modalTitle}>
         {zh ? (artwork ? '編輯作品' : '新增作品') : (artwork ? 'Edit Artwork' : 'Add Artwork')}
       </h2>
@@ -98,7 +114,6 @@ export default function ArtworkForm({
           className={admin.formInput}
           type="file"
           accept="image/*"
-          required={!artwork}
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
         />
         {imageFile && (
@@ -113,7 +128,6 @@ export default function ArtworkForm({
           <label className={admin.formLabel}>{zh ? '作品名稱 (中文)' : 'Title (ZH)'} *</label>
           <input
             className={admin.formInput}
-            required
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
@@ -214,7 +228,9 @@ export default function ArtworkForm({
         </div>
       )}
 
-      {errMsg && <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg}</p>}
+      {(errMsg || externalErrMsg) && (
+        <p style={{ color: 'red', margin: '0 0 12px' }}>{errMsg || externalErrMsg}</p>
+      )}
 
       <div className={admin.modalActions}>
         <button type="button" className={admin.cancelBtn} onClick={onCancel}>
