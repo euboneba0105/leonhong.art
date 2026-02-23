@@ -1,6 +1,8 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+import { getServerSession } from 'next-auth'
+import { authOptions, ADMIN_EMAILS } from '@/lib/auth'
 import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
 import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import { redirect } from 'next/navigation'
@@ -14,22 +16,22 @@ function attachTags(rows: any[]): Artwork[] {
   }))
 }
 
-async function getSeriesById(id: string): Promise<Series | null> {
-  const { data, error } = await supabase
-    .from('series')
-    .select('*')
-    .eq('id', id)
-    .single()
+async function getSeriesById(id: string, publicOnly: boolean): Promise<Series | null> {
+  let query = supabase.from('series').select('*').eq('id', id)
+  if (publicOnly) query = query.eq('is_public', true)
+  const { data, error } = await query.single()
   if (error || !data) return null
   return data
 }
 
-async function getSeriesBySlug(slug: string): Promise<Series | null> {
-  const { data: list } = await supabase
+async function getSeriesBySlug(slug: string, publicOnly: boolean): Promise<Series | null> {
+  let query = supabase
     .from('series')
     .select('*')
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
+  if (publicOnly) query = query.eq('is_public', true)
+  const { data: list } = await query
   const found = (list || []).find((s: Series) => seriesSlug(s) === slug)
   return found ?? null
 }
@@ -50,12 +52,14 @@ async function getArtworksBySeries(seriesId: string | null): Promise<Artwork[]> 
   return attachTags(data).map(artworkWithProxyUrl)
 }
 
-async function getAllSeries(): Promise<Series[]> {
-  const { data } = await supabase
+async function getAllSeries(publicOnly: boolean): Promise<Series[]> {
+  let query = supabase
     .from('series')
     .select('*')
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
+  if (publicOnly) query = query.eq('is_public', true)
+  const { data } = await query
   return data || []
 }
 
@@ -71,11 +75,11 @@ async function getTags(): Promise<Tag[]> {
   }
 }
 
-async function getSeriesForSegment(segment: string): Promise<Series | null> {
+async function getSeriesForSegment(segment: string, publicOnly: boolean): Promise<Series | null> {
   if (segment === 'standalone') return null
-  const byId = await getSeriesById(segment)
+  const byId = await getSeriesById(segment, publicOnly)
   if (byId) return byId
-  return getSeriesBySlug(segment)
+  return getSeriesBySlug(segment, publicOnly)
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -85,7 +89,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (segment === 'standalone') {
     return { title: 'Standalone' }
   }
-  const series = await getSeriesForSegment(segment)
+  const series = await getSeriesForSegment(segment, true)
   const name = series ? (series.name_en || series.name) : 'Series'
   return { title: name }
 }
@@ -96,16 +100,19 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ i
   if (!segment) {
     redirect('/series')
   }
+  const session = await getServerSession(authOptions)
+  const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
+  const publicOnly = !isAdmin
   const isStandalone = segment === 'standalone'
 
   let series: Series | null = null
   if (!isStandalone) {
-    series = await getSeriesById(segment)
+    series = await getSeriesById(segment, publicOnly)
     if (series && seriesSlug(series) !== segment) {
       redirect(`/series/${seriesSlug(series)}`)
     }
     if (!series) {
-      series = await getSeriesBySlug(segment)
+      series = await getSeriesBySlug(segment, publicOnly)
     }
     if (!series) {
       redirect('/series')
@@ -114,7 +121,7 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ i
 
   const seriesId = series?.id ?? null
   const artworks = await getArtworksBySeries(seriesId)
-  const allSeries = await getAllSeries()
+  const allSeries = await getAllSeries(publicOnly)
   const allTags = await getTags()
 
   return (
