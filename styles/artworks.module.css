@@ -539,7 +539,7 @@
 
 .seriesGalleryImagePanel {
   opacity: 0;
-  transition: opacity 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
 }
 
@@ -554,18 +554,19 @@
   opacity: 1;
   pointer-events: auto;
   position: relative;
-  transition: opacity 0.44s 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.6s 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* 資訊區：僅用 CSS 淡出淡入（先淡出再淡入） */
 .seriesGalleryInfoFadeWrap {
   position: relative;
+  margin-top: 2rem;
 }
 
 .seriesGalleryInfoBlock {
   opacity: 0;
-  transition: opacity 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
+  
 }
 
 .seriesGalleryInfoBlock:not(.seriesGalleryInfoBlockSelected) {
@@ -579,7 +580,7 @@
   opacity: 1;
   pointer-events: auto;
   position: relative;
-  transition: opacity 0.44s 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.6s 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .seriesGalleryImageBlock {
@@ -590,7 +591,6 @@
 .seriesGalleryInfoSection {
   margin-left: 0;
   margin-right: auto;
-  margin-top: 2rem;
 }
 
 .seriesGalleryImageWrap {

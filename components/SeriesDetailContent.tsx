@@ -158,8 +158,6 @@ export default function SeriesDetailContent({
     if (name) document.title = name + suffix;
   }, [zh, isStandalone, series]);
 
-  const selectedArtwork = filteredArtworks[selectedIndex] ?? null;
-
   function toggleFilterTag(id: string) {
     setSelectedTagIds((prev) => {
       const next = new Set(prev);
@@ -380,98 +378,109 @@ export default function SeriesDetailContent({
               </div>
             ) : (
               <>
-                {selectedArtwork && (
-                  <>
-                    <div className={styles.seriesGalleryImageBlock}>
-                      <ArtworkZoomImage
-                        imageUrl={
-                          selectedArtwork.image_url || "/placeholder.png"
-                        }
-                        placeholderUrl={
-                          selectedArtwork.image_url
-                            ? artworkImageProxyUrl(selectedArtwork.id, 220)
-                            : undefined
-                        }
-                        alt={
-                          zh
-                            ? `洪德忠 - ${selectedArtwork.title}`
-                            : `Leon Hong - ${selectedArtwork.title_en || selectedArtwork.title}`
-                        }
-                      />
-                    </div>
+                <div className={styles.seriesGallerySlideWrap}>
+                  {filteredArtworks.map((artwork, i) => (
                     <div
-                      className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
+                      key={artwork.id}
+                      className={`${styles.seriesGalleryImagePanel} ${i === selectedIndex ? styles.seriesGalleryImagePanelSelected : ""}`}
                     >
-                      <h3 className={styles.detailTitle}>
-                        {zh
-                          ? selectedArtwork.title
-                          : selectedArtwork.title_en || selectedArtwork.title}
-                      </h3>
-                      <div className={styles.metaList}>
-                        {selectedArtwork.year != null && (
-                          <div className={styles.metaRow}>
-                            <span className={styles.metaLabel}>
-                              {zh ? "年份" : "Year"}
-                            </span>
-                            <span className={styles.metaValue}>
-                              {selectedArtwork.year}
-                            </span>
-                          </div>
+                      <div className={styles.seriesGalleryImageBlock}>
+                        <ArtworkZoomImage
+                          imageUrl={
+                            artwork.image_url || "/placeholder.png"
+                          }
+                          alt={
+                            zh
+                              ? `洪德忠 - ${artwork.title}`
+                              : `Leon Hong - ${artwork.title_en || artwork.title}`
+                          }
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.seriesGalleryInfoFadeWrap}>
+                  {filteredArtworks.map((artwork, i) => (
+                    <div
+                      key={artwork.id}
+                      className={`${styles.seriesGalleryInfoBlock} ${i === selectedIndex ? styles.seriesGalleryInfoBlockSelected : ""}`}
+                    >
+                      <div
+                        className={`${styles.infoSection} ${styles.seriesGalleryInfoSection}`}
+                      >
+                        <h3 className={styles.detailTitle}>
+                          {zh
+                            ? artwork.title
+                            : artwork.title_en || artwork.title}
+                        </h3>
+                        <div className={styles.metaList}>
+                          {artwork.year != null && (
+                            <div className={styles.metaRow}>
+                              <span className={styles.metaLabel}>
+                                {zh ? "年份" : "Year"}
+                              </span>
+                              <span className={styles.metaValue}>
+                                {artwork.year}
+                              </span>
+                            </div>
+                          )}
+                          {(artwork.tags?.length ?? 0) > 0 && (
+                            <div className={styles.metaRow}>
+                              <span className={styles.metaLabel}>
+                                {zh ? "媒材" : "Medium"}
+                              </span>
+                              <span className={styles.metaValue}>
+                                {(artwork.tags ?? [])
+                                  .map((t) =>
+                                    zh ? t.name : t.name_en || t.name,
+                                  )
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          )}
+                          {artwork.size && (
+                            <div className={styles.metaRow}>
+                              <span className={styles.metaLabel}>
+                                {zh ? "尺寸" : "Size"}
+                              </span>
+                              <span className={styles.metaValue}>
+                                {artwork.size}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {(artwork.description ||
+                          artwork.description_en) && (
+                          <p className={styles.detailDescription}>
+                            {zh
+                              ? artwork.description
+                              : artwork.description_en ||
+                                artwork.description}
+                          </p>
                         )}
-                        {(selectedArtwork.tags?.length ?? 0) > 0 && (
-                          <div className={styles.metaRow}>
-                            <span className={styles.metaLabel}>
-                              {zh ? "媒材" : "Medium"}
-                            </span>
-                            <span className={styles.metaValue}>
-                              {(selectedArtwork.tags ?? [])
-                                .map((t) => (zh ? t.name : t.name_en || t.name))
-                                .filter(Boolean)
-                                .join(", ")}
-                            </span>
-                          </div>
-                        )}
-                        {selectedArtwork.size && (
-                          <div className={styles.metaRow}>
-                            <span className={styles.metaLabel}>
-                              {zh ? "尺寸" : "Size"}
-                            </span>
-                            <span className={styles.metaValue}>
-                              {selectedArtwork.size}
-                            </span>
+                        {isAdmin && (
+                          <div className={styles.detailAdminActions}>
+                            <button
+                              className={admin.editBtn}
+                              onClick={() => setEditingArtwork(artwork)}
+                            >
+                              {zh ? "編輯" : "Edit"}
+                            </button>
+                            <button
+                              className={admin.deleteBtn}
+                              onClick={() =>
+                                handleDeleteArtwork(artwork.id)
+                              }
+                            >
+                              {zh ? "刪除" : "Delete"}
+                            </button>
                           </div>
                         )}
                       </div>
-                      {(selectedArtwork.description ||
-                        selectedArtwork.description_en) && (
-                        <p className={styles.detailDescription}>
-                          {zh
-                            ? selectedArtwork.description
-                            : selectedArtwork.description_en ||
-                              selectedArtwork.description}
-                        </p>
-                      )}
-                      {isAdmin && (
-                        <div className={styles.detailAdminActions}>
-                          <button
-                            className={admin.editBtn}
-                            onClick={() => setEditingArtwork(selectedArtwork)}
-                          >
-                            {zh ? "編輯" : "Edit"}
-                          </button>
-                          <button
-                            className={admin.deleteBtn}
-                            onClick={() =>
-                              handleDeleteArtwork(selectedArtwork.id)
-                            }
-                          >
-                            {zh ? "刪除" : "Delete"}
-                          </button>
-                        </div>
-                      )}
                     </div>
-                  </>
-                )}
+                  ))}
+                </div>
               </>
             )}
           </div>
