@@ -526,7 +526,7 @@
   display: block;
 }
 
-/* 作品切換：原圖淡出，新圖自左/右滑入 */
+/* 作品切換：僅用 CSS 淡出淡入（無滑動） */
 .seriesGallerySlideWrap {
   position: relative;
   overflow: hidden;
@@ -537,92 +537,49 @@
   width: 100%;
 }
 
-.seriesGallerySlideWrap:not(:has(.slideOutActive)) .seriesGallerySlidePanel,
-.seriesGallerySlideWrap:not(:has(.slideInActive)) .seriesGallerySlidePanel {
-  transition: none;
-}
-
-/* 離開：淡出（不位移） */
-.slideOutLeft,
-.slideOutRight {
-  transition: opacity 0.56s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 1;
-}
-
-.slideOutLeft.slideOutActive,
-.slideOutRight.slideOutActive {
+.seriesGalleryImagePanel {
   opacity: 0;
+  transition: opacity 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
 }
 
-/* 進入：自右或自左滑入 */
-.slideInFromRight {
-  transform: translateX(100%);
-  transition: transform 0.56s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.slideInFromRight.slideInActive {
-  transform: translateX(0);
-}
-
-.slideInFromLeft {
-  transform: translateX(-100%);
-  transition: transform 0.56s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.slideInFromLeft.slideInActive {
-  transform: translateX(0);
-}
-
-/* 原圖淡出在新圖後面 */
-.seriesGallerySlideWrap:has(.slideOutLeft) .slideOutLeft,
-.seriesGallerySlideWrap:has(.slideOutRight) .slideOutRight {
+.seriesGalleryImagePanel:not(.seriesGalleryImagePanelSelected) {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 0;
 }
 
-.seriesGallerySlideWrap:has(.slideInFromRight) .slideInFromRight,
-.seriesGallerySlideWrap:has(.slideInFromLeft) .slideInFromLeft {
+.seriesGalleryImagePanelSelected {
+  opacity: 1;
+  pointer-events: auto;
   position: relative;
-  z-index: 1;
+  transition: opacity 0.44s 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 資訊區：淡出淡入，不跟圖滑動 */
+/* 資訊區：僅用 CSS 淡出淡入（先淡出再淡入） */
 .seriesGalleryInfoFadeWrap {
   position: relative;
 }
 
-.seriesGalleryInfoFadeOut,
-.seriesGalleryInfoFadeIn {
-  transition: opacity 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.seriesGalleryInfoFadeOut {
-  opacity: 1;
-}
-
-.seriesGalleryInfoFadeOut.infoFadeActive {
+.seriesGalleryInfoBlock {
   opacity: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  transition: opacity 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
 }
 
-.seriesGalleryInfoFadeIn {
+.seriesGalleryInfoBlock:not(.seriesGalleryInfoBlockSelected) {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  opacity: 0;
 }
 
-.seriesGalleryInfoFadeIn.infoFadeActive {
-  position: relative;
+.seriesGalleryInfoBlockSelected {
   opacity: 1;
+  pointer-events: auto;
+  position: relative;
+  transition: opacity 0.44s 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .seriesGalleryImageBlock {
