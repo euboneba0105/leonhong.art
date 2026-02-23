@@ -23,6 +23,9 @@ function formatDateRange(start?: string, end?: string, zh?: boolean): string {
   if (!start) return ''
   const s = formatDate(start, !!zh)
   if (!end) return s
+  const startDay = new Date(start).toISOString().slice(0, 10)
+  const endDay = new Date(end).toISOString().slice(0, 10)
+  if (startDay === endDay) return s
   const e = formatDate(end, !!zh)
   return `${s} — ${e}`
 }
