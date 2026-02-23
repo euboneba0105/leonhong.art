@@ -55,7 +55,7 @@ export default function Footer() {
 
       {/* Copyright */}
       <p className={styles.copyright}>
-        &copy; {new Date().getFullYear()} {zh ? '洪德忠 Leon Hong (Te-chung Hong)' : 'Leon Hong 洪德忠 (Te-chung Hong)'}
+        &copy; {new Date().getFullYear()} {zh ? '洪德忠 Leon Hong' : 'Leon Hong'}
       </p>
     </footer>
   )
