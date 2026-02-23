@@ -5,11 +5,18 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 export async function GET() {
   if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 500 })
 
-  const { data, error } = await supabaseAdmin
+  const { session } = await requireAdmin()
+  const publicOnly = !session
+
+  let query = supabaseAdmin
     .from('series')
     .select('*')
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
+  if (publicOnly) {
+    query = query.eq('is_public', true)
+  }
+  const { data, error } = await query
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
@@ -30,6 +37,7 @@ export async function POST(req: NextRequest) {
       description_en: body.description_en || null,
       cover_image_id: body.cover_image_id || null,
       sort_order: body.sort_order != null ? body.sort_order : null,
+      is_public: body.is_public !== false,
     })
     .select()
     .single()
@@ -48,11 +56,13 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const update: Record<string, any> = {}
-  const allowed = ['name', 'name_en', 'description', 'description_en', 'cover_image_id', 'sort_order']
+  const allowed = ['name', 'name_en', 'description', 'description_en', 'cover_image_id', 'sort_order', 'is_public']
   for (const key of allowed) {
     if (key in fields) {
       if (key === 'sort_order') {
         update[key] = fields[key] == null || fields[key] === '' ? null : Number(fields[key])
+      } else if (key === 'is_public') {
+        update[key] = fields[key] === true
       } else {
         update[key] = fields[key] || null
       }

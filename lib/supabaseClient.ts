@@ -35,6 +35,8 @@ export type Series = {
   cover_image_id?: string
   /** 排列順序，數字越小越前面 */
   sort_order?: number | null
+  /** 是否公開顯示；未勾選時僅在 admin 登入後可見 */
+  is_public?: boolean
   created_at: string
 }
 

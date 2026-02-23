@@ -1,7 +1,10 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+import { getServerSession } from 'next-auth'
+import { authOptions, ADMIN_EMAILS } from '@/lib/auth'
 import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
+import { getSeries } from '@/lib/seriesData'
 import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import HomepageContent from '@/components/HomepageContent'
 
@@ -28,21 +31,6 @@ async function getArtworks(): Promise<Artwork[]> {
   }
 }
 
-async function getSeries(): Promise<Series[]> {
-  try {
-    const { data, error } = await supabase
-      .from('series')
-      .select('*')
-      .order('sort_order', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false })
-
-    if (error) return []
-    return data || []
-  } catch {
-    return []
-  }
-}
-
 async function getCarouselIds(): Promise<string[]> {
   try {
     const { data, error } = await supabase
@@ -63,9 +51,11 @@ export const metadata = {
 }
 
 export default async function HomePage() {
+  const session = await getServerSession(authOptions)
+  const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
   const [artworks, seriesList, carouselIds] = await Promise.all([
     getArtworks(),
-    getSeries(),
+    getSeries(!isAdmin),
     getCarouselIds(),
   ])
 

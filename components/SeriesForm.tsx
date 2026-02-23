@@ -25,6 +25,7 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
     description_en: series?.description_en || '',
     cover_image_id: series?.cover_image_id || '',
     sort_order: series?.sort_order != null ? String(series.sort_order) : '',
+    is_public: series?.is_public !== false,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +56,18 @@ export default function SeriesForm({ series, artworks, onSubmit, onCancel, loadi
           value={form.sort_order}
           onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
         />
+      </div>
+
+      <div className={admin.formGroup} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <input
+          type="checkbox"
+          id="series-is_public"
+          checked={form.is_public}
+          onChange={(e) => setForm({ ...form, is_public: e.target.checked })}
+        />
+        <label className={admin.formLabel} htmlFor="series-is_public" style={{ marginBottom: 0 }}>
+          {zh ? '公開顯示（未勾選時僅在管理後台可見）' : 'Public (when unchecked, visible only when admin is logged in)'}
+        </label>
       </div>
 
       <div className={admin.formRow}>

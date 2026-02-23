@@ -1,7 +1,10 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+import { getServerSession } from 'next-auth'
+import { authOptions, ADMIN_EMAILS } from '@/lib/auth'
 import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
+import { getSeries } from '@/lib/seriesData'
 import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import ArtworksContent from '@/components/ArtworksContent'
 
@@ -32,21 +35,6 @@ async function getArtworks(): Promise<Artwork[]> {
   }
 }
 
-async function getSeries(): Promise<Series[]> {
-  try {
-    const { data, error } = await supabase
-      .from('series')
-      .select('*')
-      .order('sort_order', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false })
-
-    if (error) return []
-    return data || []
-  } catch {
-    return []
-  }
-}
-
 async function getTags(): Promise<Tag[]> {
   try {
     const { data } = await supabase
@@ -65,6 +53,8 @@ export const metadata = {
 }
 
 export default async function SeriesPage() {
+  const session = await getServerSession(authOptions)
+  const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
   let artworks: Artwork[] = []
   let error: string | null = null
 
@@ -75,7 +65,7 @@ export default async function SeriesPage() {
     console.error(err)
   }
 
-  const seriesList = await getSeries()
+  const seriesList = await getSeries(!isAdmin)
   const allTags = await getTags()
 
   return <ArtworksContent artworks={artworks} seriesList={seriesList} allTags={allTags} error={error} />

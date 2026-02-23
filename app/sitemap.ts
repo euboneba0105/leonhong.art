@@ -1,28 +1,13 @@
 import type { MetadataRoute } from 'next'
-import { supabase } from '@/lib/supabaseClient'
 import { seriesSlug } from '@/lib/slug'
-import type { Series } from '@/lib/supabaseClient'
+import { getSeries } from '@/lib/seriesData'
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://leonhong.art')
 
-async function getSeries(): Promise<Series[]> {
-  try {
-    const { data, error } = await supabase
-      .from('series')
-      .select('id, name, name_en, sort_order, created_at')
-      .order('sort_order', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false })
-    if (error) return []
-    return data || []
-  } catch {
-    return []
-  }
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const series = await getSeries()
+  const series = await getSeries(true)
   const now = new Date()
 
   const staticPages: MetadataRoute.Sitemap = [
