@@ -61,6 +61,10 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant">
       <head>
+        <meta
+          name="google-site-verification"
+          content="vpicKqHjJXWsW3BZ5RFq5NPooaDfsmvTEQVr7MCbzwk"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
