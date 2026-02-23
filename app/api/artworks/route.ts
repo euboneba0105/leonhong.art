@@ -32,8 +32,6 @@ export async function POST(req: NextRequest) {
         title_en: fields.title_en || null,
         series_id: fields.series_id || null,
         year: fields.year || null,
-        medium: fields.medium || null,
-        medium_en: fields.medium_en || null,
         size: fields.size || null,
         description: fields.description || null,
         description_en: fields.description_en || null,
@@ -68,7 +66,7 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
     const update: Record<string, any> = {}
-    const allowed = ['title', 'title_en', 'series_id', 'year', 'medium', 'medium_en', 'size', 'description', 'description_en', 'image_url']
+    const allowed = ['title', 'title_en', 'series_id', 'year', 'size', 'description', 'description_en', 'image_url']
     for (const key of allowed) {
       if (key in fields) update[key] = fields[key] || null
     }
