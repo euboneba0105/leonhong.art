@@ -494,8 +494,12 @@
   flex-direction: column;
   gap: 0.75rem;
   max-height: 140vh;
-  overflow-y: auto;
-  padding-right: 1rem;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+.seriesGalleryThumbs::-webkit-scrollbar {
+  width: 0;
 }
 
 .seriesGalleryThumb {
