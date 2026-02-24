@@ -304,6 +304,9 @@ export default function SeriesDetailContent({
                 </div>
                 {filteredArtworks.length > 0 && (
                   <div className={styles.seriesNavButtons}>
+                    <span className={styles.seriesNavProgress} aria-hidden>
+                      {selectedIndex + 1} / {filteredArtworks.length}
+                    </span>
                     <button
                       type="button"
                       className={styles.seriesNavBtn}

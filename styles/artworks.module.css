@@ -186,8 +186,22 @@
 
 .seriesNavButtons {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+.seriesNavProgress {
+  display: inline;
+  font-variant-numeric: tabular-nums;
+  color: #666;
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .seriesNavProgress {
+    display: none;
+  }
 }
 
 .seriesNavBtn {
