@@ -6,20 +6,22 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useLanguage } from './LanguageProvider'
+import { basePath } from '@/lib/locale'
 import styles from '@/styles/header.module.css'
 
 export default function Header() {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
-  const pathname = usePathname()
+  const pathname = usePathname() ?? '/'
   const [menuOpen, setMenuOpen] = useState(false)
   const { data: session } = useSession()
   const isAdmin = !!(session?.user as any)?.isAdmin
+  const prefix = basePath(pathname)
 
   // Hide header on immersive homepage (after all hooks)
-  if (pathname === '/') return null
+  if (pathname === '/' || pathname === '/en') return null
 
-  const isPortfolioActive = pathname === '/series' || pathname.startsWith('/series/') || pathname.startsWith('/artworks')
+  const isPortfolioActive = pathname === `${prefix}/series` || pathname.startsWith(`${prefix}/series/`)
 
   const navItems = [
     { href: '/events', label: zh ? '活動' : 'Events' },
@@ -42,7 +44,7 @@ export default function Header() {
         </button>
 
         {/* Logo – always centered on mobile */}
-        <Link href="/" className={styles.logoLink}>
+        <Link href={prefix || '/'} className={styles.logoLink}>
           <Image
             src="/logo.png"
             alt={zh ? '洪德忠' : 'Leon Hong'}
@@ -59,7 +61,7 @@ export default function Header() {
           <ul className={styles.navList}>
             <li>
               <Link
-                href="/series"
+                href={`${prefix}/series`}
                 className={`${styles.navLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
               >
                 {zh ? '作品集' : 'Artworks'}
@@ -69,8 +71,8 @@ export default function Header() {
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
-                  href={item.href}
-                  className={`${styles.navLink} ${pathname === item.href ? styles.navLinkActive : ''}`}
+                  href={`${prefix}${item.href}`}
+                  className={`${styles.navLink} ${pathname === `${prefix}${item.href}` ? styles.navLinkActive : ''}`}
                 >
                   {item.label}
                 </Link>
@@ -100,7 +102,7 @@ export default function Header() {
         <ul className={styles.mobileNavList}>
             <li>
               <Link
-                href="/series"
+                href={`${prefix}/series`}
                 className={`${styles.mobileNavLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
@@ -111,8 +113,8 @@ export default function Header() {
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
-                  href={item.href}
-                  className={`${styles.mobileNavLink} ${pathname === item.href ? styles.navLinkActive : ''}`}
+                  href={`${prefix}${item.href}`}
+                  className={`${styles.mobileNavLink} ${pathname === `${prefix}${item.href}` ? styles.navLinkActive : ''}`}
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.label}

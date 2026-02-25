@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
+import { pathToZh } from "@/lib/locale";
 
-const SUFFIX = " — Leon Hong Art";
+const SUFFIX = { zh: " — 洪德忠 Leon Hong", en: " — Leon Hong Art" };
 
 const TITLE_MAP: Record<string, { zh: string; en: string }> = {
   "/": { zh: "洪德忠", en: "Leon Hong — Art Portfolio" },
@@ -15,17 +16,17 @@ const TITLE_MAP: Record<string, { zh: string; en: string }> = {
 };
 
 export default function PageTitleSync() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const { lang } = useLanguage();
+  const pathKey = pathToZh(pathname);
 
   useEffect(() => {
-    let entry = TITLE_MAP[pathname];
-    // 活動列表與活動內頁共用同一組頁籤標題
-    if (!entry && pathname.startsWith("/events")) entry = TITLE_MAP["/events"];
+    let entry = TITLE_MAP[pathKey];
+    if (!entry && pathKey.startsWith("/events")) entry = TITLE_MAP["/events"];
     if (!entry) return;
     const title = lang === "zh" ? entry.zh : entry.en;
-    document.title = `${title}${SUFFIX}`;
-  }, [pathname, lang]);
+    document.title = `${title}${SUFFIX[lang]}`;
+  }, [pathname, pathKey, lang]);
 
   return null;
 }

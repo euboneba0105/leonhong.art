@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import DisableImageContextMenu from "@/components/DisableImageContextMenu";
 import PageTitleSync from "@/components/PageTitleSync";
+import LocaleHtmlLang from "@/components/LocaleHtmlLang";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -14,13 +15,13 @@ const SITE_URL =
 
 export const metadata = {
   title: {
-    default: "Leon Hong Art",
-    template: "%s — Leon Hong Art",
+    default: "洪德忠 Leon Hong — 藝術作品集",
+    template: "%s — 洪德忠 Leon Hong",
   },
   description:
     "洪德忠 Leon Hong (Te-chung Hong) 藝術作品集。當代藝術創作，水性媒材、複合媒材。Leon Hong artist portfolio, original artworks.",
   openGraph: {
-    siteName: "Leon Hong Art",
+    siteName: "洪德忠 Leon Hong",
     type: "website",
   },
 };
@@ -44,8 +45,8 @@ const personSchema = {
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Leon Hong Art",
-  alternateName: ["洪德忠 藝術", "Leon Hong Art Portfolio"],
+  name: "洪德忠 Leon Hong — 藝術作品集",
+  alternateName: ["Leon Hong Art", "洪德忠 藝術", "Leon Hong Art Portfolio"],
   url: SITE_URL,
   author: personSchema,
   inLanguage: ["zh-Hant", "en"],
@@ -81,6 +82,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <LocaleHtmlLang />
         <DisableImageContextMenu />
         <SessionProvider>
           <LanguageProvider>

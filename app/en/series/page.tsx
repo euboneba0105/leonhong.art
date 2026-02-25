@@ -49,12 +49,12 @@ async function getTags(): Promise<Tag[]> {
 }
 
 export const metadata = {
-  title: '作品集',
-  description: '洪德忠 Leon Hong 原創藝術作品系列。',
-  alternates: alternatesFor('/series'),
+  title: 'Series',
+  description: 'Browse original artworks by Leon Hong.',
+  alternates: alternatesFor('/en/series'),
 }
 
-export default async function SeriesPage() {
+export default async function EnSeriesPage() {
   const session = await getServerSession(authOptions)
   const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
   let artworks: Artwork[] = []

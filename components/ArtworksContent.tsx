@@ -4,8 +4,9 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
+import { basePath } from "@/lib/locale";
 import SeriesForm from "./SeriesForm";
 import TagForm from "./TagForm";
 import type { Artwork, Series, Tag } from "@/lib/supabaseClient";
@@ -31,6 +32,8 @@ export default function ArtworksContent({
   const zh = lang === "zh";
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname() ?? "/";
+  const prefix = basePath(pathname);
   const isAdmin = !!(session?.user as any)?.isAdmin;
 
   const [showSeriesForm, setShowSeriesForm] = useState(false);
@@ -130,7 +133,7 @@ export default function ArtworksContent({
             <div className={styles.seriesCardsGrid}>
               {seriesCards.map(({ series: s, coverUrl }) => (
                 <div key={s.id} className={styles.seriesCardWrap}>
-                  <Link href={`/series/${seriesSlug(s)}`} className={styles.seriesCard}>
+                  <Link href={`${prefix}/series/${seriesSlug(s)}`} className={styles.seriesCard}>
                     <div className={styles.seriesCardImageWrap}>
                       {coverUrl ? (
                         <Image

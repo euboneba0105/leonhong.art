@@ -31,14 +31,14 @@ async function getGalleryPhotos(exhibitionId: string): Promise<EventGalleryPhoto
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const event = await getEvent(id)
-  const title = event ? (event.title || event.title_en) : '活動'
+  const title = event ? (event.title_en || event.title) : 'Event'
   return {
     title,
-    alternates: alternatesFor(`/events/${id}`),
+    alternates: alternatesFor(`/en/events/${id}`),
   }
 }
 
-export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EnEventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const event = await getEvent(id)
   if (!event) notFound()

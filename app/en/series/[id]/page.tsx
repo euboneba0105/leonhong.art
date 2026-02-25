@@ -7,8 +7,8 @@ import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseCli
 import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import { redirect } from 'next/navigation'
 import { seriesSlug } from '@/lib/slug'
-import { alternatesFor } from '@/lib/locale'
 import SeriesDetailContent from '@/components/SeriesDetailContent'
+import { alternatesFor } from '@/lib/locale'
 
 function attachTags(rows: any[]): Artwork[] {
   return (rows || []).map(({ artwork_tags, ...rest }) => ({
@@ -86,21 +86,21 @@ async function getSeriesForSegment(segment: string, publicOnly: boolean): Promis
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolved = await params
   const segment = resolved?.id?.trim()
-  const zhPath = segment ? `/series/${segment}` : '/series'
-  if (!segment) return { title: '作品集', alternates: alternatesFor('/series') }
+  const enPath = `/en/series/${segment ?? ''}`
+  if (!segment) return { title: 'Series', alternates: alternatesFor('/en/series') }
   if (segment === 'standalone') {
-    return { title: '獨立作品', alternates: alternatesFor(zhPath) }
+    return { title: 'Standalone', alternates: alternatesFor(enPath) }
   }
   const series = await getSeriesForSegment(segment, true)
-  const name = series ? (series.name || series.name_en) : '作品集'
-  return { title: name, alternates: alternatesFor(zhPath) }
+  const name = series ? (series.name_en || series.name) : 'Series'
+  return { title: name, alternates: alternatesFor(enPath) }
 }
 
-export default async function SeriesDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EnSeriesDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolved = await params
   const segment = resolved?.id?.trim()
   if (!segment) {
-    redirect('/series')
+    redirect('/en/series')
   }
   const session = await getServerSession(authOptions)
   const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
@@ -111,13 +111,13 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ i
   if (!isStandalone) {
     series = await getSeriesById(segment, publicOnly)
     if (series && seriesSlug(series) !== segment) {
-      redirect(`/series/${seriesSlug(series)}`)
+      redirect(`/en/series/${seriesSlug(series)}`)
     }
     if (!series) {
       series = await getSeriesBySlug(segment, publicOnly)
     }
     if (!series) {
-      redirect('/series')
+      redirect('/en/series')
     }
   }
 

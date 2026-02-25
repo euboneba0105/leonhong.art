@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { basePath } from '@/lib/locale'
 import type { Artwork, Series } from '@/lib/supabaseClient'
 import { artworkImageProxyUrl } from '@/lib/imageProxy'
 import { seriesSlug } from '@/lib/slug'
@@ -28,6 +29,8 @@ export default function HomepageContent({
 }: HomepageContentProps) {
   const { lang, toggle } = useLanguage()
   const zh = lang === 'zh'
+  const pathname = usePathname() ?? '/'
+  const prefix = basePath(pathname)
   const { data: session } = useSession()
   const isAdmin = !!(session?.user as any)?.isAdmin
   const router = useRouter()
@@ -246,7 +249,7 @@ export default function HomepageContent({
       {/* ── Title + Enter button ── */}
       <section className={styles.navSection}>
         <h1 className={styles.heroTitle}>Leon Hong Art</h1>
-        <Link href="/series" className={styles.enterBtn}>
+        <Link href={`${prefix}/series`} className={styles.enterBtn}>
           <span>{zh ? '進入網站' : 'Visit Website'}</span>
           <span className={styles.enterBtnArrow}>→</span>
         </Link>
@@ -264,7 +267,7 @@ export default function HomepageContent({
             {seriesCards.map(({ series: s, coverUrl }) => (
               <Link
                 key={s.id}
-                href={`/series/${seriesSlug(s)}`}
+                href={`${prefix}/series/${seriesSlug(s)}`}
                 className={styles.seriesCard}
               >
                 <div className={styles.seriesCardImageWrap}>

@@ -1,6 +1,8 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { pathToZh, pathToEn, isEnPath } from '@/lib/locale'
 
 type Lang = 'zh' | 'en'
 
@@ -19,21 +21,16 @@ export function useLanguage() {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('zh')
-
-  useEffect(() => {
-    const saved = localStorage.getItem('lang') as Lang | null
-    if (saved === 'en' || saved === 'zh') setLang(saved)
-  }, [])
-
+  const pathname = usePathname()
+  const router = useRouter()
+  const lang: Lang = isEnPath(pathname ?? '') ? 'en' : 'zh'
   const toggle = () => {
-    const next = lang === 'zh' ? 'en' : 'zh'
-    setLang(next)
-    localStorage.setItem('lang', next)
+    const nextPath = lang === 'zh' ? pathToEn(pathname ?? '/') : pathToZh(pathname ?? '/')
+    router.push(nextPath)
   }
-
+  const value = useMemo(() => ({ lang, toggle }), [lang, pathname, router])
   return (
-    <LanguageContext.Provider value={{ lang, toggle }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   )

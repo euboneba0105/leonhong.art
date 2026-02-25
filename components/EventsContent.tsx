@@ -4,8 +4,9 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { basePath } from '@/lib/locale'
 import EventForm from './EventForm'
 import type { Exhibition } from '@/lib/supabaseClient'
 import styles from '@/styles/events.module.css'
@@ -48,6 +49,8 @@ export default function EventsContent({ events }: EventsContentProps) {
   const zh = lang === 'zh'
   const { data: session } = useSession()
   const router = useRouter()
+  const pathname = usePathname() ?? '/'
+  const prefix = basePath(pathname)
   const isAdmin = !!(session?.user as any)?.isAdmin
 
   const [showForm, setShowForm] = useState(false)
@@ -116,7 +119,7 @@ export default function EventsContent({ events }: EventsContentProps) {
 
               return (
                 <article key={event.id} className={styles.eventCard}>
-                  <Link href={`/events/${event.id}`} className={styles.eventLink}>
+                  <Link href={`${prefix}/events/${event.id}`} className={styles.eventLink}>
                     {event.cover_image_url && (
                       <div className={styles.coverWrapper}>
                         <Image

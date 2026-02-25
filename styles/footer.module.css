@@ -32,6 +32,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
+}
+
+.langOption:hover,
+.langOption:focus {
+  text-decoration: none;
 }
 
 .langOption:first-child {

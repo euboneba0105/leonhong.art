@@ -3,6 +3,7 @@ export const revalidate = 0
 
 import { supabase, type Award, type CvExhibition } from '@/lib/supabaseClient'
 import AboutContent from '@/components/AboutContent'
+import { alternatesFor } from '@/lib/locale'
 
 async function getAwards(): Promise<Award[]> {
   try {
@@ -43,11 +44,12 @@ async function getCvExhibitions(): Promise<CvExhibition[]> {
 }
 
 export const metadata = {
-  title: '關於',
-  description: '藝術家洪德忠 Leon Hong 簡歷、獲獎與展覽經歷。',
+  title: 'About',
+  description: 'Artist Leon Hong — biography, awards and exhibition history.',
+  alternates: alternatesFor('/en/about'),
 }
 
-export default async function AboutPage() {
+export default async function EnAboutPage() {
   const [awards, cvExhibitions] = await Promise.all([
     getAwards(),
     getCvExhibitions(),

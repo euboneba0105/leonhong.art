@@ -1,28 +1,35 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { pathToZh, pathToEn, isEnPath } from '@/lib/locale'
 import styles from '@/styles/footer.module.css'
 
 export default function Footer() {
-  const { lang, toggle } = useLanguage()
+  const { lang } = useLanguage()
   const zh = lang === 'zh'
+  const pathname = usePathname() ?? '/'
+  const onEn = isEnPath(pathname)
 
   return (
     <footer className={styles.footer}>
-      {/* Language toggle */}
+      {/* Language toggle – links to alternate locale URL for SEO */}
       <div className={styles.langToggle}>
-        <button
-          className={`${styles.langOption} ${zh ? styles.langActive : ''}`}
-          onClick={() => { if (!zh) toggle() }}
+        <Link
+          href={pathToZh(pathname)}
+          className={`${styles.langOption} ${!onEn ? styles.langActive : ''}`}
+          aria-current={!onEn ? 'true' : undefined}
         >
           中文
-        </button>
-        <button
-          className={`${styles.langOption} ${!zh ? styles.langActive : ''}`}
-          onClick={() => { if (zh) toggle() }}
+        </Link>
+        <Link
+          href={pathToEn(pathname)}
+          className={`${styles.langOption} ${onEn ? styles.langActive : ''}`}
+          aria-current={onEn ? 'true' : undefined}
         >
           EN
-        </button>
+        </Link>
       </div>
 
       {/* Social icons */}

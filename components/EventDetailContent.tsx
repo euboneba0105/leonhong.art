@@ -4,8 +4,9 @@ import { useState, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
+import { basePath } from '@/lib/locale'
 import { uploadFile } from '@/lib/uploadFile'
 import type { Exhibition, EventGalleryPhoto } from '@/lib/supabaseClient'
 import styles from '@/styles/eventDetail.module.css'
@@ -40,6 +41,8 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
   const zh = lang === 'zh'
   const { data: session } = useSession()
   const router = useRouter()
+  const pathname = usePathname() ?? '/'
+  const prefix = basePath(pathname)
   const isAdmin = !!(session?.user as any)?.isAdmin
 
   const [showEdit, setShowEdit] = useState(false)
@@ -98,7 +101,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: event.id }),
     })
-    router.push('/events')
+    router.push(`${prefix}/events`)
   }
 
   async function handleGalleryUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -143,7 +146,7 @@ export default function EventDetailContent({ event, galleryPhotos: initialPhotos
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
-        <Link href="/events" className={styles.backLink}>
+        <Link href={`${prefix}/events`} className={styles.backLink}>
           ← {zh ? '返回活動列表' : 'Back to Events'}
         </Link>
 

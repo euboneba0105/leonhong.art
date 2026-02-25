@@ -4,8 +4,9 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
+import { basePath } from "@/lib/locale";
 import ArtworkForm from "./ArtworkForm";
 import ArtworkZoomImage from "./ArtworkZoomImage";
 import SeriesForm from "./SeriesForm";
@@ -36,6 +37,8 @@ export default function SeriesDetailContent({
   const zh = lang === "zh";
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname() ?? "/";
+  const prefix = basePath(pathname);
   const searchParams = useSearchParams();
   const isAdmin = !!(session?.user as any)?.isAdmin;
 
@@ -227,14 +230,14 @@ export default function SeriesDetailContent({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: series.id }),
     });
-    router.push("/");
+    router.push(prefix || "/");
   }
 
   return (
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
         <div className={styles.seriesHeaderRow}>
-          <Link href="/series" className={styles.seriesBackLink}>
+          <Link href={`${prefix}/series`} className={styles.seriesBackLink}>
             ← {zh ? "返回" : "Back"}
           </Link>
           {isAdmin && !isStandalone && series && (

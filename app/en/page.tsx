@@ -47,12 +47,12 @@ async function getCarouselIds(): Promise<string[]> {
 }
 
 export const metadata = {
-  title: '洪德忠 — 藝術作品集',
-  description: '洪德忠 Leon Hong 藝術作品集。當代藝術創作，水性媒材、複合媒材。',
-  alternates: alternatesFor('/'),
+  title: 'Leon Hong — Art Portfolio',
+  description: 'Leon Hong artist portfolio. Contemporary art, water-based and mixed media.',
+  alternates: alternatesFor('/en'),
 }
 
-export default async function HomePage() {
+export default async function EnHomePage() {
   const session = await getServerSession(authOptions)
   const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
   const [artworks, seriesList, carouselIds] = await Promise.all([
