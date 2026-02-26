@@ -5,6 +5,24 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 export const runtime = 'nodejs'
 
 const DISPLAY_LONG_EDGE = 1000
+const IMAGE_CACHE_MAX = 80
+const IMAGE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 min
+
+type CacheEntry = { output: Buffer; contentType: string; ts: number }
+const imageCache = new Map<string, CacheEntry>()
+
+function evictImageCacheIfNeeded() {
+  if (imageCache.size <= IMAGE_CACHE_MAX) return
+  let oldestKey: string | null = null
+  let oldestTs = Infinity
+  for (const [k, v] of imageCache) {
+    if (v.ts < oldestTs) {
+      oldestTs = v.ts
+      oldestKey = k
+    }
+  }
+  if (oldestKey) imageCache.delete(oldestKey)
+}
 
 async function getImageBuffer(imageUrl: string): Promise<Buffer> {
   const res = await fetch(imageUrl, {
@@ -25,9 +43,10 @@ async function resizeAndReturn(
     'format' in meta && (meta.format === 'png' || meta.format === 'webp')
       ? meta.format
       : 'jpeg'
+  const quality = maxLongEdge <= 300 ? 72 : 90
   const output = await sharp(input)
     .resize(maxLongEdge, maxLongEdge, { fit: 'inside', withoutEnlargement: true })
-    .toFormat(format, format === 'jpeg' ? { quality: 90 } : undefined)
+    .toFormat(format, format === 'jpeg' ? { quality } : undefined)
     .toBuffer()
   const contentType =
     format === 'webp' ? 'image/webp' : format === 'png' ? 'image/png' : 'image/jpeg'
@@ -59,11 +78,24 @@ export async function GET(req: NextRequest) {
   }
 
   const maxLongEdge = w ? Math.min(2400, Math.max(200, parseInt(w, 10)) || DISPLAY_LONG_EDGE) : DISPLAY_LONG_EDGE
+  const cacheKey = `${id}:${maxLongEdge}`
+
+  const cached = imageCache.get(cacheKey)
+  if (cached && Date.now() - cached.ts < IMAGE_CACHE_TTL_MS) {
+    return new NextResponse(cached.output as unknown as BodyInit, {
+      headers: {
+        'Content-Type': cached.contentType,
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
+        ...(maxLongEdge > 1000 ? { 'X-Robots-Tag': 'noindex' } : {}),
+      },
+    })
+  }
 
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, maxLongEdge)
-    // s-maxage + stale-while-revalidate：前面掛 CDN（如 Cloudflare）可快取，減少 Fast Origin Transfer
+    imageCache.set(cacheKey, { output, contentType, ts: Date.now() })
+    evictImageCacheIfNeeded()
     const headers: Record<string, string> = {
       'Content-Type': contentType,
       'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',

@@ -122,12 +122,12 @@ export default function SeriesDetailContent({
     }
   }, [selectedIndex]);
 
-  /** 預載相鄰作品主圖（前後各 2 張），切換時不需等載入 */
+  /** 只預載相鄰一張（前一、下一），避免一次請求過多主圖 */
   useEffect(() => {
     const n = filteredArtworks.length;
     if (n === 0) return;
     const indices = new Set<number>();
-    for (const delta of [-2, -1, 1, 2]) {
+    for (const delta of [-1, 1]) {
       const i = (selectedIndex + delta + n) % n;
       indices.add(i);
     }
@@ -385,25 +385,41 @@ export default function SeriesDetailContent({
             ) : (
               <>
                 <div className={styles.seriesGallerySlideWrap}>
-                  {filteredArtworks.map((artwork, i) => (
-                    <div
-                      key={artwork.id}
-                      className={`${styles.seriesGalleryImagePanel} ${i === selectedIndex ? styles.seriesGalleryImagePanelSelected : ""}`}
-                    >
-                      <div className={styles.seriesGalleryImageBlock}>
-                        <ArtworkZoomImage
-                          imageUrl={
-                            artwork.image_url || "/placeholder.png"
-                          }
-                          alt={
-                            zh
-                              ? `洪德忠 - ${artwork.title}`
-                              : `Leon Hong - ${artwork.title_en || artwork.title}`
-                          }
-                        />
+                  {filteredArtworks.map((artwork, i) => {
+                    const n = filteredArtworks.length;
+                    const prev = (selectedIndex - 1 + n) % n;
+                    const next = (selectedIndex + 1) % n;
+                    const shouldLoadMain =
+                      i === selectedIndex || i === prev || i === next;
+                    return (
+                      <div
+                        key={artwork.id}
+                        className={`${styles.seriesGalleryImagePanel} ${i === selectedIndex ? styles.seriesGalleryImagePanelSelected : ""}`}
+                      >
+                        <div className={styles.seriesGalleryImageBlock}>
+                          {shouldLoadMain ? (
+                            <ArtworkZoomImage
+                              imageUrl={
+                                artwork.image_url || "/placeholder.png"
+                              }
+                              alt={
+                                zh
+                                  ? `洪德忠 - ${artwork.title}`
+                                  : `Leon Hong - ${artwork.title_en || artwork.title}`
+                              }
+                              priority={i === selectedIndex}
+                            />
+                          ) : (
+                            <div
+                              className={styles.seriesGalleryImagePlaceholder}
+                              style={{ aspectRatio: "4/3" }}
+                              aria-hidden
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className={styles.seriesGalleryInfoFadeWrap}>
                   {filteredArtworks.map((artwork, i) => (
@@ -510,7 +526,7 @@ export default function SeriesDetailContent({
                   <Image
                     src={
                       a.image_url
-                        ? artworkImageProxyUrl(a.id, 220)
+                        ? artworkImageProxyUrl(a.id, 160)
                         : "/placeholder.png"
                     }
                     alt={
@@ -523,6 +539,7 @@ export default function SeriesDetailContent({
                     className={styles.seriesGalleryThumbImg}
                     style={{ objectFit: "cover" }}
                     loading="lazy"
+                    fetchPriority={i <= 3 ? "auto" : "low"}
                     quality={60}
                     unoptimized={(a.image_url || "").startsWith("/api/image")}
                   />

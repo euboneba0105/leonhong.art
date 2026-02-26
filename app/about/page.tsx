@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const revalidate = 60
 
 import { supabase, type Award, type CvExhibition } from '@/lib/supabaseClient'
 import AboutContent from '@/components/AboutContent'

@@ -605,6 +605,13 @@
   position: relative;
 }
 
+/* 未載入主圖的 slide 佔位，避免一次請求所有大圖 */
+.seriesGalleryImagePlaceholder {
+  width: 100%;
+  background: #f0f0f0;
+  min-height: 200px;
+}
+
 /* 系列頁右側 info 靠左，作品名稱不大於系列名稱 (1.75rem) */
 .seriesGalleryInfoSection {
   margin-left: 0;
