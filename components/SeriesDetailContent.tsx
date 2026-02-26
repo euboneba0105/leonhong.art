@@ -285,7 +285,7 @@ export default function SeriesDetailContent({
               }
             }}
           >
-            ← {zh ? "返回" : "Back"}
+            ←{' '}{zh ? "返回" : "Back"}
           </button>
           {isAdmin && !isStandalone && series && (
             <div className={styles.seriesHeaderActions}>

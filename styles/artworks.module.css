@@ -524,6 +524,18 @@ button.seriesBackLink {
   width: 0;
 }
 
+/* 系列內頁 loading 根層，用於 RWD 隱藏縮圖列 */
+.seriesDetailLoadingRoot {
+}
+
+/* 系列內頁 loading 的縮圖骨架：桌面直排、手機橫排 */
+.seriesDetailLoadingThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
 .seriesGalleryThumb {
   position: relative;
   aspect-ratio: 1;
@@ -710,6 +722,17 @@ button.seriesBackLink {
   .seriesGalleryThumb {
     flex: 0 0 72px;
     aspect-ratio: 1;
+  }
+
+  .seriesDetailLoadingThumb {
+    width: 72px;
+    min-width: 72px;
+    flex: 0 0 72px;
+  }
+
+  /* 系列內頁 loading：手機版不顯示底下縮圖列，只留標題與字 */
+  .seriesDetailLoadingRoot .seriesGalleryThumbs {
+    display: none;
   }
 
   .seriesGalleryImageWrap,

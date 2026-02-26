@@ -205,7 +205,7 @@ export default function EventDetailContent({
             }
           }}
         >
-          ← {zh ? "返回" : "Back"}
+          ←{' '}{zh ? "返回活動列表" : "Back to Events"}
         </button>
 
         {event.cover_image_url && (
