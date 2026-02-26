@@ -71,6 +71,14 @@ export async function PATCH(req: NextRequest) {
       if (key in fields) update[key] = fields[key] || null
     }
 
+    // Don't overwrite DB with proxy URL: when user only edits title/description, frontend sends /api/image?id=...
+    const baseUrl = R2_PUBLIC_URL.replace(/\/+$/, '')
+    const isNewR2Upload =
+      update.image_url && String(update.image_url).startsWith(baseUrl)
+    if (!isNewR2Upload && 'image_url' in update) {
+      delete update.image_url
+    }
+
     // If image is being replaced, fetch old URL to delete from R2
     let oldImageUrl: string | null = null
     if (update.image_url) {
@@ -92,9 +100,7 @@ export async function PATCH(req: NextRequest) {
       .single()
 
     // Only delete old R2 object when we're actually replacing with a *different* upload (new image URL is R2 and key differs).
-    // When user only edits title/description, frontend sends proxy URL (/api/image?id=...) so we must not delete.
     if (!dbError && oldImageUrl && r2Client) {
-      const baseUrl = R2_PUBLIC_URL.replace(/\/+$/, '')
       const oldKey = oldImageUrl.startsWith(baseUrl)
         ? oldImageUrl.replace(`${baseUrl}/`, '').split('?')[0]
         : ''
