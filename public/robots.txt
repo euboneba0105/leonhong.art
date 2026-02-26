@@ -1,0 +1,3 @@
+# 禁止爬蟲請求圖片 API，避免耗用 Fast Origin Transfer
+User-agent: *
+Disallow: /api/image
