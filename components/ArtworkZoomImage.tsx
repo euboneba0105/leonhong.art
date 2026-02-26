@@ -45,6 +45,14 @@ function getArtworkIdFromImageUrl(imageUrl: string): string | null {
   }
 }
 
+const ZOOM_CONTAINER_WIDTH_MULTIPLIER = 5
+
+function getZoomMaxEdgeFromContainerWidth(containerWidthPx: number | null): number {
+  if (typeof window === 'undefined' || !containerWidthPx || containerWidthPx <= 0) return 3000
+  const w = Math.round(containerWidthPx * ZOOM_CONTAINER_WIDTH_MULTIPLIER)
+  return Math.min(3000, Math.max(1000, w))
+}
+
 interface ArtworkZoomImageProps {
   imageUrl: string
   alt: string
@@ -87,10 +95,12 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
     }
   }, [zoomBlobUrl])
 
-  // 主圖載完後才預載 zoom 大圖，避免與 1000px 主圖搶頻寬
+  // 主圖載完後才預載 zoom 大圖，避免與 1000px 主圖搶頻寬；w 依容器寬度自適應
   useEffect(() => {
     if (!artworkId || zoomBlobUrl || !isMainImageLoaded) return
-    fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}`)
+    const containerWidth = imageSectionRef.current?.getBoundingClientRect().width ?? 0
+    const w = getZoomMaxEdgeFromContainerWidth(containerWidth)
+    fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}&w=${w}`)
       .then((r) => r.blob())
       .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
       .catch(() => {})
@@ -142,7 +152,9 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
 
   const loadZoomImage = useCallback(() => {
     if (!artworkId || zoomBlobUrl) return
-    fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}`)
+    const containerWidth = imageSectionRef.current?.getBoundingClientRect().width ?? 0
+    const w = getZoomMaxEdgeFromContainerWidth(containerWidth)
+    fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}&w=${w}`)
       .then((r) => r.blob())
       .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
       .catch(() => {})
@@ -180,7 +192,9 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
       isTouchZooming.current = true
       setZooming(true)
       if (artworkId && !zoomBlobUrl) {
-        fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}`)
+        const containerWidth = imageSectionRef.current?.getBoundingClientRect().width ?? 0
+        const w = getZoomMaxEdgeFromContainerWidth(containerWidth)
+        fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}&w=${w}`)
           .then((r) => r.blob())
           .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
           .catch(() => {})

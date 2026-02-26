@@ -63,9 +63,10 @@ export async function GET(req: NextRequest) {
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, maxLongEdge)
+    // s-maxage + stale-while-revalidate：前面掛 CDN（如 Cloudflare）可快取，減少 Fast Origin Transfer
     const headers: Record<string, string> = {
       'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+      'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
     }
     if (maxLongEdge > 1000) {
       headers['X-Robots-Tag'] = 'noindex'
