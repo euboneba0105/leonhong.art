@@ -552,6 +552,12 @@ button.seriesBackLink {
   display: block;
 }
 
+.seriesGalleryThumbPlaceholder {
+  position: absolute;
+  inset: 0;
+  background: #e8e8e8;
+}
+
 /* 作品切換：僅用 CSS 淡出淡入（無滑動） */
 .seriesGallerySlideWrap {
   position: relative;

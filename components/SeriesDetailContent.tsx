@@ -53,6 +53,9 @@ export default function SeriesDetailContent({
   const thumbsContainerRef = useRef<HTMLDivElement>(null);
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [canBackToSeriesList, setCanBackToSeriesList] = useState(false);
+  const [failedThumbIds, setFailedThumbIds] = useState<Set<string>>(new Set());
+  const thumbRetryScheduled = useRef<Set<string>>(new Set());
+  const thumbRetryTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     try {
@@ -66,6 +69,27 @@ export default function SeriesDetailContent({
       // ignore
     }
   }, []);
+
+  // 縮圖載入失敗時標記，2 秒後自動重試一次（避免偶發逾時/502）
+  useEffect(() => {
+    const timeouts = thumbRetryTimeouts.current;
+    failedThumbIds.forEach((id) => {
+      if (thumbRetryScheduled.current.has(id)) return;
+      thumbRetryScheduled.current.add(id);
+      timeouts[id] = setTimeout(() => {
+        setFailedThumbIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        delete timeouts[id];
+      }, 2000);
+    });
+    return () => {
+      Object.values(timeouts).forEach(clearTimeout);
+      Object.keys(timeouts).forEach((k) => delete timeouts[k]);
+    };
+  }, [failedThumbIds]);
 
   /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器 */
   const tagsInSeries = useMemo(() => {
@@ -535,39 +559,51 @@ export default function SeriesDetailContent({
               ref={thumbsContainerRef}
               className={styles.seriesGalleryThumbs}
             >
-              {filteredArtworks.map((a, i) => (
-                <button
-                  key={a.id}
-                  ref={(el) => {
-                    thumbRefs.current[i] = el;
-                  }}
-                  type="button"
-                  className={`${styles.seriesGalleryThumb} ${i === selectedIndex ? styles.seriesGalleryThumbActive : ""}`}
-                  onClick={() => goToArtwork(i)}
-                  aria-label={zh ? a.title : a.title_en || a.title}
-                >
-                  <Image
-                    src={
-                      a.image_url
-                        ? artworkImageProxyUrl(a.id, 160)
-                        : "/placeholder.png"
-                    }
-                    alt={
-                      zh
-                        ? `洪德忠 - ${a.title}`
-                        : `Leon Hong - ${a.title_en || a.title}`
-                    }
-                    fill
-                    sizes="100px"
-                    className={styles.seriesGalleryThumbImg}
-                    style={{ objectFit: "cover" }}
-                    loading="lazy"
-                    fetchPriority={i <= 3 ? "auto" : "low"}
-                    quality={60}
-                    unoptimized={(a.image_url || "").startsWith("/api/image")}
-                  />
-                </button>
-              ))}
+              {filteredArtworks.map((a, i) => {
+                const thumbFailed = failedThumbIds.has(a.id);
+                const thumbSrc = a.image_url
+                  ? artworkImageProxyUrl(a.id, 160)
+                  : "/placeholder.png";
+                return (
+                  <button
+                    key={a.id}
+                    ref={(el) => {
+                      thumbRefs.current[i] = el;
+                    }}
+                    type="button"
+                    className={`${styles.seriesGalleryThumb} ${i === selectedIndex ? styles.seriesGalleryThumbActive : ""}`}
+                    onClick={() => goToArtwork(i)}
+                    aria-label={zh ? a.title : a.title_en || a.title}
+                  >
+                    {thumbFailed ? (
+                      <div
+                        className={styles.seriesGalleryThumbPlaceholder}
+                        aria-hidden
+                      />
+                    ) : (
+                      <Image
+                        src={thumbSrc}
+                        alt={
+                          zh
+                            ? `洪德忠 - ${a.title}`
+                            : `Leon Hong - ${a.title_en || a.title}`
+                        }
+                        fill
+                        sizes="100px"
+                        className={styles.seriesGalleryThumbImg}
+                        style={{ objectFit: "cover" }}
+                        loading="lazy"
+                        fetchPriority={i <= 3 ? "auto" : "low"}
+                        quality={60}
+                        unoptimized={(a.image_url || "").startsWith("/api/image")}
+                        onError={() =>
+                          setFailedThumbIds((prev) => new Set(prev).add(a.id))
+                        }
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
