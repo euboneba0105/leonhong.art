@@ -91,14 +91,23 @@ export async function PATCH(req: NextRequest) {
       .select()
       .single()
 
-    // Delete old image from R2 after successful update
+    // Only delete old R2 object when we're actually replacing with a *different* upload (new image URL is R2 and key differs).
+    // When user only edits title/description, frontend sends proxy URL (/api/image?id=...) so we must not delete.
     if (!dbError && oldImageUrl && r2Client) {
-      try {
-        const baseUrl = R2_PUBLIC_URL.replace(/\/+$/, '')
-        const key = oldImageUrl.replace(`${baseUrl}/`, '')
-        await r2Client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key }))
-      } catch (e) {
-        console.error('Failed to delete old R2 object:', e)
+      const baseUrl = R2_PUBLIC_URL.replace(/\/+$/, '')
+      const oldKey = oldImageUrl.startsWith(baseUrl)
+        ? oldImageUrl.replace(`${baseUrl}/`, '').split('?')[0]
+        : ''
+      const newUrl = update.image_url && String(update.image_url)
+      const newKey = newUrl && newUrl.startsWith(baseUrl)
+        ? newUrl.replace(`${baseUrl}/`, '').split('?')[0]
+        : ''
+      if (oldKey && newKey && newKey !== oldKey) {
+        try {
+          await r2Client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: oldKey }))
+        } catch (e) {
+          console.error('Failed to delete old R2 object:', e)
+        }
       }
     }
 
