@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
@@ -53,6 +52,20 @@ export default function SeriesDetailContent({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const thumbsContainerRef = useRef<HTMLDivElement>(null);
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [canBackToSeriesList, setCanBackToSeriesList] = useState(false);
+
+  useEffect(() => {
+    try {
+      const ref = document.referrer;
+      if (!ref) return;
+      const url = new URL(ref);
+      if (url.origin !== window.location.origin) return;
+      const p = url.pathname.replace(/\/$/, "") || "/";
+      if (p === "/series" || p === "/en/series") setCanBackToSeriesList(true);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器 */
   const tagsInSeries = useMemo(() => {
@@ -237,9 +250,19 @@ export default function SeriesDetailContent({
     <div className={styles.pageContainer}>
       <main className={styles.mainContent}>
         <div className={styles.seriesHeaderRow}>
-          <Link href={`${prefix}/series`} className={styles.seriesBackLink}>
+          <button
+            type="button"
+            className={styles.seriesBackLink}
+            onClick={() => {
+              if (canBackToSeriesList) {
+                router.back();
+              } else {
+                router.push(prefix ? `${prefix}/series` : "/series");
+              }
+            }}
+          >
             ← {zh ? "返回" : "Back"}
-          </Link>
+          </button>
           {isAdmin && !isStandalone && series && (
             <div className={styles.seriesHeaderActions}>
               <button

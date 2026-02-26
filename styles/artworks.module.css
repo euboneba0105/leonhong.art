@@ -462,6 +462,14 @@
   color: #1a1a1a;
 }
 
+button.seriesBackLink {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
 .seriesHeaderActions {
   display: flex;
   gap: 0.5rem;
