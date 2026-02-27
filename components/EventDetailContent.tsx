@@ -210,13 +210,12 @@ export default function EventDetailContent({
 
         {event.cover_image_url && (
           <div className={styles.coverWrapper}>
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={event.cover_image_url}
               alt={title}
-              fill
-              sizes="100vw"
               className={styles.coverImage}
-              priority
+              loading="eager"
             />
           </div>
         )}
