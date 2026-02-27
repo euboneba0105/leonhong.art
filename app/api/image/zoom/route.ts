@@ -6,9 +6,9 @@ import { getImageUrlById } from '@/lib/imageUrlCache'
 // Cache-Control 含 s-maxage：前面掛 CDN（如 Cloudflare）可快取，減少 Fast Origin Transfer
 export const runtime = 'nodejs'
 
-const ZOOM_LONG_EDGE_DEFAULT = 3000
-const ZOOM_LONG_EDGE_MIN = 1000
-const ZOOM_LONG_EDGE_MAX = 3000
+const ZOOM_SHORT_EDGE_DEFAULT = 2000
+const ZOOM_SHORT_EDGE_MIN = 600
+const ZOOM_SHORT_EDGE_MAX = 2000
 
 async function getImageBuffer(imageUrl: string): Promise<Buffer> {
   const res = await fetch(imageUrl, {
@@ -22,15 +22,21 @@ async function getImageBuffer(imageUrl: string): Promise<Buffer> {
 
 async function resizeAndReturn(
   input: Buffer,
-  maxLongEdge: number
+  maxShortEdge: number
 ): Promise<{ output: Buffer; contentType: string }> {
   const meta = await sharp(input).metadata().catch(() => ({}))
   const format =
     'format' in meta && (meta.format === 'png' || meta.format === 'webp')
       ? meta.format
       : 'jpeg'
+  const width = ('width' in meta && typeof meta.width === 'number') ? meta.width : 0
+  const height = ('height' in meta && typeof meta.height === 'number') ? meta.height : 0
+  const shortEdge = Math.min(width, height) || 1
+  const scale = Math.min(1, maxShortEdge / shortEdge)
+  const newW = Math.round(width * scale)
+  const newH = Math.round(height * scale)
   const output = await sharp(input)
-    .resize(maxLongEdge, maxLongEdge, { fit: 'inside', withoutEnlargement: true })
+    .resize(newW, newH, { fit: 'inside' })
     .toFormat(format, format === 'jpeg' ? { quality: 90 } : undefined)
     .toBuffer()
   const contentType =
@@ -41,7 +47,7 @@ async function resizeAndReturn(
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
-  const w = searchParams.get('w') // optional: max long edge by screen (1000–3000), CDN cache key
+  const w = searchParams.get('w') // optional: max short edge by screen (600–2000), CDN cache key
 
   if (!id) {
     return NextResponse.json({ error: 'Missing id' }, { status: 400 })
@@ -51,10 +57,10 @@ export async function GET(req: NextRequest) {
   }
 
   const parsed = w ? parseInt(w, 10) : NaN
-  const maxLongEdge =
+  const maxShortEdge =
     Number.isFinite(parsed) && parsed > 0
-      ? Math.min(ZOOM_LONG_EDGE_MAX, Math.max(ZOOM_LONG_EDGE_MIN, parsed))
-      : ZOOM_LONG_EDGE_DEFAULT
+      ? Math.min(ZOOM_SHORT_EDGE_MAX, Math.max(ZOOM_SHORT_EDGE_MIN, parsed))
+      : ZOOM_SHORT_EDGE_DEFAULT
 
   const imageUrl = await getImageUrlById(id)
   if (!imageUrl) {
@@ -63,7 +69,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const input = await getImageBuffer(imageUrl)
-    const { output, contentType } = await resizeAndReturn(input, maxLongEdge)
+    const { output, contentType } = await resizeAndReturn(input, maxShortEdge)
     return new NextResponse(output as unknown as BodyInit, {
       headers: {
         'Content-Type': contentType,

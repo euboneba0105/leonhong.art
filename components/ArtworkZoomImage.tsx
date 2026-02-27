@@ -47,10 +47,10 @@ function getArtworkIdFromImageUrl(imageUrl: string): string | null {
 
 const ZOOM_CONTAINER_WIDTH_MULTIPLIER = 5
 
-function getZoomMaxEdgeFromContainerWidth(containerWidthPx: number | null): number {
-  if (typeof window === 'undefined' || !containerWidthPx || containerWidthPx <= 0) return 3000
+function getZoomMaxShortEdgeFromContainerWidth(containerWidthPx: number | null): number {
+  if (typeof window === 'undefined' || !containerWidthPx || containerWidthPx <= 0) return 2000
   const w = Math.round(containerWidthPx * ZOOM_CONTAINER_WIDTH_MULTIPLIER)
-  return Math.min(3000, Math.max(1000, w))
+  return Math.min(2000, Math.max(600, w))
 }
 
 interface ArtworkZoomImageProps {
@@ -99,7 +99,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
   useEffect(() => {
     if (!artworkId || zoomBlobUrl || !isMainImageLoaded) return
     const containerWidth = imageSectionRef.current?.getBoundingClientRect().width ?? 0
-    const w = getZoomMaxEdgeFromContainerWidth(containerWidth)
+    const w = getZoomMaxShortEdgeFromContainerWidth(containerWidth)
     fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}&w=${w}`)
       .then((r) => r.blob())
       .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
@@ -153,7 +153,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
   const loadZoomImage = useCallback(() => {
     if (!artworkId || zoomBlobUrl) return
     const containerWidth = imageSectionRef.current?.getBoundingClientRect().width ?? 0
-    const w = getZoomMaxEdgeFromContainerWidth(containerWidth)
+    const w = getZoomMaxShortEdgeFromContainerWidth(containerWidth)
     fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}&w=${w}`)
       .then((r) => r.blob())
       .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
@@ -193,7 +193,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
       setZooming(true)
       if (artworkId && !zoomBlobUrl) {
         const containerWidth = imageSectionRef.current?.getBoundingClientRect().width ?? 0
-        const w = getZoomMaxEdgeFromContainerWidth(containerWidth)
+        const w = getZoomMaxShortEdgeFromContainerWidth(containerWidth)
         fetch(`/api/image/zoom?id=${encodeURIComponent(artworkId)}&w=${w}`)
           .then((r) => r.blob())
           .then((blob) => setZoomBlobUrl(URL.createObjectURL(blob)))
