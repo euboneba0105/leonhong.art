@@ -28,5 +28,10 @@ export default function PageTitleSync() {
     document.title = `${title}${SUFFIX[lang]}`;
   }, [pathname, pathKey, lang]);
 
+  // Scroll to top on route change (e.g. homepage → series page)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return null;
 }

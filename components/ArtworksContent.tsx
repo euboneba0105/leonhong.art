@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -17,6 +17,7 @@ import admin from "@/styles/adminUI.module.css";
 
 interface ArtworksContentProps {
   artworks: Artwork[];
+  seriesCovers?: Record<string, string>;
   seriesList: Series[];
   allTags: Tag[];
   error: string | null;
@@ -24,6 +25,7 @@ interface ArtworksContentProps {
 
 export default function ArtworksContent({
   artworks,
+  seriesCovers,
   seriesList,
   allTags,
   error,
@@ -42,20 +44,43 @@ export default function ArtworksContent({
   const [errMsg, setErrMsg] = useState("");
   const [editingSeries, setEditingSeries] = useState<Series | null>(null);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [artworksForEdit, setArtworksForEdit] = useState<Artwork[] | null>(null);
 
-  // Build series cards data (thumbnail URL with w=400 for faster load)
+  // When editing a series and we only have seriesCovers (no full artworks), fetch artworks for that series
+  useEffect(() => {
+    if (!editingSeries || artworks.length > 0) {
+      setArtworksForEdit(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/series/${editingSeries.id}/artworks`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: Artwork[]) => {
+        if (!cancelled) setArtworksForEdit(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setArtworksForEdit([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [editingSeries?.id, artworks.length]);
+
+  // Build series cards: use seriesCovers when provided (fast path), else derive from artworks
   const seriesCards = useMemo(() => {
+    if (seriesCovers) {
+      return seriesList.map((s) => ({
+        series: s,
+        coverUrl: seriesCovers[s.id] ? artworkImageProxyUrl(seriesCovers[s.id], 400) : null,
+      }));
+    }
     return seriesList.map((s) => {
-      let cover = null
-      if (s.cover_image_id) {
-        cover = artworks.find((a) => a.id === s.cover_image_id)
-      } else {
-        cover = artworks.find((a) => a.series_id === s.id)
-      }
-      const coverUrl = cover ? artworkImageProxyUrl(cover.id, 400) : null
-      return { series: s, coverUrl }
-    })
-  }, [seriesList, artworks])
+      const cover = s.cover_image_id
+        ? artworks.find((a) => a.id === s.cover_image_id)
+        : artworks.find((a) => a.series_id === s.id);
+      return { series: s, coverUrl: cover ? artworkImageProxyUrl(cover.id, 400) : null };
+    });
+  }, [seriesList, artworks, seriesCovers]);
 
   // ── Series CRUD ──
   async function handleSeriesDelete(id: string) {
@@ -202,9 +227,11 @@ export default function ArtworksContent({
             <div onClick={(e) => e.stopPropagation()}>
               <SeriesForm
                 series={editingSeries}
-                artworks={artworks.filter(
-                  (a) => a.series_id === editingSeries?.id,
-                )}
+                artworks={
+                  artworks.length > 0
+                    ? artworks.filter((a) => a.series_id === editingSeries?.id)
+                    : (artworksForEdit ?? [])
+                }
                 onSubmit={async (data) => {
                   setErrMsg("");
                   const res = await fetch("/api/series", {

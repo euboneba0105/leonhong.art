@@ -3,8 +3,8 @@ export const revalidate = 0
 
 import { getServerSession } from 'next-auth'
 import { authOptions, ADMIN_EMAILS } from '@/lib/auth'
-import { supabase, type Artwork, type Series, type Tag } from '@/lib/supabaseClient'
-import { getSeries } from '@/lib/seriesData'
+import { supabase, type Artwork, type Tag } from '@/lib/supabaseClient'
+import { getSeries, getSeriesCoverArtworkIds } from '@/lib/seriesData'
 import { artworkWithProxyUrl } from '@/lib/imageProxy'
 import ArtworksContent from '@/components/ArtworksContent'
 import { alternatesFor } from '@/lib/locale'
@@ -57,18 +57,38 @@ export const metadata = {
 export default async function EnSeriesPage() {
   const session = await getServerSession(authOptions)
   const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
+  const seriesList = await getSeries(!isAdmin)
+
   let artworks: Artwork[] = []
+  let seriesCovers: Record<string, string> | null = null
   let error: string | null = null
 
-  try {
-    artworks = await getArtworks()
-  } catch (err) {
-    error = 'Failed to load artworks. Please try again later.'
-    console.error(err)
+  const [allTags, artworksOrCovers] = await Promise.all([
+    getTags(),
+    isAdmin
+      ? getArtworks()
+          .then((a) => ({ artworks: a as Artwork[], seriesCovers: null as Record<string, string> | null }))
+          .catch((err) => {
+            console.error(err)
+            error = 'Failed to load artworks. Please try again later.'
+            return { artworks: null, seriesCovers: null }
+          })
+      : getSeriesCoverArtworkIds(seriesList).then((c) => ({ artworks: null, seriesCovers: c })),
+  ])
+
+  if (artworksOrCovers.artworks) {
+    artworks = artworksOrCovers.artworks
+  } else if (artworksOrCovers.seriesCovers) {
+    seriesCovers = artworksOrCovers.seriesCovers
   }
 
-  const seriesList = await getSeries(!isAdmin)
-  const allTags = await getTags()
-
-  return <ArtworksContent artworks={artworks} seriesList={seriesList} allTags={allTags} error={error} />
+  return (
+    <ArtworksContent
+      artworks={artworks}
+      seriesCovers={seriesCovers ?? undefined}
+      seriesList={seriesList}
+      allTags={allTags}
+      error={error}
+    />
+  )
 }

@@ -22,6 +22,14 @@
   color: #1a1a1a;
 }
 
+button.backLink {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
 .coverWrapper {
   position: relative;
   width: 100%;
