@@ -5,6 +5,21 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { r2Client, R2_BUCKET, R2_PUBLIC_URL } from '@/lib/r2Client'
 import { artworkWithProxyUrl } from '@/lib/imageProxy'
 
+/** GET: minimal list (id, title, title_en) for admin carousel picker. Admin-only. */
+export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+  if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 500 })
+  const { data, error: dbError } = await supabaseAdmin
+    .from('artworks')
+    .select('id, title, title_en')
+    .not('image_url', 'is', null)
+    .order('year', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+  if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+  return NextResponse.json(data ?? [])
+}
+
 async function syncTags(artworkId: string, tagIds: string[]) {
   if (!supabaseAdmin) return
   await supabaseAdmin.from('artwork_tags').delete().eq('artwork_id', artworkId)

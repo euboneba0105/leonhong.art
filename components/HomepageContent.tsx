@@ -7,24 +7,28 @@ import { useSession } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import { basePath } from '@/lib/locale'
-import type { Artwork, Series } from '@/lib/supabaseClient'
+import type { Series } from '@/lib/supabaseClient'
+import type { HomepageArtwork } from '@/lib/homepageData'
 import { artworkImageProxyUrl } from '@/lib/imageProxy'
 import { seriesSlug } from '@/lib/slug'
 import styles from '@/styles/homepage.module.css'
 import admin from '@/styles/adminUI.module.css'
 
 interface HomepageContentProps {
-  allArtworks: Artwork[]
+  carouselArtworks: HomepageArtwork[]
   carouselArtworkIds: string[]
   seriesList: Series[]
+  /** series id -> artwork id for cover thumbnail */
+  coverBySeriesId: Record<string, string>
   /** First hero image ID — used for preload + smaller hero URL (w=1920) */
   firstHeroImageId?: string | null
 }
 
 export default function HomepageContent({
-  allArtworks,
+  carouselArtworks,
   carouselArtworkIds,
   seriesList,
+  coverBySeriesId,
   firstHeroImageId = null,
 }: HomepageContentProps) {
   const { lang, toggle } = useLanguage()
@@ -35,16 +39,15 @@ export default function HomepageContent({
   const isAdmin = !!(session?.user as any)?.isAdmin
   const router = useRouter()
 
-  // ── Hero carousel artworks ──
+  // ── Hero carousel artworks (already ordered by carouselArtworkIds; images via proxy by id) ──
   const heroArtworks = useMemo(() => {
     if (carouselArtworkIds.length > 0) {
       return carouselArtworkIds
-        .map((id) => allArtworks.find((a) => a.id === id))
-        .filter((a): a is Artwork => !!a && !!a.image_url)
+        .map((id) => carouselArtworks.find((a) => a.id === id))
+        .filter((a): a is HomepageArtwork => !!a)
     }
-    // Fallback: first 5 artworks with images
-    return allArtworks.filter((a) => a.image_url).slice(0, 5)
-  }, [allArtworks, carouselArtworkIds])
+    return carouselArtworks.slice(0, 5)
+  }, [carouselArtworks, carouselArtworkIds])
 
   // ── Slide state ──
   const [activeSlide, setActiveSlide] = useState(0)
@@ -52,7 +55,7 @@ export default function HomepageContent({
   // Preload first hero image as early as possible (LCP)
   useEffect(() => {
     const first = heroArtworks[0]
-    if (!first?.image_url || !firstHeroImageId || first.id !== firstHeroImageId) return
+    if (!first || !firstHeroImageId || first.id !== firstHeroImageId) return
     const href = artworkImageProxyUrl(first.id, 1920)
     const link = document.createElement('link')
     link.rel = 'preload'
@@ -108,21 +111,14 @@ export default function HomepageContent({
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // ── Series cards data ──
+  // ── Series cards data (cover URLs from coverBySeriesId, thumb size 440) ──
   const seriesCards = useMemo(() => {
     return seriesList.map((s) => {
-      let cover = null
-      if (s.cover_image_id) {
-        cover = allArtworks.find((a) => a.id === s.cover_image_id)
-      } else {
-        cover = allArtworks.find((a) => a.series_id === s.id)
-      }
-      const coverUrl = cover
-        ? artworkImageProxyUrl(cover.id, 440)
-        : null
+      const coverId = coverBySeriesId[s.id]
+      const coverUrl = coverId ? artworkImageProxyUrl(coverId, 440) : null
       return { series: s, coverUrl }
     })
-  }, [seriesList, allArtworks])
+  }, [seriesList, coverBySeriesId])
 
   // ── Intersection observer for series float-up ──
   const seriesSectionRef = useRef<HTMLElement>(null)
@@ -141,12 +137,25 @@ export default function HomepageContent({
     return () => observer.disconnect()
   }, [])
 
-  // ── Admin carousel editor ──
+  // ── Admin carousel editor (artworks loaded when modal opens) ──
   const [showCarouselEditor, setShowCarouselEditor] = useState(false)
+  const [carouselPickerArtworks, setCarouselPickerArtworks] = useState<HomepageArtwork[] | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     new Set(carouselArtworkIds)
   )
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!showCarouselEditor || !isAdmin) return
+    let cancelled = false
+    fetch('/api/artworks')
+      .then((res) => res.ok ? res.json() : [])
+      .then((list: HomepageArtwork[]) => {
+        if (!cancelled) setCarouselPickerArtworks(list)
+      })
+      .catch(() => { if (!cancelled) setCarouselPickerArtworks([]) })
+    return () => { cancelled = true }
+  }, [showCarouselEditor, isAdmin])
 
   function toggleCarouselArtwork(id: string) {
     setSelectedIds((prev) => {
@@ -194,19 +203,17 @@ export default function HomepageContent({
                   i === activeSlide ? styles.heroSlideActive : ''
                 }`}
               >
-                {artwork.image_url && (
-                  <Image
-                    src={heroSrc}
-                    alt={zh ? `洪德忠 - ${artwork.title}` : `Leon Hong - ${artwork.title}`}
-                    fill
-                    sizes="100vw"
-                    style={{ objectFit: 'cover' }}
-                    priority={isFirst}
-                    fetchPriority={isFirst ? 'high' : undefined}
-                    quality={isFirst ? 75 : 80}
-                    unoptimized={heroSrc.startsWith('/api/image')}
-                  />
-                )}
+                <Image
+                  src={heroSrc}
+                  alt={zh ? `洪德忠 - ${artwork.title}` : `Leon Hong - ${artwork.title}`}
+                  fill
+                  sizes="100vw"
+                  style={{ objectFit: 'cover' }}
+                  priority={isFirst}
+                  fetchPriority={isFirst ? 'high' : undefined}
+                  quality={isFirst ? 75 : 80}
+                  unoptimized={heroSrc.startsWith('/api/image')}
+                />
               </div>
             )
           })}
@@ -342,9 +349,9 @@ export default function HomepageContent({
                 : 'Click to select artworks for the homepage carousel'}
             </p>
             <div className={styles.carouselEditorGrid}>
-              {allArtworks
-                .filter((a) => a.image_url)
-                .map((artwork) => (
+              {(carouselPickerArtworks ?? []).map((artwork) => {
+                const thumbUrl = artworkImageProxyUrl(artwork.id, 120)
+                return (
                   <div
                     key={artwork.id}
                     className={`${styles.carouselEditorItem} ${
@@ -356,12 +363,12 @@ export default function HomepageContent({
                   >
                     <div className={styles.carouselEditorImageWrap}>
                       <Image
-                        src={artwork.image_url!}
+                        src={thumbUrl}
                         alt={zh ? `洪德忠 - ${artwork.title}` : `Leon Hong - ${artwork.title}`}
                         fill
                         sizes="120px"
                         style={{ objectFit: 'cover' }}
-                        unoptimized={(artwork.image_url ?? '').startsWith('/api/image')}
+                        unoptimized={thumbUrl.startsWith('/api/image')}
                       />
                       {selectedIds.has(artwork.id) && (
                         <div className={styles.carouselEditorCheck}>✓</div>
@@ -373,7 +380,8 @@ export default function HomepageContent({
                         : artwork.title_en || artwork.title}
                     </span>
                   </div>
-                ))}
+                )
+              })}
             </div>
             <div className={admin.modalActions}>
               <button

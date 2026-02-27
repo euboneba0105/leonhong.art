@@ -3,34 +3,11 @@ export const revalidate = 0
 
 import { getServerSession } from 'next-auth'
 import { authOptions, ADMIN_EMAILS } from '@/lib/auth'
-import { supabase, type Artwork, type Series } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 import { getSeries } from '@/lib/seriesData'
-import { artworkWithProxyUrl } from '@/lib/imageProxy'
+import { getHomepageArtworks } from '@/lib/homepageData'
 import HomepageContent from '@/components/HomepageContent'
 import { alternatesFor } from '@/lib/locale'
-
-function attachTags(rows: any[]): Artwork[] {
-  return (rows || []).map(({ artwork_tags, ...rest }) => ({
-    ...rest,
-    tags: (artwork_tags || []).map((at: any) => at.tags).filter(Boolean),
-  }))
-}
-
-async function getArtworks(): Promise<Artwork[]> {
-  try {
-    const { data, error } = await supabase
-      .from('artworks')
-      .select('*, artwork_tags(tags(id, name, name_en))')
-      .order('year', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false })
-
-    if (error) throw new Error('Failed to fetch artworks')
-    return attachTags(data).map(artworkWithProxyUrl)
-  } catch (error) {
-    console.error('Error fetching artworks:', error)
-    return []
-  }
-}
 
 async function getCarouselIds(): Promise<string[]> {
   try {
@@ -55,20 +32,21 @@ export const metadata = {
 export default async function HomePage() {
   const session = await getServerSession(authOptions)
   const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
-  const [artworks, seriesList, carouselIds] = await Promise.all([
-    getArtworks(),
+  const [seriesList, carouselIds] = await Promise.all([
     getSeries(!isAdmin),
     getCarouselIds(),
   ])
+  const { carouselArtworks, coverBySeriesId } = await getHomepageArtworks(carouselIds, seriesList)
 
   const firstCarouselId =
-    carouselIds.length > 0 ? carouselIds[0] : artworks.find((a) => a.image_url)?.id ?? null
+    carouselIds.length > 0 ? carouselIds[0] : carouselArtworks[0]?.id ?? null
 
   return (
     <HomepageContent
-      allArtworks={artworks}
+      carouselArtworks={carouselArtworks}
       carouselArtworkIds={carouselIds}
       seriesList={seriesList}
+      coverBySeriesId={coverBySeriesId}
       firstHeroImageId={firstCarouselId}
     />
   )
