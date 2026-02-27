@@ -37,14 +37,31 @@ function isLikelyBot(userAgent: string | null): boolean {
   return BOT_PATTERNS.some((p) => p.test(userAgent))
 }
 
+const BOT_MAX_IMAGE_WIDTH = 1000 // 爬蟲僅允許取得 w<=1000 的小圖，避免爬太多
+
 export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
   if (!pathname.startsWith('/api/image')) return NextResponse.next()
 
   const userAgent = req.headers.get('user-agent')
-  if (!isLikelyBot(userAgent)) return NextResponse.next()
+  const isBot = isLikelyBot(userAgent)
 
-  return new NextResponse('Forbidden', { status: 403 })
+  // 大圖 zoom：一律阻擋爬蟲
+  if (pathname.startsWith('/api/image/zoom')) {
+    if (isBot) return new NextResponse('Forbidden', { status: 403 })
+    return NextResponse.next()
+  }
+
+  // 小圖 /api/image：爬蟲僅允許 w<=1000，避免爬太多
+  if (isBot) {
+    const w = req.nextUrl.searchParams.get('w')
+    const parsed = w ? parseInt(w, 10) : 0
+    if (Number.isFinite(parsed) && parsed > BOT_MAX_IMAGE_WIDTH) {
+      return new NextResponse('Forbidden', { status: 403 })
+    }
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {

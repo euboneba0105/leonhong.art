@@ -1,3 +1,4 @@
-# 禁止爬蟲請求圖片 API，避免耗用 Fast Origin Transfer
+# 小圖可被爬取以利 SEO；大圖 (zoom) 禁止爬取，避免耗用 Fast Origin Transfer
 User-agent: *
-Disallow: /api/image
+Allow: /api/image
+Disallow: /api/image/zoom
