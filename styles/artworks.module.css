@@ -21,6 +21,11 @@
   overflow-x: hidden;
 }
 
+/* 系列列表頁（/series）較寬；系列內頁維持 1200px */
+.mainContentSeriesList {
+  max-width: 1500px;
+}
+
 /* 避免 flex 子元素用預設 min-width 把版面撐開 */
 .mainContent>* {
   min-width: 0;

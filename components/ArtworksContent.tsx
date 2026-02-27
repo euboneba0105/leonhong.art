@@ -81,7 +81,7 @@ export default function ArtworksContent({
 
   return (
     <div className={styles.pageContainer}>
-      <main className={styles.mainContent}>
+      <main className={`${styles.mainContent} ${styles.mainContentSeriesList}`}>
         {isAdmin && (
           <div className={admin.adminBar}>
             <button
