@@ -41,9 +41,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/en/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
   ]
 
-  const standaloneZh = { url: `${BASE_URL}/series/standalone`, lastModified: now, changeFrequency: 'weekly' as const, priority: 0.8 }
-  const standaloneEn = { url: `${BASE_URL}/en/series/standalone`, lastModified: now, changeFrequency: 'weekly' as const, priority: 0.8 }
-
   const seriesPages: MetadataRoute.Sitemap = series.map((s) => ({
     url: `${BASE_URL}/series/${seriesSlug(s)}`,
     lastModified: new Date(s.created_at),
@@ -72,5 +69,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticZh, ...staticEn, standaloneZh, standaloneEn, ...seriesPages, ...seriesPagesEn, ...eventPages, ...eventPagesEn]
+  return [...staticZh, ...staticEn, ...seriesPages, ...seriesPagesEn, ...eventPages, ...eventPagesEn]
 }

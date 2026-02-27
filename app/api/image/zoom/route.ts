@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getImageUrlById } from '@/lib/imageUrlCache'
 
 // Cache-Control 含 s-maxage：前面掛 CDN（如 Cloudflare）可快取，減少 Fast Origin Transfer
 export const runtime = 'nodejs'
@@ -45,7 +46,6 @@ export async function GET(req: NextRequest) {
   if (!id) {
     return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   }
-
   if (!supabaseAdmin) {
     return NextResponse.json({ error: 'Not configured' }, { status: 503 })
   }
@@ -56,13 +56,7 @@ export async function GET(req: NextRequest) {
       ? Math.min(ZOOM_LONG_EDGE_MAX, Math.max(ZOOM_LONG_EDGE_MIN, parsed))
       : ZOOM_LONG_EDGE_DEFAULT
 
-  const { data } = await supabaseAdmin
-    .from('artworks')
-    .select('image_url')
-    .eq('id', id)
-    .single()
-
-  const imageUrl = data?.image_url ?? null
+  const imageUrl = await getImageUrlById(id)
   if (!imageUrl) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }

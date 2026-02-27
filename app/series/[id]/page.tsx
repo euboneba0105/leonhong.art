@@ -37,16 +37,13 @@ async function getSeriesBySlug(slug: string, publicOnly: boolean): Promise<Serie
   return found ?? null
 }
 
-async function getArtworksBySeries(seriesId: string | null): Promise<Artwork[]> {
-  let query = supabase.from('artworks').select('*, artwork_tags(tags(id, name, name_en))')
-
-  if (seriesId) {
-    query = query.eq('series_id', seriesId)
-  } else {
-    query = query.is('series_id', null)
-  }
-
-  const { data } = await query
+/** Only select columns needed for series detail (omit medium, medium_en to reduce payload). 只查該系列作品，不再支援獨立作品。 */
+async function getArtworksBySeries(seriesId: string): Promise<Artwork[]> {
+  const cols = 'id, title, title_en, year, size, description, description_en, series_id, created_at, image_url, artwork_tags(tags(id, name, name_en))'
+  const { data } = await supabase
+    .from('artworks')
+    .select(cols)
+    .eq('series_id', seriesId)
     .order('year', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
@@ -76,11 +73,13 @@ async function getTags(): Promise<Tag[]> {
   }
 }
 
+/** Resolve series by id or slug; run both lookups in parallel. */
 async function getSeriesForSegment(segment: string, publicOnly: boolean): Promise<Series | null> {
-  if (segment === 'standalone') return null
-  const byId = await getSeriesById(segment, publicOnly)
-  if (byId) return byId
-  return getSeriesBySlug(segment, publicOnly)
+  const [byId, bySlug] = await Promise.all([
+    getSeriesById(segment, publicOnly),
+    getSeriesBySlug(segment, publicOnly),
+  ])
+  return byId ?? bySlug
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -88,9 +87,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const segment = resolved?.id?.trim()
   const zhPath = segment ? `/series/${segment}` : '/series'
   if (!segment) return { title: '作品集', alternates: alternatesFor('/series') }
-  if (segment === 'standalone') {
-    return { title: '獨立作品', alternates: alternatesFor(zhPath) }
-  }
+  if (segment === 'standalone') return { title: '作品集', alternates: alternatesFor('/series') }
   const series = await getSeriesForSegment(segment, true)
   const name = series ? (series.name || series.name_en) : '作品集'
   return { title: name, alternates: alternatesFor(zhPath) }
@@ -99,32 +96,28 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function SeriesDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolved = await params
   const segment = resolved?.id?.trim()
-  if (!segment) {
-    redirect('/series')
-  }
+  if (!segment) redirect('/series')
+  if (segment === 'standalone') redirect('/series')
+
   const session = await getServerSession(authOptions)
   const isAdmin = !!(session?.user?.email && ADMIN_EMAILS.includes(session.user.email))
   const publicOnly = !isAdmin
-  const isStandalone = segment === 'standalone'
 
-  let series: Series | null = null
-  if (!isStandalone) {
-    series = await getSeriesById(segment, publicOnly)
-    if (series && seriesSlug(series) !== segment) {
-      redirect(`/series/${seriesSlug(series)}`)
-    }
-    if (!series) {
-      series = await getSeriesBySlug(segment, publicOnly)
-    }
-    if (!series) {
-      redirect('/series')
-    }
+  const [byId, bySlug, allSeries] = await Promise.all([
+    getSeriesById(segment, publicOnly),
+    getSeriesBySlug(segment, publicOnly),
+    getAllSeries(publicOnly),
+  ])
+  const series = byId ?? bySlug
+  if (series && seriesSlug(series) !== segment) {
+    redirect(`/series/${seriesSlug(series)}`)
+  }
+  if (!series) {
+    redirect('/series')
   }
 
-  const seriesId = series?.id ?? null
-  const [artworks, allSeries, allTags] = await Promise.all([
-    getArtworksBySeries(seriesId),
-    getAllSeries(publicOnly),
+  const [artworks, allTags] = await Promise.all([
+    getArtworksBySeries(series.id),
     isAdmin ? getTags() : Promise.resolve([]),
   ])
 
@@ -134,7 +127,7 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ i
       artworks={artworks}
       seriesList={allSeries}
       allTags={allTags}
-      isStandalone={isStandalone}
+      isStandalone={false}
       currentSlug={segment}
     />
   )

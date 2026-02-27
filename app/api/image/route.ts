@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getImageUrlById } from '@/lib/imageUrlCache'
 
 export const runtime = 'nodejs'
 
@@ -66,13 +67,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Not configured' }, { status: 503 })
   }
 
-  const { data } = await supabaseAdmin
-    .from('artworks')
-    .select('image_url')
-    .eq('id', id)
-    .single()
-
-  const imageUrl = data?.image_url ?? null
+  const imageUrl = await getImageUrlById(id)
   if (!imageUrl) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }

@@ -66,19 +66,19 @@ export default function ArtworksContent({
     };
   }, [editingSeries?.id, artworks.length]);
 
-  // Build series cards: use seriesCovers when provided (fast path), else derive from artworks
+  // Build series cards: use seriesCovers when provided (fast path), else derive from artworks. Request 280px (card ~176px, 1.5x).
   const seriesCards = useMemo(() => {
     if (seriesCovers) {
       return seriesList.map((s) => ({
         series: s,
-        coverUrl: seriesCovers[s.id] ? artworkImageProxyUrl(seriesCovers[s.id], 400) : null,
+        coverUrl: seriesCovers[s.id] ? artworkImageProxyUrl(seriesCovers[s.id], 280) : null,
       }));
     }
     return seriesList.map((s) => {
       const cover = s.cover_image_id
         ? artworks.find((a) => a.id === s.cover_image_id)
         : artworks.find((a) => a.series_id === s.id);
-      return { series: s, coverUrl: cover ? artworkImageProxyUrl(cover.id, 400) : null };
+      return { series: s, coverUrl: cover ? artworkImageProxyUrl(cover.id, 280) : null };
     });
   }, [seriesList, artworks, seriesCovers]);
 
@@ -156,7 +156,7 @@ export default function ArtworksContent({
         {seriesCards.length > 0 && (
           <div className={styles.seriesCardsCenterWrap}>
             <div className={styles.seriesCardsGrid}>
-              {seriesCards.map(({ series: s, coverUrl }) => (
+              {seriesCards.map(({ series: s, coverUrl }, i) => (
                 <div key={s.id} className={styles.seriesCardWrap}>
                   <Link href={`${prefix}/series/${seriesSlug(s)}`} className={styles.seriesCard}>
                     <div className={styles.seriesCardImageWrap}>
@@ -165,10 +165,11 @@ export default function ArtworksContent({
                           src={coverUrl}
                           alt={zh ? s.name : s.name_en || s.name}
                           fill
-                          sizes="(max-width: 768px) 40vw, 200px"
+                          sizes="(max-width: 768px) 40vw, 176px"
                           className={styles.seriesCardImage}
                           loading="lazy"
-                          quality={70}
+                          fetchPriority={i < 3 ? "high" : undefined}
+                          quality={65}
                           unoptimized={coverUrl.startsWith('/api/image')}
                         />
                       ) : (

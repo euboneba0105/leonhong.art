@@ -575,7 +575,7 @@ export default function SeriesDetailContent({
               {filteredArtworks.map((a, i) => {
                 const thumbFailed = failedThumbIds.has(a.id);
                 const thumbSrc = a.image_url
-                  ? artworkImageProxyUrl(a.id, 160)
+                  ? artworkImageProxyUrl(a.id, 120)
                   : "/placeholder.png";
                 return (
                   <button
