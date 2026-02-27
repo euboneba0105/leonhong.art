@@ -64,7 +64,7 @@ export default async function SeriesPage() {
   let error: string | null = null
 
   const [allTags, artworksOrCovers] = await Promise.all([
-    getTags(),
+    isAdmin ? getTags() : Promise.resolve([]),
     isAdmin
       ? getArtworks()
           .then((a) => ({ artworks: a as Artwork[], seriesCovers: null as Record<string, string> | null }))

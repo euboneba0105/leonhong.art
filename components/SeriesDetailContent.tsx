@@ -91,11 +91,24 @@ export default function SeriesDetailContent({
     };
   }, [failedThumbIds]);
 
-  /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器 */
+  /** 此系列作品有使用的媒材，未出現的媒材不顯示在篩選器。有 allTags 時用其順序，否則從 artworks 推導 */
   const tagsInSeries = useMemo(() => {
-    const ids = new Set<string>();
-    artworks.forEach((a) => a.tags?.forEach((t) => ids.add(t.id)));
-    return allTags.filter((t) => ids.has(t.id));
+    if (allTags.length > 0) {
+      const ids = new Set<string>();
+      artworks.forEach((a) => a.tags?.forEach((t) => ids.add(t.id)));
+      return allTags.filter((t) => ids.has(t.id));
+    }
+    const seen = new Set<string>();
+    const list: Tag[] = [];
+    artworks.forEach((a) =>
+      a.tags?.forEach((t) => {
+        if (t && !seen.has(t.id)) {
+          seen.add(t.id);
+          list.push(t);
+        }
+      })
+    );
+    return list;
   }, [artworks, allTags]);
 
   const filteredArtworks = useMemo(() => {

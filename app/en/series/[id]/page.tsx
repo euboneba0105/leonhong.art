@@ -122,9 +122,11 @@ export default async function EnSeriesDetailPage({ params }: { params: Promise<{
   }
 
   const seriesId = series?.id ?? null
-  const artworks = await getArtworksBySeries(seriesId)
-  const allSeries = await getAllSeries(publicOnly)
-  const allTags = await getTags()
+  const [artworks, allSeries, allTags] = await Promise.all([
+    getArtworksBySeries(seriesId),
+    getAllSeries(publicOnly),
+    isAdmin ? getTags() : Promise.resolve([]),
+  ])
 
   return (
     <SeriesDetailContent
