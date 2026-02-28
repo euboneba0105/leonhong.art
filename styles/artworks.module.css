@@ -872,6 +872,16 @@ button.seriesBackLink {
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* 透明遮罩蓋住主圖，阻擋右鍵／長按存圖；pointer-events: auto 讓觸控落在 div 上而非 img */
+.zoomImageSection .imageProtectOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .zoomLens {
   position: absolute;
   top: 0;

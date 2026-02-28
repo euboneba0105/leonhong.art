@@ -271,6 +271,12 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
         unoptimized={imageUrl.startsWith('/api/image')}
         onLoadingComplete={handleLoadingComplete}
       />
+      {/* 透明遮罩蓋住主圖，阻擋右鍵／長按存圖；事件會冒泡到外層，不影響 zoom */}
+      <div
+        className={styles.imageProtectOverlay}
+        aria-hidden
+        onContextMenu={(e) => e.preventDefault()}
+      />
       <div
         className={`${styles.zoomLens} ${zooming && zoomBlobUrl ? styles.zoomActive : ''}`}
         style={{
