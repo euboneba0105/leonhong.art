@@ -76,16 +76,16 @@ export async function GET(req: NextRequest) {
   const maxLongEdge = w ? Math.min(2400, Math.max(200, parseInt(w, 10)) || DISPLAY_LONG_EDGE) : DISPLAY_LONG_EDGE
   const cacheKey = `${id}:${maxLongEdge}`
 
+  const noindex = no_image_index || maxLongEdge > 1000
+
   const cached = imageCache.get(cacheKey)
   if (cached && Date.now() - cached.ts < IMAGE_CACHE_TTL_MS) {
-    const noindex = no_image_index || maxLongEdge > 1000
-    return new NextResponse(cached.output as unknown as BodyInit, {
-      headers: {
-        'Content-Type': cached.contentType,
-        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
-        ...(noindex ? { 'X-Robots-Tag': 'noindex' } : {}),
-      },
-    })
+    const resHeaders: Record<string, string> = {
+      'Content-Type': cached.contentType,
+      'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
+    }
+    if (noindex) resHeaders['x-robots-tag'] = 'noindex'
+    return new NextResponse(cached.output as unknown as BodyInit, { headers: resHeaders })
   }
 
   try {
@@ -93,14 +93,12 @@ export async function GET(req: NextRequest) {
     const { output, contentType } = await resizeAndReturn(input, maxLongEdge)
     imageCache.set(cacheKey, { output, contentType, ts: Date.now() })
     evictImageCacheIfNeeded()
-    const headers: Record<string, string> = {
+    const resHeaders: Record<string, string> = {
       'Content-Type': contentType,
       'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
     }
-    if (no_image_index || maxLongEdge > 1000) {
-      headers['X-Robots-Tag'] = 'noindex'
-    }
-    return new NextResponse(output as unknown as BodyInit, { headers })
+    if (noindex) resHeaders['x-robots-tag'] = 'noindex'
+    return new NextResponse(output as unknown as BodyInit, { headers: resHeaders })
   } catch (err) {
     console.error('Image proxy error:', err)
     return NextResponse.json({ error: 'Failed to fetch image' }, { status: 502 })
