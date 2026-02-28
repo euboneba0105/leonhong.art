@@ -23,6 +23,9 @@
   position: absolute;
   inset: 0;
   will-change: filter;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .heroSlide {
@@ -36,6 +39,12 @@
 
 .heroSlideActive {
   opacity: 1;
+}
+
+/* 主圖不接收點擊／觸控，避免長按存圖 */
+.heroSlideImg,
+.heroSlideImg img {
+  pointer-events: none;
 }
 
 /* Dark overlay – opacity controlled by JS scroll */

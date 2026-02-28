@@ -192,6 +192,7 @@ export default function HomepageContent({
         <div
           className={styles.heroArtworkLayer}
           style={fogAmount > 0 ? { filter: `blur(${fogAmount * 10}px)` } : undefined}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {heroArtworks.map((artwork, i) => {
             const isFirst = i === 0
@@ -208,6 +209,7 @@ export default function HomepageContent({
                   alt={zh ? `洪德忠 - ${artwork.title}` : `Leon Hong - ${artwork.title}`}
                   fill
                   sizes="100vw"
+                  className={styles.heroSlideImg}
                   style={{ objectFit: 'cover' }}
                   priority={isFirst}
                   fetchPriority={isFirst ? 'high' : undefined}
