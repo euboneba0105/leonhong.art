@@ -229,9 +229,7 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
       const y = Math.max(0, Math.min(100, ((touch.clientY - rect.top) / rect.height) * 100))
       setZoomPos({ x, y })
     }
-    const onContextMenu = (e: Event) => {
-      if (isTouchZooming.current) e.preventDefault()
-    }
+    const onContextMenu = (e: Event) => e.preventDefault()
     el.addEventListener('touchmove', onTouchMove, { passive: false })
     el.addEventListener('contextmenu', onContextMenu)
     return () => {
@@ -270,12 +268,6 @@ export default function ArtworkZoomImage({ imageUrl, alt, className, priority = 
         draggable={false}
         unoptimized={imageUrl.startsWith('/api/image')}
         onLoadingComplete={handleLoadingComplete}
-      />
-      {/* 透明遮罩蓋住主圖，阻擋右鍵／長按存圖；事件會冒泡到外層，不影響 zoom */}
-      <div
-        className={styles.imageProtectOverlay}
-        aria-hidden
-        onContextMenu={(e) => e.preventDefault()}
       />
       <div
         className={`${styles.zoomLens} ${zooming && zoomBlobUrl ? styles.zoomActive : ''}`}
