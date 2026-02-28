@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { getImageUrlById } from '@/lib/imageUrlCache'
+import { getArtworkImageInfo } from '@/lib/imageUrlCache'
 
 export const runtime = 'nodejs'
 
@@ -67,21 +67,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Not configured' }, { status: 503 })
   }
 
-  const imageUrl = await getImageUrlById(id)
-  if (!imageUrl) {
+  const imageInfo = await getArtworkImageInfo(id)
+  if (!imageInfo) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
+  const { url: imageUrl, no_image_index } = imageInfo
 
   const maxLongEdge = w ? Math.min(2400, Math.max(200, parseInt(w, 10)) || DISPLAY_LONG_EDGE) : DISPLAY_LONG_EDGE
   const cacheKey = `${id}:${maxLongEdge}`
 
   const cached = imageCache.get(cacheKey)
   if (cached && Date.now() - cached.ts < IMAGE_CACHE_TTL_MS) {
+    const noindex = no_image_index || maxLongEdge > 1000
     return new NextResponse(cached.output as unknown as BodyInit, {
       headers: {
         'Content-Type': cached.contentType,
         'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
-        ...(maxLongEdge > 1000 ? { 'X-Robots-Tag': 'noindex' } : {}),
+        ...(noindex ? { 'X-Robots-Tag': 'noindex' } : {}),
       },
     })
   }
@@ -95,7 +97,7 @@ export async function GET(req: NextRequest) {
       'Content-Type': contentType,
       'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
     }
-    if (maxLongEdge > 1000) {
+    if (no_image_index || maxLongEdge > 1000) {
       headers['X-Robots-Tag'] = 'noindex'
     }
     return new NextResponse(output as unknown as BodyInit, { headers })

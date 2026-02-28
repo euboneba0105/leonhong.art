@@ -61,6 +61,8 @@ export type Artwork = {
   size?: string
   description?: string
   description_en?: string
+  /** 為 true 時，圖片 API 會送出 X-Robots-Tag: noindex，阻擋 Google 將此圖編入搜尋。預設 false。 */
+  no_image_index?: boolean
   tags?: Tag[]
   created_at: string
 }
