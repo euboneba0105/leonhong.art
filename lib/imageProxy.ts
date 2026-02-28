@@ -1,6 +1,7 @@
 /**
  * Build proxy URL for artwork images so the real storage URL is never exposed to the client.
  * Only used for artworks; events and other images are unchanged.
+ * Noindex 僅由 API 依 DB no_image_index 回傳 X-Robots-Tag: noindex，不從 URL 區分。
  * @param artworkId - Artwork ID
  * @param width - Optional max long edge (e.g. 1920 for hero, 400 for thumbs) for smaller/faster loads
  */

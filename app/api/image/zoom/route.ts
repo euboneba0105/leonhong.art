@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
-        'X-Robots-Tag': 'noindex',
+        'X-Robots-Tag': 'noindex', // zoom 一律大圖，與 /api/image 的 w>1000 邏輯一致
       },
     })
   } catch (err) {

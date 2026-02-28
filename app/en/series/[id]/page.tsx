@@ -39,7 +39,7 @@ async function getSeriesBySlug(slug: string, publicOnly: boolean): Promise<Serie
 
 /** Only select columns needed for series detail (omit medium, medium_en to reduce payload). No standalone artworks. */
 async function getArtworksBySeries(seriesId: string): Promise<Artwork[]> {
-  const cols = 'id, title, title_en, year, size, description, description_en, series_id, created_at, image_url, artwork_tags(tags(id, name, name_en))'
+  const cols = 'id, title, title_en, year, size, description, description_en, series_id, created_at, image_url, no_image_index, artwork_tags(tags(id, name, name_en))'
   const { data } = await supabase
     .from('artworks')
     .select(cols)

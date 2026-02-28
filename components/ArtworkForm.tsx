@@ -47,6 +47,7 @@ export default function ArtworkForm({
     size: artwork?.size || '',
     description: artwork?.description || '',
     description_en: artwork?.description_en || '',
+    no_image_index: artwork?.no_image_index ?? false,
   })
 
   const toggleTag = (id: string) => {
@@ -91,6 +92,7 @@ export default function ArtworkForm({
         year: form.year ? Number(form.year) : null,
         series_id: fixedSeriesId !== undefined ? (fixedSeriesId ?? null) : (form.series_id || null),
         image_url,
+        no_image_index: form.no_image_index,
         tag_ids: Array.from(tagIds),
       })
     } catch (err: any) {
@@ -197,6 +199,21 @@ export default function ArtworkForm({
           value={form.size}
           onChange={(e) => setForm({ ...form, size: e.target.value })}
         />
+      </div>
+
+      <div className={admin.formGroup}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={form.no_image_index}
+            onChange={(e) => setForm({ ...form, no_image_index: e.target.checked })}
+          />
+          <span>
+            {zh
+              ? '阻擋 Google 搜尋此圖（開啟時圖片不會被編入 Google 圖片搜尋）'
+              : 'Block this image from Google search (when on, image won’t be indexed by Google)'}
+          </span>
+        </label>
       </div>
 
       <div className={admin.formGroup}>

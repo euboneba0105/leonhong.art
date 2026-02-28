@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
         size: fields.size || null,
         description: fields.description || null,
         description_en: fields.description_en || null,
+        no_image_index: fields.no_image_index === true,
       })
       .select()
       .single()
@@ -81,9 +82,13 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
     const update: Record<string, any> = {}
-    const allowed = ['title', 'title_en', 'series_id', 'year', 'size', 'description', 'description_en', 'image_url']
+    const allowed = ['title', 'title_en', 'series_id', 'year', 'size', 'description', 'description_en', 'image_url', 'no_image_index']
     for (const key of allowed) {
-      if (key in fields) update[key] = fields[key] || null
+      if (key === 'no_image_index') {
+        if (key in fields) update[key] = fields[key] === true
+      } else if (key in fields) {
+        update[key] = fields[key] || null
+      }
     }
 
     // Don't overwrite DB with proxy URL: when user only edits title/description, frontend sends /api/image?id=...
