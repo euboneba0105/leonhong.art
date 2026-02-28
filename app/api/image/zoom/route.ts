@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { getArtworkImageInfo } from '@/lib/imageUrlCache'
+import { getImageUrlById } from '@/lib/imageUrlCache'
 
 // Cache-Control 含 s-maxage：前面掛 CDN（如 Cloudflare）可快取，減少 Fast Origin Transfer
 export const runtime = 'nodejs'
@@ -62,21 +62,21 @@ export async function GET(req: NextRequest) {
       ? Math.min(ZOOM_SHORT_EDGE_MAX, Math.max(ZOOM_SHORT_EDGE_MIN, parsed))
       : ZOOM_SHORT_EDGE_DEFAULT
 
-  const imageInfo = await getArtworkImageInfo(id)
-  if (!imageInfo) {
+  const imageUrl = await getImageUrlById(id)
+  if (!imageUrl) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
-  const { url: imageUrl, no_image_index } = imageInfo
 
   try {
     const input = await getImageBuffer(imageUrl)
     const { output, contentType } = await resizeAndReturn(input, maxShortEdge)
-    const headers: Record<string, string> = {
-      'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
-    }
-    if (no_image_index) headers['X-Robots-Tag'] = 'noindex'
-    return new NextResponse(output as unknown as BodyInit, { headers })
+    return new NextResponse(output as unknown as BodyInit, {
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
+        'X-Robots-Tag': 'noindex', // zoom 一律大圖，與 /api/image 的 w>1000 邏輯一致
+      },
+    })
   } catch (err) {
     console.error('Image zoom proxy error:', err)
     return NextResponse.json({ error: 'Failed to fetch image' }, { status: 502 })
