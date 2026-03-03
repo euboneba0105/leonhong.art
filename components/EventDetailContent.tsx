@@ -69,6 +69,9 @@ export default function EventDetailContent({
   });
 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [selectedPhoto, setSelectedPhoto] =
+    useState<EventGalleryPhoto | null>(null);
+  const [photoModalClosing, setPhotoModalClosing] = useState(false);
 
   // Gallery state
   const [galleryPhotos, setGalleryPhotos] =
@@ -89,6 +92,40 @@ export default function EventDetailContent({
       // ignore
     }
   }, []);
+
+  const currentPhotoIndex =
+    selectedPhoto === null
+      ? -1
+      : galleryPhotos.findIndex((p) => p.id === selectedPhoto.id);
+  const prevPhoto =
+    currentPhotoIndex > 0 ? galleryPhotos[currentPhotoIndex - 1] : null;
+  const nextPhoto =
+    currentPhotoIndex >= 0 && currentPhotoIndex < galleryPhotos.length - 1
+      ? galleryPhotos[currentPhotoIndex + 1]
+      : null;
+
+  function closePhotoModal() {
+    setPhotoModalClosing(true);
+    setTimeout(() => {
+      setSelectedPhoto(null);
+      setPhotoModalClosing(false);
+    }, 280);
+  }
+
+  useEffect(() => {
+    if (!selectedPhoto) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePhotoModal();
+      else if (e.key === "ArrowLeft" && prevPhoto) setSelectedPhoto(prevPhoto);
+      else if (e.key === "ArrowRight" && nextPhoto) setSelectedPhoto(nextPhoto);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedPhoto, prevPhoto, nextPhoto]);
 
   const title = zh ? event.title : event.title_en || event.title;
   const description = zh
@@ -264,7 +301,20 @@ export default function EventDetailContent({
             {galleryPhotos.length > 0 && (
               <div className={styles.galleryGrid}>
                 {galleryPhotos.map((photo) => (
-                  <div key={photo.id} className={styles.galleryItem}>
+                  <div
+                    key={photo.id}
+                    className={styles.galleryItem}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedPhoto(photo)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedPhoto(photo);
+                      }
+                    }}
+                    aria-label={zh ? "放大檢視" : "View larger"}
+                  >
                     <Image
                       src={photo.image_url}
                       alt=""
@@ -274,8 +324,12 @@ export default function EventDetailContent({
                     />
                     {isAdmin && (
                       <button
+                        type="button"
                         className={styles.galleryDeleteBtn}
-                        onClick={() => handleDeleteGalleryPhoto(photo.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteGalleryPhoto(photo.id);
+                        }}
                         title={zh ? "刪除此花絮" : "Delete photo"}
                       >
                         ×
@@ -327,6 +381,92 @@ export default function EventDetailContent({
               </div>
             )}
           </section>
+        )}
+
+        {/* Photo lightbox modal */}
+        {selectedPhoto && (
+          <div
+            className={`${styles.photoModalOverlay} ${photoModalClosing ? styles.photoModalOverlayClosing : ""}`}
+            onClick={closePhotoModal}
+            role="dialog"
+            aria-modal="true"
+            aria-label={zh ? "放大檢視照片" : "View photo"}
+          >
+            <button
+              type="button"
+              className={styles.photoModalClose}
+              onClick={closePhotoModal}
+              aria-label={zh ? "關閉" : "Close"}
+            >
+              ×
+            </button>
+            {galleryPhotos.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className={styles.photoModalNav}
+                  style={{ left: "1rem" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (prevPhoto) setSelectedPhoto(prevPhoto);
+                  }}
+                  disabled={!prevPhoto}
+                  aria-label={zh ? "上一張" : "Previous"}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className={styles.photoModalNav}
+                  style={{ right: "1rem" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (nextPhoto) setSelectedPhoto(nextPhoto);
+                  }}
+                  disabled={!nextPhoto}
+                  aria-label={zh ? "下一張" : "Next"}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </>
+            )}
+            <div
+              className={`${styles.photoModalContent} ${photoModalClosing ? styles.photoModalContentClosing : ""}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={selectedPhoto.id}
+                src={selectedPhoto.image_url}
+                alt=""
+                className={styles.photoModalImage}
+              />
+            </div>
+          </div>
         )}
 
         {showEdit && (

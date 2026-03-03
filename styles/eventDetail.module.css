@@ -106,6 +106,7 @@ button.backLink {
   padding-bottom: 100%;
   overflow: hidden;
   background-color: #f5f5f5;
+  cursor: pointer;
 }
 
 .galleryImage {
@@ -146,6 +147,152 @@ button.backLink {
   background-color: #cc0000;
 }
 
+/* ── Photo lightbox modal ── */
+@keyframes photoModalOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes photoModalOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes photoModalContentIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes photoModalContentOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.photoModalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 2rem;
+  animation: photoModalOverlayIn 0.28s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.photoModalOverlayClosing {
+  animation: photoModalOverlayOut 0.28s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.photoModalContent {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: photoModalContentIn 0.35s cubic-bezier(0.33, 1, 0.68, 1) 0.04s
+    both;
+}
+
+.photoModalContentClosing {
+  animation: photoModalContentOut 0.25s cubic-bezier(0.32, 0.72, 0.46, 1)
+    forwards;
+}
+
+.photoModalImage {
+  max-width: 100%;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  animation: photoModalImageIn 0.25s ease-out;
+}
+
+@keyframes photoModalImageIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.photoModalClose {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 301;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  border-radius: 50%;
+}
+
+.photoModalClose:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.photoModalNav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 301;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.photoModalNav:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.photoModalNav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 @media (max-width: 768px) {
   .mainContent {
     padding: 1.5rem 1rem 3rem;
@@ -161,5 +308,10 @@ button.backLink {
 
   .galleryDeleteBtn {
     opacity: 1;
+  }
+
+  .photoModalNav {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }
