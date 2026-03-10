@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
@@ -210,6 +211,22 @@ export default function SeriesDetailContent({
       : "";
     if (name) document.title = name + suffix;
   }, [zh, isStandalone, series]);
+
+  function formatStatus(status: Artwork["status"] | undefined, zh: boolean) {
+    if (!status) return null;
+    switch (status) {
+      case "available":
+        return zh ? "開放收藏" : "Available";
+      case "private_collection":
+        return zh ? "私人收藏" : "Private Collection";
+      case "reserved":
+        return zh ? "已預定" : "Reserved";
+      case "acquired":
+        return zh ? "已被典藏" : "Acquired";
+      default:
+        return status;
+    }
+  }
 
   function toggleFilterTag(id: string) {
     setSelectedTagIds((prev) => {
@@ -531,6 +548,22 @@ export default function SeriesDetailContent({
                               </span>
                             </div>
                           )}
+                          <div className={styles.metaRow}>
+                            <span className={styles.metaLabel}>
+                              {zh ? "狀態" : "Status"}
+                            </span>
+                            <span className={styles.metaValue}>
+                              {formatStatus(artwork.status, zh) ?? "—"}
+                              {artwork.status === "available" && (
+                                <Link
+                                  href={prefix ? `${prefix}/contact` : "/contact"}
+                                  className={styles.inquireBtn}
+                                >
+                                  {zh ? "立即洽詢" : "Inquire"}
+                                </Link>
+                              )}
+                            </span>
+                          </div>
                         </div>
                         {(artwork.description ||
                           artwork.description_en) && (

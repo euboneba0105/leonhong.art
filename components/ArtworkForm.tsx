@@ -39,10 +39,22 @@ export default function ArtworkForm({
   const [tagIds, setTagIds] = useState<Set<string>>(
     new Set((artwork?.tags || []).map((t) => t.id))
   )
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    status: Artwork['status']
+    title: string
+    title_en: string
+    series_id: string
+    year: string
+    size: string
+    description: string
+    description_en: string
+    no_image_index: boolean
+  }>({
+    status: (artwork?.status as Artwork['status']) || 'available',
     title: artwork?.title || '',
     title_en: artwork?.title_en || '',
-    series_id: fixedSeriesId !== undefined ? (fixedSeriesId ?? '') : (artwork?.series_id || ''),
+    series_id:
+      fixedSeriesId !== undefined ? (fixedSeriesId ?? '') : artwork?.series_id || '',
     year: artwork?.year ? String(artwork.year) : '',
     size: artwork?.size || '',
     description: artwork?.description || '',
@@ -91,6 +103,7 @@ export default function ArtworkForm({
         ...form,
         year: form.year ? Number(form.year) : null,
         series_id: fixedSeriesId !== undefined ? (fixedSeriesId ?? null) : (form.series_id || null),
+        status: form.status || null,
         image_url,
         no_image_index: form.no_image_index,
         tag_ids: Array.from(tagIds),
@@ -171,6 +184,25 @@ export default function ArtworkForm({
             onChange={(e) => setForm({ ...form, year: e.target.value })}
           />
         </div>
+      </div>
+
+      <div className={admin.formGroup}>
+        <label className={admin.formLabel}>{zh ? '作品狀態' : 'Status'}</label>
+        <select
+          className={admin.formInput}
+          value={form.status || 'available'}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              status: e.target.value as Artwork['status'],
+            })
+          }
+        >
+          <option value="available">Available 開放收藏</option>
+          <option value="private_collection">Private Collection 私人收藏</option>
+          <option value="reserved">Reserved 已預定</option>
+          <option value="acquired">Acquired 已被典藏</option>
+        </select>
       </div>
 
       {allTags.length > 0 && (
