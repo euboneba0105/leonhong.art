@@ -1,17 +1,38 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useLanguage } from './LanguageProvider'
 import styles from '@/styles/contact.module.css'
 
 export default function ContactContent() {
   const { lang } = useLanguage()
   const zh = lang === 'zh'
+  const searchParams = useSearchParams()
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const subj = searchParams.get('subject')
+    const msg = searchParams.get('message')
+    if (subj != null) {
+      try {
+        setSubject(decodeURIComponent(subj))
+      } catch {
+        setSubject(subj)
+      }
+    }
+    if (msg != null) {
+      try {
+        setMessage(decodeURIComponent(msg))
+      } catch {
+        setMessage(msg)
+      }
+    }
+  }, [searchParams])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)

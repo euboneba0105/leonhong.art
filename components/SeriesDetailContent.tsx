@@ -554,14 +554,23 @@ export default function SeriesDetailContent({
                             </span>
                             <span className={styles.metaValue}>
                               {formatStatus(artwork.status, zh) ?? "—"}
-                              {artwork.status === "available" && (
-                                <Link
-                                  href={prefix ? `${prefix}/contact` : "/contact"}
-                                  className={styles.inquireBtn}
-                                >
-                                  {zh ? "立即洽詢" : "Inquire"}
-                                </Link>
-                              )}
+                              {artwork.status === "available" && (() => {
+                                const title = zh ? artwork.title : (artwork.title_en || artwork.title);
+                                const yearPart = artwork.year != null ? ` (${artwork.year})` : "";
+                                const subj = zh
+                                  ? `作品諮詢：${artwork.title}${yearPart}`.trim()
+                                  : `Artwork inquiry: "${title}"${yearPart}`.trim();
+                                const msg = zh
+                                  ? `德忠您好，\n我很喜歡《${artwork.title}》${artwork.year != null ? `（${artwork.year}）` : ""}這件作品，希望能進一步了解典藏方式與相關資訊，方便時懇請回覆，謝謝您。`
+                                  : `Dear Leon,\nI am very fond of "${title}"${artwork.year != null ? ` (${artwork.year})` : ""} and would like to learn more about its acquisition and related information. I would appreciate a reply at your convenience. Thank you.`;
+                                const contactPath = prefix ? `${prefix}/contact` : "/contact";
+                                const contactHref = `${contactPath}?subject=${encodeURIComponent(subj)}&message=${encodeURIComponent(msg)}`;
+                                return (
+                                  <Link href={contactHref} className={styles.inquireBtn}>
+                                    {zh ? "立即洽詢" : "Inquire"}
+                                  </Link>
+                                );
+                              })()}
                             </span>
                           </div>
                         </div>
