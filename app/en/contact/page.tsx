@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import ContactContent from '@/components/ContactContent'
 import { alternatesFor } from '@/lib/locale'
 
@@ -8,5 +9,9 @@ export const metadata = {
 }
 
 export default function EnContactPage() {
-  return <ContactContent />
+  return (
+    <Suspense fallback={null}>
+      <ContactContent />
+    </Suspense>
+  )
 }
