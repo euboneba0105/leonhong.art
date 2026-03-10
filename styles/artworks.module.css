@@ -529,10 +529,6 @@ button.seriesBackLink {
   width: 0;
 }
 
-/* 系列內頁 loading 根層，用於 RWD 隱藏縮圖列 */
-.seriesDetailLoadingRoot {
-}
-
 /* 系列內頁 loading 的縮圖骨架：桌面直排、手機橫排 */
 .seriesDetailLoadingThumb {
   width: 100%;
@@ -834,16 +830,8 @@ button.seriesBackLink {
   width: 100%;
 }
 
-.zooming {
-  /* used with .zoomImageSection for zoom state */
-}
-
 .zoomImageSection.zooming {
   cursor: crosshair;
-}
-
-.constrainedImage {
-  /* used with .zoomImageSection for aspect ratio */
 }
 
 .zoomImageSection.constrainedImage {
