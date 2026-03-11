@@ -9,6 +9,7 @@ import AwardForm from "./AwardForm";
 import CvExhibitionForm from "./CvExhibitionForm";
 import type { Award, CvExhibition } from "@/lib/supabaseClient";
 import styles from "@/styles/about.module.css";
+import footerStyles from "@/styles/footer.module.css";
 import admin from "@/styles/adminUI.module.css";
 
 interface AboutContentProps {
@@ -386,6 +387,43 @@ export default function AboutContent({
               ))}
             </div>
           )}
+        </section>
+
+        {/* 畫室資訊 Studio Block */}
+        <section className={styles.studioSection}>
+          <div className={styles.studioBlock}>
+            <h2 className={styles.studioTitle}>畫室 - 揮灑空間</h2>
+            <div className={`${footerStyles.socialLinks} ${styles.studioSocialLinks}`}>
+              <a
+                href="https://www.instagram.com/sprinkling_space?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className={footerStyles.socialIcon}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <circle cx="12" cy="12" r="5" />
+                  <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
+                </svg>
+              </a>
+              <a
+                href="https://www.facebook.com/profile.php?id=100065030287496"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className={footerStyles.socialIcon}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
+              </a>
+            </div>
+            <p className={styles.studioDesc}>
+              讓任何人都能循序漸進地學習、喜愛繪畫的空間；小班教學，個人化量身訂做，並讓你（妳）能盡情揮灑的地方。
+            </p>
+            <p className={styles.studioLocation}>據點：雲林縣 斗六市 文化路180號</p>
+          </div>
         </section>
 
         {/* ---- Award Edit Modal ---- */}
