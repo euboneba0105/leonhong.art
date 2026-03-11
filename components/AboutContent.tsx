@@ -392,7 +392,9 @@ export default function AboutContent({
         {/* 畫室資訊 Studio Block */}
         <section className={styles.studioSection}>
           <div className={styles.studioBlock}>
-            <h2 className={styles.studioTitle}>畫室 - 揮灑空間</h2>
+            <h2 className={styles.studioTitle}>
+              {zh ? "畫室 - 揮灑空間" : "Sprinkling Space"}
+            </h2>
             <div className={`${footerStyles.socialLinks} ${styles.studioSocialLinks}`}>
               <a
                 href="https://www.instagram.com/sprinkling_space?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
@@ -420,9 +422,13 @@ export default function AboutContent({
               </a>
             </div>
             <p className={styles.studioDesc}>
-              讓任何人都能循序漸進地學習、喜愛繪畫的空間；小班教學，個人化量身訂做，並讓你（妳）能盡情揮灑的地方。
+              {zh
+                ? "讓任何人都能循序漸進地學習、喜愛繪畫的空間；小班教學，個人化量身訂做，並讓你（妳）能盡情揮灑的地方。"
+                : "A welcoming creative space where anyone can gradually discover the joy of painting at their own pace. Through small-group sessions and personalized guidance, every learner is encouraged to explore freely and express their creativity with confidence."}
             </p>
-            <p className={styles.studioLocation}>據點：雲林縣 斗六市 文化路180號</p>
+            <p className={styles.studioLocation}>
+              {zh ? "據點：雲林縣 斗六市 文化路180號" : "Location: No. 180, Wenhua Rd., Douliu City, Yunlin County 640, Taiwan"}
+            </p>
           </div>
         </section>
 
