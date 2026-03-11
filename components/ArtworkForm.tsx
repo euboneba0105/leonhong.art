@@ -200,8 +200,8 @@ export default function ArtworkForm({
         >
           <option value="available">Available 開放收藏</option>
           <option value="private_collection">Private Collection 私人收藏</option>
-          <option value="reserved">Reserved 已預定</option>
-          <option value="acquired">Acquired 已被典藏</option>
+          <option value="reserved">Reserved 典藏洽談中</option>
+          <option value="acquired">Acquired 已受藏家典藏</option>
         </select>
       </div>
 

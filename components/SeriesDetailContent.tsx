@@ -220,9 +220,9 @@ export default function SeriesDetailContent({
       case "private_collection":
         return zh ? "私人收藏" : "Private Collection";
       case "reserved":
-        return zh ? "已預定" : "Reserved";
+        return zh ? "典藏洽談中" : "In acquisition";
       case "acquired":
-        return zh ? "已被典藏" : "Acquired";
+        return zh ? "已受藏家典藏" : "In collection";
       default:
         return status;
     }

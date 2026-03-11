@@ -56,7 +56,7 @@ export type Artwork = {
   title_en?: string
   series_id?: string
   year?: number
-  /** 作品狀態：available=開放收藏, private_collection=私人收藏, reserved=已預定, acquired=已被典藏 */
+  /** 作品狀態：available=開放收藏, private_collection=私人收藏, reserved=典藏洽談中, acquired=已受藏家典藏 */
   status?: 'available' | 'private_collection' | 'reserved' | 'acquired'
   medium?: string
   medium_en?: string
