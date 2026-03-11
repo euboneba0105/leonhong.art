@@ -127,7 +127,8 @@
   height: 2px;
   background-color: #1a1a1a;
   border-radius: 1px;
-  transition: all 0.25s ease;
+  transform-origin: center;
+  transition: transform 0.25s ease, opacity 0.2s ease;
 }
 
 .hamburgerLineTop {
@@ -136,6 +137,7 @@
 
 .hamburgerLineMid {
   opacity: 0;
+  transform: scaleX(0);
 }
 
 .hamburgerLineBot {
@@ -168,6 +170,8 @@
 .mobileNavBackdropOpen {
   opacity: 1;
   pointer-events: auto;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
 }
 
 /* Mobile: slide-in panel from left (below header) */
@@ -189,6 +193,19 @@
 
 .mobileNavOpen {
   transform: translateX(0);
+  animation: mobileNavSlideIn 0.3s ease;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
+}
+
+@keyframes mobileNavSlideIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 
 .mobileNavList {
@@ -327,5 +344,6 @@
 
   .mobileNav {
     display: block;
+    overflow: hidden;
   }
 }

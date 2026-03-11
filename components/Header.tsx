@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -14,9 +14,23 @@ export default function Header() {
   const zh = lang === 'zh'
   const pathname = usePathname() ?? '/'
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuVisible, setMenuVisible] = useState(false)
   const { data: session } = useSession()
   const isAdmin = !!(session?.user as any)?.isAdmin
   const prefix = basePath(pathname)
+
+  useEffect(() => {
+    if (menuOpen) {
+      setMenuVisible(true)
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      setMenuVisible(false)
+    }, 300)
+
+    return () => window.clearTimeout(timeout)
+  }, [menuOpen])
 
   // Hide header on immersive homepage (after all hooks)
   if (pathname === '/' || pathname === '/en') return null
@@ -30,109 +44,115 @@ export default function Header() {
   ]
 
   return (
-    <header className={styles.header}>
-      <div className={styles.headerInner}>
-        {/* Hamburger button – mobile only */}
-        <button
-          className={styles.hamburger}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineTop : ''}`} />
-          <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineMid : ''}`} />
-          <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineBot : ''}`} />
-        </button>
+    <>
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          {/* Hamburger button – mobile only */}
+          <button
+            className={styles.hamburger}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineTop : ''}`} />
+            <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineMid : ''}`} />
+            <span className={`${styles.hamburgerLine} ${menuOpen ? styles.hamburgerLineBot : ''}`} />
+          </button>
 
-        {/* Logo – always centered on mobile */}
-        <Link href={prefix || '/'} className={styles.logoLink}>
-          <Image
-            src="/logo.png"
-            alt={zh ? '洪德忠' : 'Leon Hong'}
-            width={200}
-            height={60}
-            sizes="(max-width: 768px) 50vw, 200px"
-            className={styles.logo}
-            priority
-          />
-        </Link>
+          {/* Logo – always centered on mobile */}
+          <Link href={prefix || '/'} className={styles.logoLink}>
+            <Image
+              src="/logo.png"
+              alt={zh ? '洪德忠' : 'Leon Hong'}
+              width={200}
+              height={60}
+              sizes="(max-width: 768px) 50vw, 200px"
+              className={styles.logo}
+              priority
+            />
+          </Link>
 
-        {/* Desktop nav */}
-        <nav className={styles.nav}>
-          <ul className={styles.navList}>
-            <li>
-              <Link
-                href={`${prefix}/series`}
-                className={`${styles.navLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
-              >
-                {zh ? '作品集' : 'Artworks'}
-              </Link>
-            </li>
-
-            {navItems.map((item) => (
-              <li key={item.href}>
+          {/* Desktop nav */}
+          <nav className={styles.nav}>
+            <ul className={styles.navList}>
+              <li>
                 <Link
-                  href={`${prefix}${item.href}`}
-                  className={`${styles.navLink} ${pathname === `${prefix}${item.href}` ? styles.navLinkActive : ''}`}
+                  href={`${prefix}/series`}
+                  className={`${styles.navLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
                 >
-                  {item.label}
+                  {zh ? '作品集' : 'Artworks'}
                 </Link>
               </li>
-            ))}
-            {isAdmin && (
+
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={`${prefix}${item.href}`}
+                    className={`${styles.navLink} ${pathname === `${prefix}${item.href}` ? styles.navLinkActive : ''}`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+              {isAdmin && (
+                <li>
+                  <button onClick={() => signOut()} className={styles.signOutBtn}>
+                    {zh ? '登出' : 'Sign Out'}
+                  </button>
+                </li>
+              )}
+            </ul>
+          </nav>
+
+          {/* Spacer to balance hamburger on mobile */}
+          <div className={styles.spacer} />
+        </div>
+      </header>
+
+      {/* Keep mobile overlays outside the sticky header stacking context on iOS Safari */}
+      {menuVisible && (
+        <>
+          <div
+            className={`${styles.mobileNavBackdrop} ${menuOpen ? styles.mobileNavBackdropOpen : ''}`}
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+          <nav className={`${styles.mobileNav} ${menuOpen ? styles.mobileNavOpen : ''}`} aria-hidden={!menuOpen}>
+            <ul className={styles.mobileNavList}>
               <li>
-                <button onClick={() => signOut()} className={styles.signOutBtn}>
-                  {zh ? '登出' : 'Sign Out'}
-                </button>
-              </li>
-            )}
-          </ul>
-        </nav>
-
-        {/* Spacer to balance hamburger on mobile */}
-        <div className={styles.spacer} />
-      </div>
-
-      {/* Mobile slide-in panel from left + backdrop */}
-      <div
-        className={`${styles.mobileNavBackdrop} ${menuOpen ? styles.mobileNavBackdropOpen : ''}`}
-        onClick={() => setMenuOpen(false)}
-        aria-hidden="true"
-      />
-      <nav className={`${styles.mobileNav} ${menuOpen ? styles.mobileNavOpen : ''}`} aria-hidden={!menuOpen}>
-        <ul className={styles.mobileNavList}>
-            <li>
-              <Link
-                href={`${prefix}/series`}
-                className={`${styles.mobileNavLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {zh ? '作品集' : 'Artworks'}
-              </Link>
-            </li>
-
-            {navItems.map((item) => (
-              <li key={item.href}>
                 <Link
-                  href={`${prefix}${item.href}`}
-                  className={`${styles.mobileNavLink} ${pathname === `${prefix}${item.href}` ? styles.navLinkActive : ''}`}
+                  href={`${prefix}/series`}
+                  className={`${styles.mobileNavLink} ${isPortfolioActive ? styles.navLinkActive : ''}`}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {item.label}
+                  {zh ? '作品集' : 'Artworks'}
                 </Link>
               </li>
-            ))}
-            {isAdmin && (
-              <li>
-                <button
-                  onClick={() => { signOut(); setMenuOpen(false) }}
-                  className={styles.mobileSignOutBtn}
-                >
-                  {zh ? '登出' : 'Sign Out'}
-                </button>
-              </li>
-            )}
-          </ul>
-        </nav>
-    </header>
+
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={`${prefix}${item.href}`}
+                    className={`${styles.mobileNavLink} ${pathname === `${prefix}${item.href}` ? styles.navLinkActive : ''}`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+              {isAdmin && (
+                <li>
+                  <button
+                    onClick={() => { signOut(); setMenuOpen(false) }}
+                    className={styles.mobileSignOutBtn}
+                  >
+                    {zh ? '登出' : 'Sign Out'}
+                  </button>
+                </li>
+              )}
+            </ul>
+          </nav>
+        </>
+      )}
+    </>
   )
 }
